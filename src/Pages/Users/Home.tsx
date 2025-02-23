@@ -55,7 +55,7 @@ const Home = () => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="bg-black text-white h-10 px-20 rounded-3xl text-sm mt-4"
+            className="bg-black text-white h-10 px-20 rounded-3xl text-sm mt-4 hover:bg-neutral-800"
             onClick={() => navigate('/user/signup')}
           >
             Get Started
@@ -142,7 +142,7 @@ const Home = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-white text-black py-3 px-8 rounded-3xl text-sm drop-shadow-xl hover:bg-gray-100"
+                className="bg-white text-black py-3 px-8  rounded-3xl text-sm drop-shadow-xl hover:bg-gray-100 "
                 onClick={() => navigate('/driver/signup')}
               >
                 Get started as a Driver
