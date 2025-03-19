@@ -1,0 +1,502 @@
+
+import { useForm } from "react-hook-form"
+import * as yup from "yup";
+import { Upload } from "lucide-react"
+import { useState , useEffect } from "react"
+import { RootState } from "../../../Redux/store";
+import BinButton from "../../../components/Icons/BinBtn"
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useNavigate } from "react-router-dom";
+import { FormData } from "./DAddVehicle";
+import { useSelector } from "react-redux";
+import { vehicleRejectReason } from "../../../api/auth/driver";
+import { reApplyVehicle } from "../../../api/auth/driver";
+
+function validateLicensePlate(numberPlate: string): boolean {
+  if (!numberPlate) return false;
+  const regex = /^[A-Z]{2}[ -]?[0-9]{1,2}[ -]?[A-Z]{1,2}[ -]?[0-9]{1,4}$/;
+  return regex.test(numberPlate);
+}
+
+const schema = yup.object().shape({
+  firstName: yup.string().required("First name is required"),
+  lastName: yup.string().default('').optional(),
+  address: yup.string().required("Street address is required"),
+  brand: yup.string().required('Vehicle brand is required'),
+  model: yup.string().required('Vehicle model is required'),
+  color: yup.string().required('Vehicle color is required'),
+  registrationDate: yup
+    .date()
+    .transform((value, originalValue) => {
+      return originalValue === "" ? undefined : value;
+    })
+    .required("Registration Date is required")
+    .max(new Date(), "Date of Birth cannot be in the future"),
+
+  licenseNumber: yup
+    .string()
+    .required("Number plate is required")
+    .test(
+      "valid-number-plate",
+      "Invalid Number Plate Format",
+      (value) => !!value && validateLicensePlate(value)
+    ),
+
+  expirationDate: yup
+    .date()
+    .transform((value, originalValue) => {
+      return originalValue === "" ? undefined : value;
+    })
+    .required("Expiration Date is required")
+    .min(new Date(), "Expiration date must not be in the past"),
+  insuranceProvider: yup.string().required('Insurance provider is required'),
+  policyNumber: yup.string()
+    .required('Policy number is required')
+    .matches(/^\d{10}$/, 'Policy number must be exactly 10 digits')
+});
+
+const VehicleRejected = () => {
+
+  const [frontView, setFrontView] = useState<string | null>(null);
+  const [rearView, setRearView] = useState<string | null>(null);
+  const [interiorView, setInteriorView] = useState<string | null>(null);
+  const [error, setError] = useState('')
+  const [showForm, setShowForm] = useState(false);
+  const [reason, setReason] = useState("");
+  const [imgError, setImgError] = useState('')
+  const navigate = useNavigate()
+
+  const token = useSelector((state: RootState) => state.driverAuth.token);
+
+
+  useEffect(() => {
+    if (!token) {
+      localStorage.clear();
+      navigate("/driver/login");
+      return;
+    }
+
+    const fetchReason = async () => {
+      try {
+        const res = await vehicleRejectReason();
+        if (res) {
+          console.log('res ',res);
+          
+          setReason(res.reason || 'Because your some details are incorrect');
+        }
+      } catch (error) {
+        console.log(error);
+        navigate("/driver/login");
+      }
+    };
+
+    fetchReason();
+  }, [token, navigate]);
+
+
+  const handleImageUpload = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setImage: (image: string) => void,
+    setError: (error: string) => void
+  ) => {
+    const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+    const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]; // Allowed image types
+
+    const file = e.target.files?.[0]; // Ensure a file is selected
+    if (!file) return;
+
+    // Validate file type
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setError("Only JPG, PNG, and WEBP images are allowed.");
+      return;
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      setError("File size must be less than 2MB.");
+      return;
+    }
+
+    // Reset error state
+    setError("");
+
+    // Read the file and set the image preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (reader.result) {
+        setImage(reader.result as string);
+      }
+    };
+    reader.onerror = () => {
+      console.error("Error reading file");
+      setError("Failed to read the file.");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFrontView = (e: React.ChangeEvent<HTMLInputElement>) =>
+    handleImageUpload(e, setFrontView, setImgError);
+
+  const handleRearView = (e: React.ChangeEvent<HTMLInputElement>) =>
+    handleImageUpload(e, setRearView, setImgError);
+
+  const handleInteriorView = (e: React.ChangeEvent<HTMLInputElement>) =>
+    handleImageUpload(e, setInteriorView, setImgError);
+
+
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: yupResolver(schema),
+  });
+
+
+  const onSubmit = async (data: FormData) => {
+    console.log("Inside the onsubmit");
+    
+    setError('')
+    if (!frontView || !rearView || !interiorView) {
+      setImgError('Vehicle images are required')
+      return
+    }
+
+
+    
+    console.log('data ', data);
+    const updatedData = {
+      nameOfOwner: `${data.firstName.trimStart()} ${data.lastName.trimEnd() || ''}`,
+      addressOfOwner: data.address,
+      brand: data.brand,
+      vehicleModel: data.model,
+      color: data.color,
+      numberPlate: data.licenseNumber,
+      regDate: data.registrationDate,
+      expDate: data.expirationDate,
+      insuranceProvider: data.insuranceProvider,
+      policyNumber: data.policyNumber,
+      vehicleImages: {
+        frontView, rearView, interiorView
+      }
+    }
+    console.log('updatedData ', updatedData);
+
+    // https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/toyota/modelyear/2020?format=json
+
+    try {
+      if (!token) {
+        return
+      }
+      const response = await reApplyVehicle(updatedData)
+      if (response) {
+        console.log('Response   ', response);
+        const driver = response.driver
+        localStorage.clear()
+        console.log('driver data in the add vehicle page ', driver);
+
+
+        navigate('/driver/verification-pending')
+      }
+
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message)
+      } else {
+        setError('Internal server error')
+      }
+    }
+
+  }
+
+
+  return (
+    <div className="flex items-center justify-center min-h-screen py-6">
+      <div className="bg-[#FFFBFB] rounded-2xl p-6 max-w-2xl w-full text-center shadow-xl mx-4 sm:mx-auto">
+        <h1 className="font-primary text-3xl text-black">NexaDrive</h1>
+        <p className="text-sm text-black mt-0.5">Vehicle Application Status</p>
+
+        {/* Rejection Message */}
+        <div className="mt-6">
+          <p className="text-red-600 font-semibold text-lg">
+            Your application has been rejected.
+          </p>
+          <p className="text-sm text-gray-600 mt-2">{reason}</p>
+        </div>
+
+        {/* Show Reapply Button if Form is Hidden */}
+
+        {!showForm && (
+          <div className="mt-6">
+            <button
+              onClick={() => setShowForm(true)}
+              className="w-full bg-black text-white py-2.5 rounded-xl hover:bg-gray-900 transition text-sm"
+            >
+              Reapply
+            </button>
+          </div>
+        )}
+
+        {/* Reapply Form */}
+        {showForm && (
+
+          <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-3 text-left">
+            {error && <p className="text-red-500 mt-3 text-xs">{error}</p>}
+            {/* Full Name */}
+            <label className="block font-medium text-black text-sm">Name of owner</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <input
+                  type="text"
+                  placeholder="First name"
+                  {...register("firstName")}
+                  className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+                />
+                {errors.firstName && (
+                  <p className="text-red-500 text-xs">{errors.firstName.message}</p>
+                )}
+              </div>
+              <div>
+                <input
+                  type="text"
+                  placeholder="*Last name "
+                  {...register("lastName")}
+                  className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+                />
+                {errors.lastName && (
+                  <p className="text-red-500 text-xs">{errors.lastName.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Permanent Address */}
+            <label className="block font-medium text-black text-sm">Address of owner</label>
+            <div>
+              <input
+                type="text"
+                placeholder="Address"
+                {...register("address")}
+                className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+              />
+              {errors.address && (
+                <p className="text-red-500 text-xs">{errors.address.message}</p>
+              )}
+            </div>
+
+
+
+            {/* Vehicle Details */}
+            <label className="block font-medium text-black text-sm">Vehicle info</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <input
+                  type="text"
+                  placeholder="Brand"
+                  {...register("brand")}
+                  className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+                />
+                {errors.brand && (
+                  <p className="text-red-500 text-xs">{errors.brand.message}</p>
+                )}
+              </div>
+
+              <div>
+                {/* <label className="block font-medium text-black text-sm">Model</label> */}
+                <input
+                  type="text"
+                  {...register("model")}
+                  placeholder="Model"
+                  className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+                />
+                {errors.model && (
+                  <p className="text-red-500 text-xs">{errors.model.message}</p>
+                )}
+              </div>
+            </div>
+
+
+
+            {/*  Color and Number plate  */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                {/* <label className="block font-medium text-black text-sm">Vehicle Color </label> */}
+                <input
+                  type="text"
+                  placeholder="Color"
+                  {...register("color")}
+                  className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+                />
+                {errors.color && (
+                  <p className="text-red-500 text-xs">{errors.color.message}</p>
+                )}
+              </div>
+
+              <div>
+                {/* <label className="block font-medium text-black text-sm">Number Plate </label> */}
+                <input
+                  type="text"
+                  placeholder="Number plate"
+                  {...register("licenseNumber")}
+                  className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+                />
+                {errors.licenseNumber && (
+                  <p className="text-red-500 text-xs">{errors.licenseNumber.message}</p>
+                )}
+              </div>
+            </div>
+
+
+
+            {/* Vehicle images  */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
+              {/* Front View */}
+              <div className="w-full max-w-xs mx-auto">
+                {frontView ? (
+                  <div className="relative group">
+                    <img
+                      src={frontView}
+                      alt="Front View"
+                      className="w-44 h-44 object-cover rounded-xl border border-gray-300 shadow-md transition-transform transform"
+                    />
+                    <div className="absolute top-2 right-6 ">
+                      <BinButton
+                        onClick={() => setFrontView(null)}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-full h-44 p-4 border-2 border-dashed border-gray-400 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                    <Upload size={28} className="text-gray-500 mb-2" />
+                    <span className="text-gray-700 text-sm">Front View</span>
+                    <input type="file" className="hidden" onChange={handleFrontView} accept="image/*" />
+                  </label>
+                )}
+              </div>
+
+              {/* Rear View */}
+              <div className="w-full max-w-xs mx-auto">
+                {rearView ? (
+                  <div className="relative group">
+                    <img
+                      src={rearView}
+                      alt="Rear View"
+                      className="w-44 h-44 object-cover rounded-xl border border-gray-300 shadow-md transition-transform transform"
+                    />
+                    <div className="absolute top-2 right-6 ">
+                      <BinButton
+                        onClick={() => setRearView(null)}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-full h-44 p-4 border-2 border-dashed border-gray-400 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                    <Upload size={28} className="text-gray-500 mb-2" />
+                    <span className="text-gray-700 text-sm">Rear View</span>
+                    <input type="file" className="hidden" onChange={handleRearView} accept="image/*" />
+                  </label>
+                )}
+              </div>
+
+              {/* Interior View */}
+              <div className="w-full max-w-xs mx-auto">
+                {interiorView ? (
+                  <div className="relative group">
+                    <img
+                      src={interiorView}
+                      alt="Interior View"
+                      className="w-44 h-44 object-cover rounded-xl border border-gray-300 shadow-md transition-transform transform "
+                    />
+                    <div className="absolute top-2 right-6 ">
+                      <BinButton
+                        onClick={() => setInteriorView(null)}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-full h-44 p-4 border-2 border-dashed border-gray-400 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+                    <Upload size={28} className="text-gray-500 mb-2" />
+                    <span className="text-gray-700 text-sm">Interior</span>
+                    <input type="file" className="hidden" onChange={handleInteriorView} accept="image/*" />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            {imgError && <p className="text-red-500 mt-3 text-xs">{imgError}</p>}
+
+
+            {/* Registration Dates  */}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block font-medium text-black text-sm">Registration Date</label>
+                <input
+                  type="date"
+                  {...register("registrationDate")}
+                  className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+                />
+                {errors.registrationDate && (
+                  <p className="text-red-500 text-xs">{errors.registrationDate.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block font-medium text-black text-sm">Date of Expiration</label>
+                <input
+                  type="date"
+                  {...register("expirationDate")}
+                  className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+                />
+                {errors.expirationDate && (
+                  <p className="text-red-500 text-xs">{errors.expirationDate.message}</p>
+                )}
+              </div>
+            </div>
+
+
+            {/* Insurance details  */}
+
+            <label className="block font-medium text-black text-sm">Insurance details </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <input
+                  type="text"
+                  placeholder="Insurance Provide"
+                  {...register("insuranceProvider")}
+                  className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+                />
+                {errors.insuranceProvider && (
+                  <p className="text-red-500 text-xs">{errors.insuranceProvider.message}</p>
+                )}
+              </div>
+
+              <div>
+                {/* <label className="block font-medium text-black text-sm">Number Plate </label> */}
+                <input
+                  type="text"
+                  placeholder="Policy Number"
+                  {...register("policyNumber")}
+                  className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+                />
+                {errors.policyNumber && (
+                  <p className="text-red-500 text-xs">{errors.policyNumber.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="w-full bg-black text-white py-2.5 rounded-xl hover:bg-gray-900 transition text-sm mt-4"
+            >
+              Submit
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default VehicleRejected

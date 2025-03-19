@@ -3,10 +3,10 @@ import { useSelector } from "react-redux";
 import { RootState } from "../Redux/store";
 
 const PublicRoute = () => {
-  const { token, user } = useSelector((state: RootState) => state.auth);
+  const { token } = useSelector((state: RootState) => state.auth);
 
   // If user is authenticated, redirect them to the Ride page
-  if (token && user?.role === "User") {
+  if (token ) {
     return <Navigate to="/user/ride" replace />;
   }
 

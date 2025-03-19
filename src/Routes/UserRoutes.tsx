@@ -7,6 +7,7 @@ import Ride from '../Pages/Users/Ride/Ride'
 import ProtectedRoute from './ProtectedRoute'
 import PublicRoute from './PublicRoute'
 import ResetPassword from '../Pages/Users/Auth/ResetPassword'
+import Profile from '@/Pages/Users/Profile'
 
 const UserRoutes = () => {
   return (
@@ -24,6 +25,7 @@ const UserRoutes = () => {
 
       <Route element={<ProtectedRoute />}>
         <Route path='/ride' element={<Ride />} />
+        <Route path='/profile' element={<Profile />} />
       </Route>
 
 

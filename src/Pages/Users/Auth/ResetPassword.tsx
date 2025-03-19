@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react"
-import AuthBtn from "../../../Components/User Comp/AuthBtn"
-import AuthInput from "../../../Components/User Comp/AuthInput"
+import AuthBtn from "../../../components/User Comp/AuthBtn"
+import AuthInput from "../../../components/User Comp/AuthInput"
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { resetPassword } from "../../../api/auth/user";
-import Loader from "../../../Components/Loader";
+import Loader from "../../../components/Loader";
 
 const ResetPassword = () => {
 

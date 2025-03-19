@@ -7,21 +7,23 @@ import { FC } from 'react';
 
 interface StepCount {
     count : number,
-    step:number
+    step:number,
+    className?:string
+    cWidth?:string
 }
 
 
 
-  const  LabelStepper : FC<StepCount> = ({count,step})=>{
+  const  LabelStepper : FC<StepCount> = ({count,step,className , cWidth})=>{
     const steps = Array(step);
     for (let i = 1; i <= step; i++) {
         steps.push(i)     
     }
-
+    const width = cWidth ? cWidth : '70%'
     
   return (
-    <div className='mt-4 ml-18'>
-    <Box sx={{ width: '70%' }}>
+    <div className={`${className} mt-4 ml-18`}>
+    <Box sx={{ width: width }}>
       <Stepper activeStep={count} alternativeLabel>
         {steps.map((label) => (
           <Step key={label}>

@@ -1,5 +1,5 @@
-import AuthBtn from "../../../Components/User Comp/AuthBtn"
-import AuthInput from "../../../Components/User Comp/AuthInput"
+import AuthBtn from "../../../components/User Comp/AuthBtn"
+import AuthInput from "../../../components/User Comp/AuthInput"
 import { motion } from 'framer-motion'
 import { FaGoogle } from "react-icons/fa";
 import { useState } from "react";
@@ -10,7 +10,7 @@ import { sLogin } from "../../../Redux/slices/authSlice";
 import { useDispatch } from "react-redux";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import Loader from "../../../Components/Loader";
+import Loader from "../../../components/Loader";
 
 
 const Login = () => {
@@ -86,9 +86,9 @@ const Login = () => {
         if (email && password) {
             setLoading(true)
             try {
-                // Proceed with the login request if no errors
+                
                 const response = await login(email, password);
-                console.log('response token ', response.access_token);
+                
 
                 setLoading(false)
                 if (response && response.accessToken && response.user) {

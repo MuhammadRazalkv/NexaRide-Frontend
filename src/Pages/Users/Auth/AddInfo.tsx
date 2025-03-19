@@ -1,13 +1,13 @@
-import AuthBtn from "../../../Components/User Comp/AuthBtn";
-import AuthInput from "../../../Components/User Comp/AuthInput";
-import LabelStepper from "../../../Components/User Comp/Stepper";
+import AuthBtn from "../../../components/User Comp/AuthBtn";
+import AuthInput from "../../../components/User Comp/AuthInput";
+import LabelStepper from "../../../components/User Comp/Stepper";
 import { useState, useRef, useEffect } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { addInfo } from "../../../api/auth/user";
 import { useNavigate, useLocation } from "react-router-dom";
 import { sLogin } from "../../../Redux/slices/authSlice";
 import { useDispatch } from "react-redux";
-import Loader from "../../../Components/Loader";
+import Loader from "../../../components/Loader";
 
 const AddInfo = () => {
     const navigate = useNavigate()
@@ -82,7 +82,7 @@ const AddInfo = () => {
         if (!value.trim()) {
             setPhoneErr("Phone number is required");
         } else if (!/^[6-9]\d{9}$/.test(value)) {
-            setPhoneErr("Enter a valid 10-digit Indian phone number starting with 6-9");
+            setPhoneErr("Enter a valid phone number");
         } else {
             setPhoneErr('');
         }

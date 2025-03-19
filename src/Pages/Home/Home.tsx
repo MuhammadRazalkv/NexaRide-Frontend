@@ -1,6 +1,6 @@
 import { Landing1, Landing2, Landing3 } from "../../Assets";
 import { motion } from "framer-motion";
-import Footer from "../../Components/User Comp/Footer";
+import Footer from "../../components/User Comp/Footer";
 import { useNavigate } from "react-router-dom";
 
 const Home = () => {
@@ -111,7 +111,7 @@ const Home = () => {
         {/* Landing sec 2 Driver    */}
 
         <motion.div
-          initial={{ opacity: 0, x: 50 }}
+          initial={{ opacity: 0 , x:15 }}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 1 }}
           viewport={{ once: true }}

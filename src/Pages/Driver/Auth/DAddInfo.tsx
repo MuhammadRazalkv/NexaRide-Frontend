@@ -1,0 +1,361 @@
+
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { useState } from "react";
+import LabelStepper from "../../../components/User Comp/Stepper";
+import { addInfo } from "../../../api/auth/driver";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useSignup } from "../../../Hooks/useSignup";
+
+// const isAtLeast18YearsOld = (dob: string): boolean => {
+//   const today = new Date();
+//   const birthDate = new Date(dob);
+//   let age = today.getFullYear() - birthDate.getFullYear();
+//   const monthDifference = today.getMonth() - birthDate.getMonth();
+//   if (
+//     monthDifference < 0 ||
+//     (monthDifference === 0 && today.getDate() < birthDate.getDate())
+//   ) {
+//     age--;
+//   }
+//   return age >= 18;
+// };
+
+function validateDrivingLicense(licenseNumber: string): boolean {
+  if (!licenseNumber) return false;
+  const regex = /^[A-Z]{2}\d{2} \d{4} \d{7}$/;
+  return regex.test(licenseNumber);
+}
+
+
+const schema = yup.object().shape({
+  firstName: yup.string().required("First name is required"),
+  lastName: yup.string().default('').optional(),
+  street: yup.string().required("Street address is required"),
+  city: yup.string().required("City is required"),
+  state: yup.string().required("State is required"),
+  zip: yup
+    .string()
+    .required("Zip code is required")
+    .matches(/^\d{6}$/, "Postal Code must be exactly 6 digits"),
+  phone: yup
+    .string()
+    .matches(/^[6-9]\d{9}$/, "Phone number must be a valid Indian number")
+    .required("Phone is required"),
+
+  dob: yup
+    .date()
+    .transform((value, originalValue) => {
+      return originalValue === "" ? undefined : value;
+    })
+    .required("Date of Birth is required")
+    .max(new Date(), "Date of Birth cannot be in the future")
+    .test(
+      "is-at-least-18",
+      "You must be at least 18 years old",
+      (value) => {
+        if (!value) return false;
+        const today = new Date();
+        const minAge = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+        return value <= minAge;
+      }
+    )
+    .test(
+      "is-not-too-old",
+      "Age cannot exceed 100 years",
+      (value) => {
+        if (!value) return false;
+        const today = new Date();
+        const maxAge = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate());
+        return value >= maxAge;
+      }
+    ),
+
+  licenseNumber: yup
+    .string()
+    .required("License Number is required")
+    .test(
+      "valid-driving-license",
+      "Invalid License Format",
+      (value) => !!value && validateDrivingLicense(value)
+    ),
+
+  expirationDate: yup
+    .date()
+    .transform((value, originalValue) => {
+      return originalValue === "" ? undefined : value; // Convert "" to undefined
+    })
+    .required("Expiration Date is required")
+    .min(new Date(), "Expiration date must not be in the past"),
+
+  password: yup
+    .string()
+    .required("Password is required")
+    .min(8, "Password must be at least 8 characters long")
+    .matches(
+      /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      "Password must include at least one uppercase letter, one lowercase letter, one number, and one special character"
+    ),
+
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref("password")], "Passwords must match")
+    .required("Confirm Password is required"),
+});
+
+
+
+export type FormData = yup.InferType<typeof schema>;
+
+const DAddInfo = () => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: yupResolver(schema),
+  });
+
+  const { completeStep } = useSignup()
+  const [error, setError] = useState('')
+  const navigate = useNavigate()
+  const location = useLocation()
+  const googleAuthData = location.state
+
+  // const [googleData,setGoogleData] = useState()
+  // useEffect(()=>{
+  //   if (googleAuthData && googleAuthData.name ) {
+  //     setGoogleData(googleAuthData.name)
+  //   }
+  // },[googleAuthData])
+
+  const onSubmit = async (data: FormData) => {
+    console.log("Form Data: ", data);
+    const googleID = googleAuthData ? googleAuthData.id : ""
+    const profilePic = googleAuthData ? googleAuthData.picture : ""
+    const updatedData = {
+      name: `${data.firstName.trim()} ${data.lastName.trimEnd()}`,
+      email: localStorage.getItem('D-email') || '',
+      password: data.password,
+      phone: data.phone,
+      license_number: data.licenseNumber.toUpperCase(),
+      street: data.street,
+      city: data.city,
+      state: data.state,
+      pin_code: data.zip,
+      dob: data.dob,
+      license_exp: data.expirationDate,
+      googleId:googleID,
+      profilePic:profilePic
+    }
+
+    try {
+      console.log('req.body.data', updatedData);
+
+      const response = await addInfo(updatedData)
+      if (response && response.driverId) {
+        localStorage.setItem('driverId', response.driverId)
+        completeStep(4)
+        navigate('/driver/addVehicle')
+      }
+
+    } catch (error) {
+      scrollTo({
+        top: 120,
+        behavior: 'smooth',
+      })
+      if (error instanceof Error) {
+        setError(error.message)
+      } else {
+        setError('An unexpected error occurred')
+      }
+    }
+  };
+
+
+
+  return (
+    <div className="flex items-center justify-center min-h-screen py-6">
+      <div className="bg-[#FFFBFB] rounded-2xl p-6 max-w-2xl w-full text-center shadow-xl mx-4 sm:mx-auto">
+        <h1 className="font-primary text-3xl text-black">NexaDrive</h1>
+        <p className="text-sm text-black mt-0.5">Driver Information Form</p>
+        <div className="md:w-md  md:ml-25">
+
+          <LabelStepper count={2} step={4} />
+        </div>
+        {error && <p className="text-red-500 mt-3 text-xs">{error}</p>}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-3 text-left">
+          {/* Full Name */}
+          <label className="block font-medium text-black text-sm">Full Name</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <input
+                type="text"
+                placeholder="First name"
+                {...register("firstName")}
+                defaultValue={googleAuthData?.name || ''}
+                className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+              />
+              {errors.firstName && (
+                <p className="text-red-500 text-xs">{errors.firstName.message}</p>
+              )}
+            </div>
+            <div>
+              <input
+                type="text"
+                placeholder="*Last name "
+                {...register("lastName")}
+                className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+              />
+              {errors.lastName && (
+                <p className="text-red-500 text-xs">{errors.lastName.message}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Permanent Address */}
+          <label className="block font-medium text-black text-sm">Permanent Address</label>
+          <div>
+            <input
+              type="text"
+              placeholder="Street Address"
+              {...register("street")}
+              className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+            />
+            {errors.street && (
+              <p className="text-red-500 text-xs">{errors.street.message}</p>
+            )}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <input
+                type="text"
+                placeholder="City"
+                {...register("city")}
+                className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+              />
+              {errors.city && (
+                <p className="text-red-500 text-xs">{errors.city.message}</p>
+              )}
+            </div>
+            <div>
+              <input
+                type="text"
+                placeholder="State"
+                {...register("state")}
+                className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+              />
+              {errors.state && (
+                <p className="text-red-500 text-xs">{errors.state.message}</p>
+              )}
+            </div>
+          </div>
+          <div>
+            <input
+              type="number"
+              placeholder="Postal / Zip code"
+              {...register("zip")}
+              className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+            />
+            {errors.zip && (
+              <p className="text-red-500 text-xs">{errors.zip.message}</p>
+            )}
+          </div>
+
+          {/* Contact & License Details */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block font-medium text-black text-sm">Phone</label>
+              <input
+                type="number"
+                placeholder="Phone"
+                {...register("phone")}
+                className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+              />
+              {errors.phone && (
+                <p className="text-red-500 text-xs">{errors.phone.message}</p>
+              )}
+            </div>
+            <div>
+              <label className="block font-medium text-black text-sm">Date of Birth</label>
+              <input
+                type="date"
+                {...register("dob")}
+                className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+              />
+              {errors.dob && (
+                <p className="text-red-500 text-xs">{errors.dob.message}</p>
+              )}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block font-medium text-black text-sm">Driver's License Number</label>
+              <input
+                type="sting"
+                placeholder="License Number"
+                {...register("licenseNumber")}
+                className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+              />
+              {errors.licenseNumber && (
+                <p className="text-red-500 text-xs">{errors.licenseNumber.message}</p>
+              )}
+            </div>
+            <div>
+              <label className="block font-medium text-black text-sm">Date of Expiration</label>
+              <input
+                type="date"
+                {...register("expirationDate")}
+                className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+              />
+              {errors.expirationDate && (
+                <p className="text-red-500 text-xs">{errors.expirationDate.message}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Password Fields */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block font-medium text-black text-sm">Password</label>
+              <input
+                type="password"
+                placeholder="Password"
+                {...register("password")}
+                className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+              />
+              {errors.password && (
+                <p className="text-red-500 text-xs">{errors.password.message}</p>
+              )}
+            </div>
+            <div>
+              <label className="block font-medium text-black text-sm">Confirm Password</label>
+              <input
+                type="password"
+                placeholder="Confirm password"
+                {...register("confirmPassword")}
+                className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
+              />
+              {errors.confirmPassword && (
+                <p className="text-red-500 text-xs">{errors.confirmPassword.message}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full bg-black text-white py-2.5 rounded-xl hover:bg-gray-900 transition text-sm mt-4"
+          >
+            Submit
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default DAddInfo;
