@@ -18,7 +18,7 @@ import DriverPublicRoute from './Driver/PublicDriverRoutes'
 import DriverRejected from '../Pages/Driver/Auth/DriverRejected'
 import VehicleRejected from '../Pages/Driver/Auth/VehicleRejected'
 import DResetPassword from '@/Pages/Driver/Auth/DResetPassword'
-
+import DProfile from '@/Pages/Driver/DProfile'
 const DriverRoutes = () => {
   return (
 
@@ -45,6 +45,7 @@ const DriverRoutes = () => {
           <Route path='/ride' element={<DRide />} />
           <Route path='/rejected' element={<DriverRejected />} />
           <Route path='/vehicle-rejected' element={<VehicleRejected />} />
+          <Route path='/profile' element={<DProfile />} />
         </Route>
 
         <Route path='/upload' element={<UploadImg />} />

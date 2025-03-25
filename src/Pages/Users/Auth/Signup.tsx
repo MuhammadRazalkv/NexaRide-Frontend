@@ -113,7 +113,7 @@ const Signup = () => {
                         onClick={() => signUp()}
                     >
                         <FaGoogle />
-                        Login with google
+                        Signup with google
                     </motion.div>
 
                 </div>

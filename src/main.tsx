@@ -8,7 +8,7 @@ import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./Redux/store.ts";
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import 'react-toastify/dist/ReactToastify.css'
-import { ConfigProvider, theme } from 'antd';
+// import { ConfigProvider, theme } from 'antd';
 
 createRoot(document.getElementById('root')!).render(
   <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
@@ -17,12 +17,12 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <ConfigProvider theme={{
+        {/* <ConfigProvider theme={{
           algorithm:theme.darkAlgorithm
-        }}>
+        }}> */}
 
         <App />
-        </ConfigProvider>
+        {/* </ConfigProvider> */}
       </PersistGate>
     </Provider>
     </BrowserRouter>

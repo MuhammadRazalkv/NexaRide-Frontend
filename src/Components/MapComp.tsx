@@ -1,92 +1,48 @@
-// import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-// import 'leaflet/dist/leaflet.css';
-// import '@geoapify/geocoder-autocomplete/styles/minimal.css';
-// import { GeocoderAutocomplete } from '@geoapify/geocoder-autocomplete';
-// import { useEffect, useRef, useState } from 'react';
-
-// function MapComponent() {
-//     const mapRef = useRef(null);
-//     const autocompleteRef = useRef<HTMLDivElement>(null); // Reference for the autocomplete element
-//     const [position, setPosition] = useState<[number, number]>([12.9716, 77.5946]);
-
-//     useEffect(() => {
-//         if (!autocompleteRef.current) return;
-
-//         const autocomplete = new GeocoderAutocomplete(autocompleteRef.current, '5f91c9c458154879844c3d0447834abf', {
-//             placeholder: 'Enter a location',
-//             type: 'city', // Limits search to cities
-//         });
-
-//         // Handle selection
-//         autocomplete.on('select', (location) => {
-//             if (location && location.properties) {
-//                 const { lat, lon } = location.properties;
-//                 setPosition([lat, lon]);
-
-//                 // Optional: Fly to new position
-//                 const map = mapRef.current;
-//                 if (map) {
-//                     map.setView([lat, lon], 14);
-//                 }
-//             }
-//         });
-
-//         // Clean up
-//         return () => autocomplete.close();
-//     }, []);
-//     return (
-//         <div style={{ display: 'flex', height: '100vh' }}>
-//             {/* Autocomplete Input */}
-//             <div style={{ width: '30%', padding: '10px' }}>
-//                 <h3>Search Location</h3>
-//                 <div ref={autocompleteRef}></div> {/* Autocomplete container */}
-//             </div>
-
-//             {/* Map Container */}
-//             <div style={{ width: '70%' }}>
-//                 <MapContainer
-//                     ref={mapRef}
-//                     center={position}
-//                     zoom={12}
-//                     style={{ height: '100%', width: '100%' }}
-//                 >
-//                     <TileLayer
-//                         url={`https://maps.geoapify.com/v1/tile/positron/{z}/{x}/{y}.png?apiKey=5f91c9c458154879844c3d0447834abf`}
-//                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-//                     />
-//                     <Marker position={position}>
-//                         <Popup>Selected Location</Popup>
-//                     </Marker>
-//                 </MapContainer>
-//             </div>
-//         </div>
-//     );
-// }
-
-// export default MapComponent;
-
-
-import { MapContainer, TileLayer, Marker, Polyline, Popup } from 'react-leaflet';
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Polyline,
+  Popup,
+} from "react-leaflet";
+import { Icon } from "leaflet";
+import { PopUpDriver } from "@/Assets";
 interface MapComponentProps {
-  pickupCoords: [number, number] | null;
+  pickupCoords?: [number, number] | null;
   dropOffCoords: [number, number] | null;
-  routeCoords: [number, number][];  
+  routeCoords?: [number, number][];
+  driverLoc?: [number, number];
+  availableDrivers?: {
+    name: string;
+    coordinates: [number, number];
+  }[];
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ pickupCoords, dropOffCoords, routeCoords }) => {
+const MapComponent: React.FC<MapComponentProps> = ({
+  pickupCoords,
+  dropOffCoords,
+  routeCoords,
+  driverLoc,
+  availableDrivers,
+}) => {
   const defaultPosition: [number, number] = [12.9716, 77.5946];
-  
+  const driverIcon = new Icon({
+    iconUrl: PopUpDriver,
+    iconSize: [34, 34],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -30],
+  });
+
   return (
-    
     <MapContainer
       center={pickupCoords || defaultPosition}
       zoom={13}
-      style={{ height: "100%", width: "100%", minHeight: "300px" }} 
+      style={{ height: "100%", width: "100%", minHeight: "300px" }}
       className="rounded-2xl shadow-md"
     >
       <TileLayer
-        // url={`https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=5f91c9c458154879844c3d0447834abf`}
-        url=''
+        url={`https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=5f91c9c458154879844c3d0447834abf`}
+        // url=''
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       {pickupCoords && (
@@ -99,7 +55,22 @@ const MapComponent: React.FC<MapComponentProps> = ({ pickupCoords, dropOffCoords
           <Popup>Drop-off Location</Popup>
         </Marker>
       )}
-      {routeCoords?.length > 0 && (
+
+      {driverLoc && (
+        <Marker icon={driverIcon} position={driverLoc}>
+          <Popup>Driver location</Popup>
+        </Marker>
+      )}
+
+      {availableDrivers &&
+        availableDrivers.length > 0 &&
+        availableDrivers.map((driver, index) => (
+          <Marker key={index} icon={driverIcon} position={driver.coordinates}>
+            <Popup>{driver.name}</Popup>
+          </Marker>
+        ))}
+
+      {routeCoords && routeCoords?.length > 0 && (
         <Polyline
           positions={routeCoords}
           color="rgba(20, 137, 255, 0.7)"
@@ -107,9 +78,7 @@ const MapComponent: React.FC<MapComponentProps> = ({ pickupCoords, dropOffCoords
         />
       )}
     </MapContainer>
-
   );
 };
 
 export default MapComponent;
-

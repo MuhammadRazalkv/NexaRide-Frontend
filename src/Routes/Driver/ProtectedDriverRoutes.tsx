@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../Redux/store";;
 import { useEffect, useState } from "react";
 
-const DriverProtectedRoute = () => {
+const   DriverProtectedRoute = () => {
   const { token } = useSelector((state: RootState) => state.driverAuth);
   const [isHydrated, setIsHydrated] = useState(false);
 

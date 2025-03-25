@@ -2,8 +2,9 @@ import NavBar from "@/components/User Comp/NavBar";
 import { useEffect, useState } from "react";
 import { getUserInfo } from "@/api/auth/user";
 import { Default_Pfp } from "@/Assets";
-import { MdKeyboardArrowRight } from "react-icons/md";
+import { MdKeyboardArrowRight , MdEdit } from "react-icons/md";
 import { updateUserName, updateUserPhone , updateUserProfilePic } from "@/api/auth/user";
+
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/edit-dialog"
 import { message } from 'antd'
-import { MdEdit } from "react-icons/md";
+
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

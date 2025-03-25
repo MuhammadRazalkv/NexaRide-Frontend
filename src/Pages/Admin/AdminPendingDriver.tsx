@@ -13,10 +13,12 @@ interface IPendingDriver {
     phone: string;
     license_number: string;
     vehicle_id?: string;
-    street: string;
-    city: string;
-    state: string;
-    pin_code: string;
+    address: {
+        street: string;
+        city: string;
+        state: string;
+        pin_code: string;
+    },
     dob: string;
     status: string;
     license_exp: string;
@@ -74,7 +76,7 @@ const AdminPendingDriver = () => {
 
     const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
     const [selectedVehicle, setSelectedVehicle] = useState<IPendingVehicle | null>(null);
-    const [vehicleCategory,setVehicleCategory] = useState('')
+    const [vehicleCategory, setVehicleCategory] = useState('')
     const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
     const [showVehicleModal, setShowVehicleModal] = useState(false);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -238,7 +240,7 @@ const AdminPendingDriver = () => {
     //     }
     // };
 
-    const approveVehicle = async (vehicleId: string , category : string) => {
+    const approveVehicle = async (vehicleId: string, category: string) => {
         try {
             if (!category) {
                 messageApi.open({
@@ -254,12 +256,12 @@ const AdminPendingDriver = () => {
                 content: 'Updating status...',
             });
 
-            const res = await approveVehicleById(vehicleId,category);
+            const res = await approveVehicleById(vehicleId, category);
             if (res.success) {
 
-                    
-                
-                
+
+
+
                 setTimeout(() => {
                     messageApi.open({
                         key,
@@ -271,7 +273,7 @@ const AdminPendingDriver = () => {
                         prevDrivers
                             ? prevDrivers.map((driver) =>
                                 driver.vehicleDetails?._id === vehicleId
-                                    ? { ...driver, vehicleDetails: { ...driver.vehicleDetails, status: 'approved',category:category } }
+                                    ? { ...driver, vehicleDetails: { ...driver.vehicleDetails, status: 'approved', category: category } }
                                     : driver
                             )
                             : null
@@ -285,7 +287,7 @@ const AdminPendingDriver = () => {
                     );
 
                     setShowVehicleModal(false);
-                    
+
                     setSelectedVehicle(null)
                     setSelectedDriver(null)
                     setVehicleCategory("")
@@ -415,7 +417,7 @@ const AdminPendingDriver = () => {
                             <p className="text-gray-400"><strong>Email:</strong> {selectedDriver.email}</p>
                             <p className="text-gray-400"><strong>License:</strong> {selectedDriver.license_number}</p>
                             <p className="text-gray-400">
-                                <strong>Address:</strong> {selectedDriver.street}, {selectedDriver.city}, {selectedDriver.state}, {selectedDriver.pin_code}
+                                <strong>Address:</strong> {selectedDriver.address.street}, {selectedDriver.address.city}, {selectedDriver.address.state}, {selectedDriver.address.pin_code}
                             </p>
                             <p className="text-gray-400">
                                 <strong>Date of Birth:</strong> {new Date(selectedDriver.dob).toLocaleDateString()}
@@ -534,7 +536,7 @@ const AdminPendingDriver = () => {
                                             name="Category"
                                             className="rounded-sm px-2 p-1 border text-sm"
                                         >
-                                            <option disabled selected>Choose </option>
+                                            <option disabled selected >Choose </option>
                                             <option value="basic">Basic</option>
                                             <option value="premium">Premium</option>
                                             <option value="luxury">Luxury</option>
@@ -576,7 +578,7 @@ const AdminPendingDriver = () => {
                                 selectedVehicle.status == 'pending' ? (
                                     <div className="flex gap-3 mt-6 justify-center">
                                         <button
-                                            onClick={() => approveVehicle(selectedVehicle._id,vehicleCategory)}
+                                            onClick={() => approveVehicle(selectedVehicle._id, vehicleCategory)}
                                             className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-all"
                                         >
                                             Approve

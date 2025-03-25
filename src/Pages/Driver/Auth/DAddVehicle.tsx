@@ -30,7 +30,7 @@ export const schema = yup.object().shape({
       return originalValue === "" ? undefined : value;
     })
     .required("Registration Date is required")
-    .max(new Date(), "Date of Birth cannot be in the future"),
+    .max(new Date(), "Registration date cannot be in the future"),
 
   licenseNumber: yup
     .string()
@@ -64,6 +64,7 @@ const DAddVehicle = () => {
   const navigate = useNavigate()
   const [isChecked, setIsChecked] = useState(false)
   const dispatch = useDispatch()
+  const [loading,setLoading] = useState(false)
 
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -168,8 +169,10 @@ const DAddVehicle = () => {
     // https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/toyota/modelyear/2020?format=json
 
       try {
+        setLoading(true)
         const response = await addVehicle(updatedData)
         if (response) {
+          setLoading(false)
           console.log('Response   ',response); 
           const driver = response.driver
           localStorage.clear()
@@ -180,6 +183,7 @@ const DAddVehicle = () => {
         }
         
       } catch (error) {
+        setLoading(false)
         if (error instanceof Error) {
           setError(error.message)
         }else{
@@ -465,8 +469,9 @@ const DAddVehicle = () => {
           <button
             type="submit"
             className="w-full bg-black text-white py-2.5 rounded-xl hover:bg-gray-900 transition text-sm mt-4"
+            disabled={loading}
           >
-            Submit
+            {loading ? 'Submitting...':"Submit"}
           </button>
         </form>
       </div>

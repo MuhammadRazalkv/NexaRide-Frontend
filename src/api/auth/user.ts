@@ -1,6 +1,13 @@
 import axios from 'axios';
 import axiosUserInstance from '../axios/axiosUserInstance';
 
+interface CheckCabs {
+    pickUpPoint:{lat:number,lng:number}
+    dropOffPoint:{lat:number,lng:number}
+    distance:number
+    time:number
+}
+
 //! sending email to backend to verify it 
 export async function sendEmail(email: string) {
     const response = await axiosUserInstance.post('/verify-email', {
@@ -261,6 +268,26 @@ export async function updateUserProfilePic(image:string) {
         return response.data
 
     } catch (err) {
+        if (axios.isAxiosError(err) && err.response) {
+            console.log("Error message from server in update pfp  :", err.response.data.message);
+            throw new Error(err.response.data.message);
+        } else if (err instanceof Error) {
+            console.log(err.message);
+            throw new Error(err.message);
+        } else {
+            console.log("Unknown error:", err);
+            throw new Error("An unexpected error occurred");
+        }
+    }
+}
+
+export async function checkCabs(data:CheckCabs) {
+    try {
+        const res = await axiosUserInstance.post('/checkCabs',{
+            data
+        })
+        return res.data
+    }catch (err) {
         if (axios.isAxiosError(err) && err.response) {
             console.log("Error message from server in update pfp  :", err.response.data.message);
             throw new Error(err.response.data.message);

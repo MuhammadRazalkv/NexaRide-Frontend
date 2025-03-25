@@ -113,9 +113,9 @@ const DriverRejected = () => {
       return;
     }
 
-    const fetchReason = async (token: string) => {
+    const fetchReason = async () => {
       try {
-        const res = await rejectReason(token);
+        const res = await rejectReason();
         if (res) {
           setReason(res.reason || 'Because your some details are incorrect');
         }
@@ -125,7 +125,7 @@ const DriverRejected = () => {
       }
     };
 
-    fetchReason(token);
+    fetchReason();
   }, [token, navigate]);
 
   const onSubmit = async (data: FormData) => {
@@ -149,7 +149,7 @@ const DriverRejected = () => {
       if (!token) {
         return
       }
-      const response = await reApplyDriver(token,updatedData)
+      const response = await reApplyDriver(updatedData)
       if (response && response.driver) {       
         navigate('/driver/verification-pending')
       }
