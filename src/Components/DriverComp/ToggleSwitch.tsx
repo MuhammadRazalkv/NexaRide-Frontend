@@ -1,10 +1,11 @@
 import { FC } from "react";
-
 import styled from "styled-components";
+
 interface CheckBox {
   isChecked: boolean;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
+
 const ToggleSwitch: FC<CheckBox> = ({ isChecked, onChange }) => {
   return (
     <StyledWrapper>
@@ -13,7 +14,7 @@ const ToggleSwitch: FC<CheckBox> = ({ isChecked, onChange }) => {
           <input
             className="checkbox"
             type="checkbox"
-            checked={!isChecked}
+            checked={isChecked}  // Directly use isChecked without negation
             onChange={onChange}
           />
           <div className="knobs" />
@@ -89,7 +90,7 @@ const StyledWrapper = styled.div`
 
   .layer {
     width: 100%;
-    background-color: #f0f0f0; /* Light gray background for the toggle track */
+    background-color: #f0f0f0;
     transition: 0.3s ease all;
     z-index: 1;
   }
@@ -100,7 +101,7 @@ const StyledWrapper = styled.div`
   }
 
   #button-3 .knobs:before {
-    content: "YES";
+    content: "NO";
     position: absolute;
     top: 50%;
     left: 4px;
@@ -111,20 +112,20 @@ const StyledWrapper = styled.div`
     font-weight: bold;
     text-align: center;
     line-height: 28px;
-    background-color: #60eb91; /* Green color for the "YES" state */
+    background-color: #f44336;
     border-radius: 50%;
     transform: translateY(-50%);
     transition: 0.3s ease all, left 0.3s cubic-bezier(0.18, 0.89, 0.35, 1.15);
   }
 
   #button-3 .checkbox:checked + .knobs:before {
-    content: "NO";
+    content: "YES";
     left: calc(100% - 32px);
-    background-color: #f44336; /* Red color for the "NO" state */
+    background-color: #60eb91;
   }
 
   #button-3 .checkbox:checked ~ .layer {
-    background-color: #ffebee; /* Light red background for the "NO" state */
+    background-color: #e8f5e9;
   }
 `;
 

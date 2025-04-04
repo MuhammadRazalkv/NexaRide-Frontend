@@ -495,3 +495,52 @@ export async function updateRandomLoc() {
     }
   }
 }
+
+export async function fetchCurrentStoredLocation() {
+  try {
+    const response = await axiosDriverInstance.get("/getCurrentLoc");
+
+    return response.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+      console.log(
+        "Error message from server in get  loc  :",
+        err.response.data.message
+      );
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+
+
+
+export async function verifyRideOTP(otp:string) {
+  if (!otp) {
+    throw new Error('Please provide an OTP')
+  }
+  try {
+    const response = await axiosDriverInstance.post("/verifyRideOTP",{otp});
+
+    return response.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+      console.log(
+        "Error message from server in get  loc  :",
+        err.response.data.message
+      );
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}

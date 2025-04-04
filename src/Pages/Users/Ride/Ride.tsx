@@ -7,6 +7,12 @@ import axios from "axios";
 import { message } from "antd";
 import { checkCabs } from "@/api/auth/user";
 import { Car3D } from "@/Assets";
+import { socket, connectSocket, RideInfo } from "@/utils/socket";
+import { RootState } from "@/Redux/store";
+import { useSelector } from "react-redux";
+// import Loader from "@/components/Loader";
+import WaitingModal from "@/components/User Comp/WaitingModal";
+import { fetchRoute } from "@/utils/geoApify";
 
 interface LocationData {
   properties: {
@@ -26,7 +32,7 @@ interface CheckCabs {
 }
 
 interface Drivers {
-  _id:string
+  _id: string;
   name: string;
   totalFare: number;
   location: {
@@ -41,6 +47,12 @@ interface Drivers {
   };
   distanceInKm?: string;
   timeInMinutes?: number | string;
+}
+
+interface DriverRoute {
+  formattedRoute: [number, number][];
+  time: number;
+  distance: number;
 }
 
 const Ride = () => {
@@ -60,44 +72,66 @@ const Ride = () => {
   const [time, setTime] = useState<number | null>(null);
   const [messageApi, contextHolder] = message.useMessage();
   const [markDrivers, setMarkDrivers] = useState<
-    { name: string; coordinates: [number, number] }[] | undefined
+    | { driverId: string; name: string; coordinates: [number, number] }[]
+    | undefined
   >(undefined);
   const [noDriversFound, setNoDriversFound] = useState<boolean>(false);
   const [noPickUpLoc, setNoPickUpLoc] = useState<boolean>(false);
   const [noDropOffLoc, setNoDropOffLoc] = useState<boolean>(false);
-
-  // const key = "updatable";
+  const [sendRideReq, setSendRideReq] = useState(false);
+  const token = useSelector((state: RootState) => state.auth.token);
+  const [rideInfo, setRideInfo] = useState<RideInfo | null>(null);
+  const [driverRoute, setDriverRoute] = useState<DriverRoute | undefined>(
+    undefined
+  );
+  const [isRideStarted, setIsRideStarted] = useState(false);
+  const [driverArrived, setDriverArrived] = useState(false);
+  const [driverLiveLocation, setDriverLiveLocation] =
+    useState<[number, number]>();
+  const [remainingRoute, setRemainingRoute] = useState<[number, number][]>([]);
 
   useEffect(() => {
     const trimmedInput = input.trim();
     if (trimmedInput === previousInput.current) return;
+
     setNoPickUpLoc(false);
+    const controller = new AbortController();
+
     const timer = setTimeout(() => {
       if (trimmedInput) {
-        fetchLocations(trimmedInput, "Pickup");
+        fetchLocations(trimmedInput, "Pickup", controller);
         previousInput.current = trimmedInput;
       } else {
         setSuggestions([]);
       }
     }, 1500);
 
-    return () => clearTimeout(timer);
+    return () => {
+      controller.abort(); // Cancel ongoing requests
+      clearTimeout(timer);
+    };
   }, [input]);
 
   useEffect(() => {
     const trimmedInput = dropOff.trim();
     if (trimmedInput === previousDropInput.current) return;
+
     setNoDropOffLoc(false);
+    const controller = new AbortController();
+
     const timer = setTimeout(() => {
       if (trimmedInput) {
-        fetchLocations(trimmedInput, "Drop");
+        fetchLocations(trimmedInput, "Drop", controller);
         previousDropInput.current = trimmedInput;
       } else {
-        setSuggestions([]);
+        setDropSugg([]);
       }
     }, 1500);
 
-    return () => clearTimeout(timer);
+    return () => {
+      controller.abort(); // Cancel ongoing requests
+      clearTimeout(timer);
+    };
   }, [dropOff]);
 
   useEffect(() => {
@@ -106,6 +140,8 @@ const Ride = () => {
         console.warn("Pickup or Drop-off coordinates are missing.");
         return;
       }
+      console.log("The useEffect for fetch route working");
+
       setAvailableDrivers(undefined);
       setMarkDrivers(undefined);
 
@@ -137,7 +173,141 @@ const Ride = () => {
     }
   }, [pickupCoords, dropOffCoords]);
 
-  const fetchLocations = async (query: string, type: string) => {
+  //! Listen to driver ride response
+  useEffect(() => {
+    const stopSendingRequest = () => setSendRideReq(false);
+    //* Handle ride rejection
+    const handleRideRejected = (driverId: string) => {
+      setAvailableDrivers((prevDrivers) =>
+        prevDrivers
+          ? prevDrivers.filter((driver) => driver._id !== driverId)
+          : []
+      );
+
+      messageApi.info("Your ride request has been rejected by the driver.");
+      stopSendingRequest();
+    };
+
+    // * Handle no response form driver
+    const handleNoDriverResponse = () => {
+      messageApi.info("Driver did not respond. Please try again.");
+      stopSendingRequest();
+    };
+
+    //* Handle driver ride acceptance
+    const handleRideAccepted = async (data: RideInfo) => {
+      try {
+        stopSendingRequest();
+        setAvailableDrivers(undefined);
+        setMarkDrivers(undefined);
+        setRideInfo(data);
+        setIsRideStarted(true);
+        const routeDetails = await fetchRoute(
+          data.driver.location.coordinates,
+          data.pickupCoords
+        );
+
+        if (!routeDetails) {
+          throw new Error("Failed to calculate driver route");
+        }
+        setDriverLiveLocation(data.driver.location.coordinates);
+        setDriverRoute(routeDetails);
+        setRemainingRoute(routeDetails.formattedRoute);
+
+        messageApi.success(`${data.driver.name} accepted your ride request`);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          messageApi.error(error.message);
+        } else {
+          messageApi.error("An unexpected error occurred");
+        }
+      }
+    };
+
+    // const handleDriverLocationUpdate = async (location: [number, number]) => {
+    //   console.log("New driver location received:", location , 'and type of this is ',typeof location);
+    //   setDriverLiveLocation(location);
+    //   // const isSameLocation = (a: [number, number], b: [number, number]) => {
+    //   //   const TOLERANCE = 0.0001; // Small value to handle floating-point errors
+    //   //   return (
+    //   //     Math.abs(a[0] - b[0]) < TOLERANCE && Math.abs(a[1] - b[1]) < TOLERANCE
+    //   //   );
+    //   // };
+
+    //   // setRemainingRoute((prevRoute) => {
+    //   //   if (!prevRoute || prevRoute.length === 0) return [];
+    //   //   console.log("Updating the remaining route ");
+
+    //   //   const index = prevRoute.findIndex(([lat, lng]) =>
+    //   //     isSameLocation([lat, lng], location)
+    //   //   );
+
+    //   //   console.log("Index value ", index);
+
+    //   //   // If location is found, slice from that index, else return the same route
+    //   //   return index !== -1 ? prevRoute.slice(index) : prevRoute;
+    //   // });
+    // };
+    const handleDriverLocationUpdate = async (data: {
+      location: [number, number];
+    }) => {
+      console.log(
+        "New driver location received:",
+        data.location,
+        "and type is",
+        typeof data.location
+      );
+
+      const location = data.location;
+      setDriverLiveLocation(undefined);
+
+      setRemainingRoute((prevRoute) => {
+        if (!prevRoute || prevRoute.length === 0) return [];
+
+        console.log("Updating the remaining route");
+
+        const isSameLocation = (a: [number, number], b: [number, number]) => {
+          const TOLERANCE = 0.0001;
+          return (
+            Math.abs(a[0] - b[0]) < TOLERANCE &&
+            Math.abs(a[1] - b[1]) < TOLERANCE
+          );
+        };
+
+        if (isSameLocation(prevRoute[0], location)) {
+          return prevRoute.slice(1);
+        }
+
+        return prevRoute;
+      });
+    };
+
+    const handleDriverReached = async () => {
+      messageApi.success(
+        "Driver reached your location please share your otp to start the ride"
+      );
+      setDriverLiveLocation(undefined);
+      socket.off("driver-location-update", handleDriverLocationUpdate);
+    };
+
+    socket.on("ride-rejected", handleRideRejected);
+    socket.on("no-driver-response", handleNoDriverResponse);
+    socket.on("ride-accepted", handleRideAccepted);
+    socket.on("driver-location-update", handleDriverLocationUpdate);
+    socket.on("driver-reached", handleDriverReached);
+    return () => {
+      socket.off("ride-rejected", handleRideRejected);
+      socket.off("no-driver-response", handleNoDriverResponse);
+      socket.off("ride-accepted", handleRideAccepted);
+      socket.off("driver-location-update", handleDriverLocationUpdate);
+    };
+  }, [messageApi]);
+
+  const fetchLocations = async (
+    query: string,
+    type: string,
+    controller: AbortController
+  ) => {
     try {
       const response = await axios.get(
         `https://api.geoapify.com/v1/geocode/autocomplete`,
@@ -147,26 +317,31 @@ const Ride = () => {
             filter: "rect:77.4656,12.8342,77.7398,13.1431",
             apiKey: "5f91c9c458154879844c3d0447834abf",
           },
+          signal: controller.signal,
         }
       );
-      console.log("Fetched data ", response.data.features);
-      if (type == "Pickup") {
-        if (response.data.features.length == 0) {
+
+      if (type === "Pickup") {
+        if (response.data.features.length === 0) {
           setNoPickUpLoc(true);
         } else {
           setNoPickUpLoc(false);
           setSuggestions(response.data.features);
         }
       } else {
-        if (response.data.features.length == 0) {
+        if (response.data.features.length === 0) {
           setNoDropOffLoc(true);
         } else {
           setNoDropOffLoc(false);
           setDropSugg(response.data.features);
         }
       }
-    } catch (error) {
-      console.error("Error fetching locations:", error);
+    } catch (error: unknown) {
+      if (axios.isCancel(error)) {
+        console.log("Request canceled:", error.message);
+      } else {
+        console.error("Error fetching locations:", error);
+      }
     }
   };
 
@@ -236,6 +411,7 @@ const Ride = () => {
         setAvailableDrivers(updatedDrivers);
         if (res.drivers) {
           const convertedDrivers = res.drivers.map((driver: Drivers) => ({
+            driverId: driver._id,
             name: driver.name,
             coordinates: [
               driver.location.coordinates[1],
@@ -246,6 +422,8 @@ const Ride = () => {
           setMarkDrivers(convertedDrivers);
         }
       } else {
+        console.log("Else case in check cabs");
+
         setAvailableDrivers(undefined);
         setNoDriversFound(true);
       }
@@ -283,139 +461,254 @@ const Ride = () => {
     }
   };
 
-  const bookTheCab = (driverId:string) =>{
+  const bookTheCab = (driverId: string, fare: number) => {
     if (!driverId) {
-      messageApi.error('Driver not found')
+      messageApi.error("Driver not found");
     }
-    
-
-  }
+    // socket.emit('request-ride',{driverId,})
+    if (!token) {
+      messageApi.error("Token not found .Please ensure you are logged in ");
+      return;
+    }
+    connectSocket(token, "user");
+    if (!pickupCoords || !dropOffCoords || !time || !distance) {
+      messageApi.error("Please ensure the the locations are provided");
+      return;
+    }
+    // setAvailableDrivers(undefined);
+    setMarkDrivers((prevDrivers) =>
+      prevDrivers
+        ? prevDrivers.filter((driver) => driver.driverId !== driverId)
+        : []
+    );
+    socket.emit("request-ride", {
+      driverId,
+      pickupCoords,
+      dropOffCoords,
+      time,
+      distance,
+      fare,
+    });
+    setSendRideReq(true);
+  };
 
   return (
     <>
       <NavBar />
       {contextHolder}
+      {/* {sendRideReq && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-600 bg-opacity-40 pointer-events-auto">
+          <div className="bg-white p-8 rounded-lg shadow-lg text-black text-center w-80 pointer-events-none">
+            <Loader />
+            <p className="mt-4 text-lg font-bold">
+              Waiting for driver response...
+            </p>
+          </div>
+        </div>
+      )} */}
+      <WaitingModal sendRideReq={sendRideReq} />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] mt-5 mr-5 ml-5 gap-3 md:min-h-[calc(80vh-90px)] lg:min-h-[calc(100vh-90px)] overflow-x-auto">
         {/* Left Section -*/}
         <div className="w-full ">
           <div className="bg-white rounded-2xl shadow-xl p-6">
-            <div className="relative w-full">
-              <div className="flex items-center gap-2 p-2">
-                <MdLocationPin />
-                <input
-                  type="text"
-                  className="w-full px-2 rounded-2xl border border-gray-300 focus:border-blue-500 focus:outline-none text-sm placeholder:text-black p-3"
-                  placeholder="Pickup location"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                />
-              </div>
+            {/* Input section for adding location  */}
+            {!rideInfo && (
+              <>
+                <div className="relative w-full">
+                  <div className="flex items-center gap-2 p-2">
+                    <MdLocationPin />
+                    <input
+                      type="text"
+                      className="w-full px-2 rounded-2xl border border-gray-300 focus:border-blue-500 focus:outline-none text-sm placeholder:text-black p-3"
+                      placeholder="Pickup location"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                    />
+                  </div>
 
-              {/* Suggestions Dropdown */}
-              {suggestions.length > 0 && (
-                <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                  {suggestions.map((item, index) => (
-                    <li
-                      key={`${item.properties.place_id}-${index}`}
-                      className="p-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() =>
-                        handleSuggestionClick(
-                          item.properties.formatted,
-                          item.geometry?.coordinates,
-                          "Pickup"
-                        )
-                      }
-                    >
-                      {item.properties.formatted}
-                    </li>
-                  ))}
-                </ul>
-              )}
+                  {/* Suggestions Dropdown */}
+                  {suggestions.length > 0 && (
+                    <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+                      {suggestions.map((item, index) => (
+                        <li
+                          key={`${item.properties.place_id}-${index}`}
+                          className="p-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() =>
+                            handleSuggestionClick(
+                              item.properties.formatted,
+                              item.geometry?.coordinates,
+                              "Pickup"
+                            )
+                          }
+                        >
+                          {item.properties.formatted}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
 
-              {noPickUpLoc && (
-                <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                  <li className="p-2 hover:bg-gray-100 cursor-pointer">
-                    🚫 Location not found 
-                  </li>
-                </ul>
-              )}
-            </div>
+                  {noPickUpLoc && (
+                    <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+                      <li className="p-2 hover:bg-gray-100 cursor-pointer">
+                        🚫 Location not found
+                      </li>
+                    </ul>
+                  )}
+                </div>
 
-            <div className="relative w-full">
-              <div className="flex items-center gap-2 p-2">
-                <MdLocationPin />
-                <input
-                  type="text"
-                  className="w-full px-2 rounded-2xl border border-gray-300 focus:border-blue-500 focus:outline-none text-sm placeholder:text-black p-3"
-                  placeholder="Drop off location"
-                  value={dropOff}
-                  onChange={(e) => setDropOff(e.target.value)}
-                />
-              </div>
+                <div className="relative w-full">
+                  <div className="flex items-center gap-2 p-2">
+                    <MdLocationPin />
+                    <input
+                      type="text"
+                      className="w-full px-2 rounded-2xl border border-gray-300 focus:border-blue-500 focus:outline-none text-sm placeholder:text-black p-3"
+                      placeholder="Drop off location"
+                      value={dropOff}
+                      onChange={(e) => setDropOff(e.target.value)}
+                    />
+                  </div>
 
-              {dropSugg.length > 0 && (
-                <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                  {dropSugg.map((item, index) => (
-                    <li
-                      key={`${item.properties.place_id}-${index}`}
-                      className="p-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() =>
-                        handleSuggestionClick(
-                          item.properties.formatted,
-                          item.geometry?.coordinates,
-                          "Drop"
-                        )
-                      }
-                    >
-                      {item.properties.formatted}
-                    </li>
-                  ))}
-                </ul>
-              )}
-               {noDropOffLoc && (
-                <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                  <li className="p-2 hover:bg-gray-100 cursor-pointer">
-                    🚫 Location not found 
-                  </li>
-                </ul>
-              )}
-            </div>
+                  {dropSugg.length > 0 && (
+                    <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+                      {dropSugg.map((item, index) => (
+                        <li
+                          key={`${item.properties.place_id}-${index}`}
+                          className="p-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() =>
+                            handleSuggestionClick(
+                              item.properties.formatted,
+                              item.geometry?.coordinates,
+                              "Drop"
+                            )
+                          }
+                        >
+                          {item.properties.formatted}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {noDropOffLoc && (
+                    <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+                      <li className="p-2 hover:bg-gray-100 cursor-pointer">
+                        🚫 Location not found
+                      </li>
+                    </ul>
+                  )}
+                </div>
 
-            <p className="text-xs italic text-center sm:text-left">
-              Note: This service is currently available exclusively in
-              Bengaluru.
-            </p>
-
-            {time && distance && (
-              <div className="bg-gray-50 border border-blue-200 rounded-lg p-4 mt-4 shadow-md">
-                <h3 className="text-lg font-semibold text-blue-600 mb-2">
-                  Trip Details
-                </h3>
-                <p className="text-gray-700">
-                  🚗 Estimated Distance:{" "}
-                  <span className="font-bold">
-                    {(distance / 1000).toFixed(2)} km
-                  </span>
+                <p className="text-xs italic text-center sm:text-left">
+                  Note: This service is currently available exclusively in
+                  Bengaluru.
                 </p>
-                <p className="text-gray-700">
-                  🕒 Estimated Duration:{" "}
-                  <span className="font-bold">
-                    {Math.ceil(time / 60)} minutes
-                  </span>
-                </p>
-              </div>
+
+                {time && distance && (
+                  <div className="bg-gray-50 border border-blue-200 rounded-lg p-4 mt-4 shadow-md">
+                    <h3 className="text-lg font-semibold text-blue-600 mb-2">
+                      Trip Details
+                    </h3>
+                    <p className="text-gray-700">
+                      🚗 Estimated Distance:{" "}
+                      <span className="font-bold">
+                        {(distance / 1000).toFixed(2)} km
+                      </span>
+                    </p>
+                    <p className="text-gray-700">
+                      🕒 Estimated Duration:{" "}
+                      <span className="font-bold">
+                        {Math.ceil(time / 60)} minutes
+                      </span>
+                    </p>
+                  </div>
+                )}
+
+                <div className="w-full flex items-center justify-center p-2">
+                  <button
+                    className="bg-black text-white w-full sm:w-auto p-2 px-4 rounded-xl hover:bg-gray-800 disabled:cursor-not-allowed"
+                    disabled={!dropOffCoords || !pickupCoords}
+                    onClick={handleCheckCabs}
+                  >
+                    Check cabs
+                  </button>
+                </div>
+              </>
             )}
+            {/* To show the ride info when the drive starts */}
+            {rideInfo && (
+              <>
+                {/* Driver Information */}
+                <div className="flex items-center gap-4 mb-4">
+                  <img src={Car3D} alt="Car" className="w-28 h-28 rounded-lg" />
+                  <div>
+                    <h2 className="text-xl font-semibold">
+                      {rideInfo.driver.name}
+                    </h2>
+                    <p className="text-gray-600">
+                      {rideInfo.driver.vehicleDetails.vehicleModel}
+                    </p>
+                  </div>
+                </div>
 
-            <div className="w-full flex items-center justify-center p-2">
-              <button
-                className="bg-black text-white w-full sm:w-auto p-2 px-4 rounded-xl hover:bg-gray-800 disabled:cursor-not-allowed"
-                disabled={!dropOffCoords || !pickupCoords}
-                onClick={handleCheckCabs}
-              >
-                Check cabs
-              </button>
-            </div>
+                {/* Driver Arrived Section */}
+                {driverArrived && (
+                  <div className="mt-4 border-t border-gray-200 pt-4">
+                    <p className="text-lg text-black font-medium">
+                      Your driver has arrived!
+                    </p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      <span className="font-medium text-black">
+                        Ride Started At:
+                      </span>{" "}
+                      {new Date(rideInfo.startedTime).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      <span className="font-medium text-black">
+                        Total Distance:
+                      </span>{" "}
+                      {(rideInfo.distance / 1000).toFixed(2)} km
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      <span className="font-medium text-black">
+                        Estimated Duration:
+                      </span>{" "}
+                      {(rideInfo.estTime / 60).toFixed(0)} mins
+                    </p>
+                  </div>
+                )}
+
+                {/* Driver En Route Section */}
+                {!driverArrived && driverRoute && (
+                  <div className="mt-4 border-t border-gray-200 pt-4">
+                    <p className="text-lg text-black font-bold">
+                      Your driver is on the way!
+                    </p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      <span className="font-medium text-black">
+                        Estimated Arrival:
+                      </span>{" "}
+                      {(driverRoute.time / 60).toFixed(0)} mins
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      <span className="font-medium text-black">
+                        Distance to Pickup:
+                      </span>{" "}
+                      {(driverRoute.distance / 1000).toFixed(2)} km
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      <span className="font-medium text-black">
+                        OTP for Verification:
+                      </span>{" "}
+                      <span className="text-black font-semibold">
+                        {rideInfo.OTP}
+                      </span>
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {noDriversFound && (
@@ -428,9 +721,9 @@ const Ride = () => {
               {availableDrivers.map((driver, index) => (
                 <div
                   key={index}
-                  className="bg-white flex items-center shadow-md rounded-2xl p-3 border border-gray-200 hover:shadow-lg transition duration-300"
-                  onClick={()=> bookTheCab(driver._id)}
-               >
+                  className="bg-white flex items-center hover:bg-gray-200 shadow-md rounded-2xl p-3 border border-gray-200 hover:shadow-lg transition duration-300"
+                  onClick={() => bookTheCab(driver._id, driver.totalFare)}
+                >
                   <img
                     src={Car3D}
                     alt="car model"
@@ -469,16 +762,24 @@ const Ride = () => {
               ))}
             </div>
           )}
-          <div></div>
         </div>
 
         {/* Right Section - Map */}
-        <div className="w-full min-h-[400px] max-h-[80vh]">
+        <div className="w-full min-h-[400px] max-h-[80vh] z-0">
           <MapComponent
             pickupCoords={pickupCoords || null}
             dropOffCoords={dropOffCoords || null}
             routeCoords={routeCoords}
             availableDrivers={markDrivers}
+            driverRoute={
+              isRideStarted ? remainingRoute : driverRoute?.formattedRoute
+            }
+            driverLoc={
+              isRideStarted
+                ? driverLiveLocation
+                : rideInfo?.driver.location.coordinates
+            }
+            isRideStarted={isRideStarted}
           />
         </div>
       </div>
