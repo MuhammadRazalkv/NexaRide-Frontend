@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SignupContext } from "../Hooks/useSignup";
+import { SignupContext } from "../hooks/useSignup";
 
 
 export const SignupProvider = ({ children }: { children: React.ReactNode }) => {

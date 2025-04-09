@@ -26,18 +26,24 @@ export interface RideInfo {
 export interface ServerToClientEvents {
   "ride-accepted": (data: RideInfo) => void;
   "ride-rejected": (driverId: string) => void;
-
-  "driver-location-update": (data:{location: [number, number]}) => void;
+  "driver-location-update": (data: {
+    type: "toPickup" | "toDropOff";
+    location: [number, number];
+  }) => void;
   "new-ride-req": (data: {
     user: { id: string; name: string };
     pickupCoords: [number, number];
     dropOffCoords: [number, number];
     fare: number;
   }) => void;
-  "driver-reached":()=>void;
+  "ride-cancelled":()=> void;
+  "driver-reached": () => void;
   connect: () => void;
   disconnect: () => void;
   "no-driver-response": () => void;
+  "dropOff-reached":(data:{rideId:string,fare:number})=>void
+  "payment-received":()=>void
+  "payment-success":()=>void
 }
 
 interface ClientToServerEvents {
@@ -63,8 +69,13 @@ interface ClientToServerEvents {
     time: number;
     fare: number;
   }) => void;
-  "driver-location-update": (data:{location: [number, number]}) => void;
-  "driver-reached":()=> void;
+  "driver-location-update": (data: {
+    type: "toPickup" | "toDropOff";
+    location: [number, number];
+  }) => void;
+  "driver-reached": () => void;
+  "cancel-ride":(cancelledBy:'driver'|'user')=> void;
+  "dropOff-reached":()=>void
 }
 
 const SOCKET_URL = "http://localhost:3000";

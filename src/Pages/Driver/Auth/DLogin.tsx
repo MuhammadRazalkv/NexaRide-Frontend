@@ -1,5 +1,5 @@
-import AuthBtn from "../../../components/User Comp/AuthBtn"
-import AuthInput from "../../../components/User Comp/AuthInput"
+import AuthBtn from "../../../components/user/AuthBtn"
+import AuthInput from "../../../components/user/AuthInput"
 import { motion } from 'framer-motion'
 import { FaGoogle } from "react-icons/fa";
 import { useState } from "react";

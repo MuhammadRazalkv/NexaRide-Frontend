@@ -1,24 +1,24 @@
 import { Route, Routes } from 'react-router-dom'
 
-import DSignup from '../Pages/Driver/Auth/DSignup'
-import DLogin from '../Pages/Driver/Auth/DLogin'
-
-// import PublicRoute from './PublicRoute'
-import DOtp from '../Pages/Driver/Auth/DOtp'
-import DAddInfo from '../Pages/Driver/Auth/DAddInfo'
+import DSignup from '@/pages/driver/auth/DSignup'
+import DLogin from '@/pages/driver/auth/DLogin'
+import DOtp from '@/pages/driver/auth/DOtp'
+import DAddInfo from '@/pages/driver/auth/DAddInfo'
 // import ResetPassword from '../Pages/Users/Auth/ResetPassword'
-import DAddVehicle from '../Pages/Driver/Auth/DAddVehicle'
-import ProtectedRouteDriverAuth from './Driver/DriverAuthRoutes'
-import DriverProtectedRoute from './Driver/ProtectedDriverRoutes'
-import { SignupProvider } from '../Context/driverSignUpContext'
-import UploadImg from '../Pages/Driver/Auth/UploadImg'
-import DRide from '../Pages/Driver/Ride/DRide'
-import DVerificationPending from '../Pages/Driver/Auth/DVerificationPending'
-import DriverPublicRoute from './Driver/PublicDriverRoutes'
-import DriverRejected from '../Pages/Driver/Auth/DriverRejected'
-import VehicleRejected from '../Pages/Driver/Auth/VehicleRejected'
-import DResetPassword from '@/Pages/Driver/Auth/DResetPassword'
-import DProfile from '@/Pages/Driver/DProfile'
+import DAddVehicle from '@/pages/driver/auth/DAddVehicle'
+import ProtectedRouteDriverAuth from './driver/DriverAuthRoutes'
+import DriverProtectedRoute from './driver/ProtectedDriverRoutes'
+import { SignupProvider } from '../context/driverSignUpContext'
+import UploadImg from '@/pages/driver/auth/UploadImg'
+import DRide from '@/pages/driver/ride/DRide'
+import DVerificationPending from '@/pages/driver/auth/DVerificationPending'
+import DriverPublicRoute from './driver/PublicDriverRoutes'
+import DriverRejected from '@/pages/driver/auth/DriverRejected'
+import VehicleRejected from '@/pages/driver/auth/VehicleRejected'
+import DResetPassword from '@/pages/driver/auth/DResetPassword'
+import DProfile from '@/pages/driver/DProfile'
+import DWallet from '@/pages/driver/DWallet'
+import DRideHistory from '@/pages/driver/DRideHistory'
 const DriverRoutes = () => {
   return (
 
@@ -46,6 +46,9 @@ const DriverRoutes = () => {
           <Route path='/rejected' element={<DriverRejected />} />
           <Route path='/vehicle-rejected' element={<VehicleRejected />} />
           <Route path='/profile' element={<DProfile />} />
+          <Route path='/wallet' element={<DWallet />} />
+          <Route path='/history' element={<DRideHistory />} />
+
         </Route>
 
         <Route path='/upload' element={<UploadImg />} />

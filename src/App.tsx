@@ -1,10 +1,10 @@
 import './App.css'
 import { Route, Routes } from 'react-router-dom'
-import Home from './Pages/Home/Home'
-import UserRoutes from './Routes/UserRoutes'
-import PublicRoute from './Routes/PublicRoute'
-import DriverRoutes from './Routes/DriverRoutes'
-import AdminRoutes from './Routes/AdminRoutes'
+import Home from './pages/home/Home'
+import UserRoutes from '@/routes/UserRoutes'
+import PublicRoute from '@/routes/PublicRoute'
+import DriverRoutes from '@/routes/DriverRoutes'
+import AdminRoutes from '@/routes/AdminRoutes'
 function App() {
 
   return (

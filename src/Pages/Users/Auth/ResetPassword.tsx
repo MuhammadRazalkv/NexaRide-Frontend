@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
-import AuthBtn from "../../../components/User Comp/AuthBtn"
-import AuthInput from "../../../components/User Comp/AuthInput"
+import AuthBtn from "../../../components/user/AuthBtn"
+import AuthInput from "../../../components/user/AuthInput"
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { resetPassword } from "../../../api/auth/user";

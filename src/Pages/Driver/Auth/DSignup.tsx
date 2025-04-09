@@ -1,13 +1,13 @@
-import AuthInput from "../../../components/User Comp/AuthInput";
-import AuthBtn from "../../../components/User Comp/AuthBtn";
+import AuthInput from "../../../components/user/AuthInput";
+import AuthBtn from "../../../components/user/AuthBtn";
 import { FaGoogle } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useState, useRef , useEffect} from "react";
 import { verifyEmail , checkGoogleAuth } from "../../../api/auth/driver";
 import { useNavigate , Link } from "react-router-dom";
-import LabelStepper from "../../../components/User Comp/Stepper";
+import LabelStepper from "../../../components/user/Stepper";
 import { useGoogleLogin } from '@react-oauth/google'
-import { useSignup } from "../../../Hooks/useSignup";
+import { useSignup } from "../../../hooks/useSignup";
 import axios from "axios";
 
 const DSignup = () => {

@@ -1,5 +1,5 @@
 import { getFares, updateFare } from "@/api/auth/admin";
-import AdminNavBar from "../../components/Admin Comp/AdminNavBar";
+import AdminNavBar from "../../components/admin/AdminNavbar";
 import { useEffect, useState } from "react";
 import { message } from "antd";
 

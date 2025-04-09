@@ -1,4 +1,4 @@
-import LabelStepper from "../../../components/User Comp/Stepper"
+import LabelStepper from "../../../components/user/Stepper"
 import { useForm } from "react-hook-form"
 import * as yup from "yup";
 import { Upload } from "lucide-react"

@@ -1,5 +1,5 @@
 import axios from "axios";
-import axiosDriverInstance from "../axios/axiosDriverInstance";
+import axiosDriverInstance from "../axios/driver.axios.instance";
 
 interface driverInfo {
   googleId?: string;
@@ -532,6 +532,53 @@ export async function verifyRideOTP(otp:string) {
     if (axios.isAxiosError(err) && err.response) {
       console.log(
         "Error message from server in get  loc  :",
+        err.response.data.message
+      );
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+
+
+export async function getDriverWalletInfo() {
+
+  try {
+    const response = await axiosDriverInstance.get("/getWalletInfo");
+
+    return response.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+      console.log(
+        "Error message from server in get  wallet info driver  :",
+        err.response.data.message
+      );
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+
+
+
+export async function getRideHistory(){
+  try {
+    const res = await axiosDriverInstance.get(`/getRideHistory`);
+    return res.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+      console.log(
+        "Error message from server in getRide history  :",
         err.response.data.message
       );
       throw new Error(err.response.data.message);

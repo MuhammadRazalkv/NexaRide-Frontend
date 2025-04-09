@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { sendOTP , reSendOTP } from "../../../api/auth/driver";
 import { useNavigate } from "react-router-dom";
-import LabelStepper from "../../../components/User Comp/Stepper";
-import AuthBtn from "../../../components/User Comp/AuthBtn";
+import LabelStepper from "../../../components/user/Stepper";
+import AuthBtn from "../../../components/user/AuthBtn";
 import Loader from "../../../components/Loader";
-import { useSignup } from "../../../Hooks/useSignup";
+import { useSignup } from "../../../hooks/useSignup";
 
 const DOtp = () => {
   const [otp, setOtp] = useState<string>("");

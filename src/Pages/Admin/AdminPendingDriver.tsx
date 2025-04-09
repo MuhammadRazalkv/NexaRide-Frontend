@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getPendingDrivers } from "../../api/auth/admin";
 import { rejectDriver, approveDriver } from "../../api/auth/admin";
-import AdminNavBar from "../../components/Admin Comp/AdminNavBar";
+import AdminNavBar from "../../components/admin/AdminNavbar";
 import { approveVehicleById, rejectVehicleById } from "../../api/auth/admin";
 import { Car, User } from "lucide-react";
 import { message } from "antd";

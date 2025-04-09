@@ -1,5 +1,5 @@
 import { FaBars, FaTimes, FaHome, FaUser, FaSignOutAlt , FaCar } from "react-icons/fa";
-import { useSidebar } from "../../Hooks/useSidebar";
+import { useSidebar } from "../../hooks/useSidebar";
 import { Link } from "react-router-dom";
 
 const AdminNavBar = () => {

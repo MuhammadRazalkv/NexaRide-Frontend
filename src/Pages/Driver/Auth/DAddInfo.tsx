@@ -3,10 +3,10 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useState } from "react";
-import LabelStepper from "../../../components/User Comp/Stepper";
+import LabelStepper from "../../../components/user/Stepper";
 import { addInfo } from "../../../api/auth/driver";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useSignup } from "../../../Hooks/useSignup";
+import { useSignup } from "../../../hooks/useSignup";
 
 // const isAtLeast18YearsOld = (dob: string): boolean => {
 //   const today = new Date();

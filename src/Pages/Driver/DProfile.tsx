@@ -1,5 +1,5 @@
 import { getDriverInfo } from "@/api/auth/driver";
-import DNavBar from "@/components/DriverComp/DNavBar";
+import DNavBar from "@/components/driver/DNavBar";
 import { Default_Pfp } from "@/Assets";
 import { useEffect, useState } from "react";
 import { MdEdit, MdEditSquare } from "react-icons/md";
@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { message } from "antd";
+import { useNavigate } from "react-router-dom";
 
 interface IDriver {
   name: string;
@@ -52,7 +53,7 @@ const DProfile = () => {
   // const [editableFields, setEditableFields] = useState<Partial<IDriver>>({});
   const [fieldValue, setFieldValue] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
+  const navigate = useNavigate()
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!toUpdate) return;
 
@@ -160,6 +161,7 @@ const DProfile = () => {
           [toUpdate]: res.updatedFiled,
         }));
         setIsDialogOpen(false);
+        navigate('/driver/ride')
       } else {
         messageApi.error(`Failed to update ${toUpdate}`);
       }

@@ -1,6 +1,6 @@
-import AuthBtn from "../../../components/User Comp/AuthBtn";
-import AuthInput from "../../../components/User Comp/AuthInput";
-import LabelStepper from "../../../components/User Comp/Stepper";
+import AuthBtn from "../../../components/user/AuthBtn";
+import AuthInput from "../../../components/user/AuthInput";
+import LabelStepper from "../../../components/user/Stepper";
 import { useState, useRef, useEffect } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { addInfo } from "../../../api/auth/user";

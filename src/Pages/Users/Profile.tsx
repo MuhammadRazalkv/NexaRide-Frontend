@@ -1,4 +1,4 @@
-import NavBar from "@/components/User Comp/NavBar";
+import NavBar from "@/components/user/NavBar";
 import { useEffect, useState } from "react";
 import { getUserInfo } from "@/api/auth/user";
 import { Default_Pfp } from "@/Assets";

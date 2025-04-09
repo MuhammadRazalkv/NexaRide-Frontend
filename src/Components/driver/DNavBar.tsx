@@ -9,8 +9,8 @@ const DNavBar = () => {
   const [open, setOpen] = useState(false);
   const links = [
     { name: 'Drive', link: '/' },
-    { name: 'History', link: '/' },
-    { name: 'About Us ', link: '/' }
+    { name: 'History', link: '/driver/history' },
+    { name: 'Wallet', link: '/driver/wallet' }
   ]
   const dispatch = useDispatch()
 

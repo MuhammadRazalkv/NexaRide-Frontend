@@ -1,5 +1,5 @@
 import {  useState, ReactNode } from "react";
-import { SidebarContext } from "../Hooks/useSidebar";
+import { SidebarContext } from "../hooks/useSidebar";
 
 export const SidebarProvider = ({ children }: { children: ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);

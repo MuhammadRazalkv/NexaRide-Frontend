@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { sendOTP, reSendOTP } from "../../../api/auth/user";
 import { useNavigate } from "react-router-dom";
-import LabelStepper from "../../../components/User Comp/Stepper";
-import AuthBtn from "../../../components/User Comp/AuthBtn";
+import LabelStepper from "../../../components/user/Stepper";
+import AuthBtn from "../../../components/user/AuthBtn";
 import Loader from "../../../components/Loader";
 
 const Otp = () => {

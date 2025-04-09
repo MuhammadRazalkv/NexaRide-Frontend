@@ -1,11 +1,11 @@
-import AuthInput from "../../../components/User Comp/AuthInput";
-import AuthBtn from "../../../components/User Comp/AuthBtn";
+import AuthInput from "../../../components/user/AuthInput";
+import AuthBtn from "../../../components/user/AuthBtn";
 import { FaGoogle } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { sendEmail } from "../../../api/auth/user";
 import { useNavigate , Link } from "react-router-dom";
-import LabelStepper from "../../../components/User Comp/Stepper";
+import LabelStepper from "../../../components/user/Stepper";
 import { useGoogleLogin } from '@react-oauth/google'
 import axios from "axios";
 

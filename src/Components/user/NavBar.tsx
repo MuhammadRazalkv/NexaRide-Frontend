@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
-import { MdOutlineKeyboardArrowDown, MdMenu, MdClose , MdLogout } from "react-icons/md";
+import { MdOutlineKeyboardArrowDown, MdMenu, MdClose  } from "react-icons/md";
 import { useState } from "react";
 import { logout } from "@/Redux/slices/authSlice";
 import { useDispatch } from "react-redux";
@@ -9,8 +9,9 @@ const NavBar = () => {
   const [open, setOpen] = useState(false);
   const links = [
     { name: 'Travel', link: '/' },
-    { name: 'History', link: '/' },
-    { name: 'About Us ', link: '/' }
+    { name: 'History', link: '/user/history' },
+    { name: 'Wallet', link: '/user/wallet' },
+    // { name: 'About Us ', link: '/' }
   ]
   const dispatch = useDispatch()
 
@@ -42,8 +43,9 @@ const NavBar = () => {
             <Link to={'/user/profile'}>Profile</Link>
             <hr className="h-px mt-2 mb-2 bg-gray-300 border-0" />
           </div>
+         
           <div className="font-primary cursor-pointer text-red-600 hover:text-red-800">
-            <Link to={'/user/login'} onClick={()=>dispatch(logout())}> <MdLogout/> Logout</Link>
+            <Link to={'/user/login'} onClick={()=>dispatch(logout())}>  Logout</Link>
             <hr className="h-px mt-2 mb-2 bg-gray-300 border-0" />
           </div>
         </div>

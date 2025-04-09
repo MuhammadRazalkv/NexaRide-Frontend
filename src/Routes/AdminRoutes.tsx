@@ -1,27 +1,27 @@
-import { Route, Routes } from 'react-router-dom'
-import AdminLogin from '../Pages/Admin/AdminLogin'
-import AdminDashBoard from '../Pages/Admin/AdminDashBoard'
-import { SidebarProvider } from '../Context/toggeleSideBar'
-import AdminUsers from '../Pages/Admin/AdminUser'
-import AdminDrivers from '../Pages/Admin/AdminDrivers'
-import AdminPendingDriver from '../Pages/Admin/AdminPendingDriver'
-import { ConfigProvider, theme } from 'antd';
+import { Route, Routes } from "react-router-dom";
+import AdminLogin from "@/pages/admin/AdminLogin";
+import AdminDashBoard from "@/pages/admin/AdminDashBoard";
+import { SidebarProvider } from "../context/toggeleSideBar";
+import AdminUsers from "@/pages/admin/AdminUser";
+import AdminDrivers from "@/pages/admin/AdminDrivers";
+import AdminPendingDriver from "@/pages/admin/AdminPendingDriver";
+import { ConfigProvider, theme } from "antd";
 
 const AdminRoutes = () => {
   return (
-    <ConfigProvider theme={{
-      algorithm: theme.darkAlgorithm
-    }}>
-      <SidebarProvider >
-
+    <ConfigProvider
+      theme={{
+        algorithm: theme.darkAlgorithm,
+      }}
+    >
+      <SidebarProvider>
         <Routes>
+          <Route path="/login" element={<AdminLogin />} />
 
-          <Route path='/login' element={<AdminLogin />} />
-
-          <Route path='/dashboard' element={<AdminDashBoard />} />
-          <Route path='/users' element={<AdminUsers />} />
-          <Route path='/drivers' element={<AdminDrivers />} />
-          <Route path='/pending-drivers' element={<AdminPendingDriver />} />
+          <Route path="/dashboard" element={<AdminDashBoard />} />
+          <Route path="/users" element={<AdminUsers />} />
+          <Route path="/drivers" element={<AdminDrivers />} />
+          <Route path="/pending-drivers" element={<AdminPendingDriver />} />
 
           {/*  <Route path='/addInfo' element={<AddInfo />} />
    
@@ -32,14 +32,10 @@ const AdminRoutes = () => {
           {/* <Route element={<ProtectedRoute />}>
      <Route path='/ride' element={<Ride />} />
    </Route> */}
-
-
-
-
         </Routes>
       </SidebarProvider>
     </ConfigProvider>
-  )
-}
+  );
+};
 
-export default AdminRoutes
+export default AdminRoutes;

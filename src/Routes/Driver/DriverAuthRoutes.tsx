@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useSignup } from "../../Hooks/useSignup";
+import { useSignup } from "../../hooks/useSignup";
 
 const ProtectedRouteDriverAuth = ({ element, requiredStep }: { element: JSX.Element; requiredStep: number }) => {
     const { step, isGoogleAuth } = useSignup();

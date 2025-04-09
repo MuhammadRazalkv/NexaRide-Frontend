@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import AdminNavBar from "../../components/Admin Comp/AdminNavBar"
+import AdminNavBar from "../../components/admin/AdminNavbar"
 import { getUsers, updateStatus } from "../../api/auth/admin"
 import { FaEye } from "react-icons/fa";
 

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import axiosAdminInstance from "../axios/axiosAdminInstance";
+import axiosAdminInstance from "../axios/admin.axios.instance";
 interface Fare {
     "basic": number
     "premium": number

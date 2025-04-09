@@ -137,11 +137,18 @@ const MapComponent: React.FC<MapComponentProps> = ({
         routeCoords.every(
           (coord) => Array.isArray(coord) && coord.length === 2
         ) && (
-          <Polyline
-            positions={routeCoords}
-            color="rgba(20, 137, 255, 0.7)"
-            weight={4}
-          />
+          <>
+            {isRideStarted && !driverRoute?.length && (
+              <Marker icon={driverIcon} position={routeCoords[0]}>
+                <Popup>Driver location</Popup>
+              </Marker>
+            )}
+            <Polyline
+              positions={routeCoords}
+              color="rgba(20, 137, 255, 0.7)"
+              weight={4}
+            />
+          </>
         )}
 
       {driverRoute &&

@@ -7,8 +7,8 @@ import {
   updateRandomLoc,
   verifyRideOTP,
 } from "../../../api/auth/driver";
-import DNavBar from "@/components/DriverComp/DNavBar";
-import ToggleSwitch from "@/components/DriverComp/ToggleSwitch";
+import DNavBar from "@/components/driver/DNavBar";
+import ToggleSwitch from "@/components/driver/ToggleSwitch";
 import { message } from "antd";
 import MapComponent from "@/components/MapComp";
 import {
@@ -48,6 +48,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { TbMessage } from "react-icons/tb";
+import WaitingModal from "@/components/user/WaitingModal";
 
 interface IRideReqInfo {
   user: { id: string; name: string };
@@ -83,19 +85,30 @@ const DRide = () => {
   const [dropOffCoords, setDropOffCoords] = useState<[number, number] | null>(
     null
   );
-  const [routeCoords, setRouteCoords] = useState<[number, number][]>([]);
+  const [routeCoords, setRouteCoords] = useState<
+    [number, number][] | undefined
+  >([]);
   // const [driverArrived, setDriverArrived] = useState(false);
   const [driverRoute, setDriverRoute] = useState<DriverRoute | undefined>(
     undefined
   );
-  const [remainingRoute, setRemainingRoute] = useState<[number, number][]>([]);
+  const [remainingRoute, setRemainingRoute] = useState<
+    [number, number][] | undefined
+  >([]);
   const [isRideStarted, setIsRideStarted] = useState(false);
+  const [ridePhase, setRidePhase] = useState<
+    "idle" | "toPickup" | "otpVerified" | "toDropOff"
+  >("idle");
 
+  // const [remainingDropOffRoute,setRemainingDropOffRoute] = useState<[number, number][]>([]);
   const [rejected, setRejected] = useState(false);
   const rejectedRef = useRef(false); // Track latest rejected state
   const rideReqRef = useRef<IRideReqInfo | null>(null);
   const [accepted, setAccepted] = useState(false);
   const acceptedRef = useRef(false);
+  const trackingToPickupRef = useRef<NodeJS.Timeout | null>(null);
+  const [isCancelOpen, setIsCancelOpen] = useState(false);
+  const [waitPayment, setWaitPayment] = useState(false);
   //! Connect socket io
   const token = useSelector((state: RootState) => state.driverAuth.token);
   const [otpDialog, setOtpDialog] = useState(false);
@@ -110,7 +123,7 @@ const DRide = () => {
     acceptedRef.current = accepted;
   }, [accepted]);
 
-  // Use effect for handling new req and socket connection
+  //  for handling new req and socket connection
   useEffect(() => {
     if (!token) {
       messageApi.error("Token missing. Please ensure you are logged in.");
@@ -121,6 +134,16 @@ const DRide = () => {
       connectSocket(token, "driver");
     }
 
+    const clearAllStateData = async () => {
+      setOtpDialog(false);
+      setRideReqInfo(null);
+      setDriverRoute(undefined);
+      setPickupCoords(null);
+      setDropOffCoords(null);
+      setIsRideStarted(false);
+      setRouteCoords(undefined);
+      setRemainingRoute(undefined);
+    };
     // Handling new ride requests
     const handleNewRideReq = async (data: NewRideReqData) => {
       try {
@@ -164,10 +187,29 @@ const DRide = () => {
       }
     };
 
-    socket.on("new-ride-req", handleNewRideReq);
+    const handleRideCancelled = async () => {
+      console.log("Ride got cancelled");
+      messageApi.error("The ride was cancelled by the User");
+      socket.off("driver-location-update");
+      clearAllStateData();
+      if (trackingToPickupRef.current) {
+        clearInterval(trackingToPickupRef.current);
+        trackingToPickupRef.current = null;
+      }
+    };
 
+    const handlePaymentReceived = async () => {
+      messageApi.success("Payment received successfully");
+      clearAllStateData();
+      setWaitPayment(false);
+    };
+    socket.on("new-ride-req", handleNewRideReq);
+    socket.on("ride-cancelled", handleRideCancelled);
+    socket.on("payment-received", handlePaymentReceived);
     return () => {
-      socket.off("new-ride-req", handleNewRideReq);
+      socket.off("new-ride-req");
+      socket.off("ride-cancelled");
+      socket.off('payment-received')
       setIsDialogOpen(false);
       disconnectSocket();
     };
@@ -237,11 +279,19 @@ const DRide = () => {
         if (currentIndex < driverRoute.formattedRoute.length) {
           const currentLocation = driverRoute.formattedRoute[currentIndex];
 
-          socket.emit("driver-location-update", { location: currentLocation });
+          socket.emit("driver-location-update", {
+            type: "toPickup",
+            location: currentLocation,
+          });
           // setCurrentLoc(currentLocation);
 
           // Update the remaining route only after ride starts
-          setRemainingRoute((prevRoute) => prevRoute.slice(1));
+
+          setRemainingRoute((prevRoute) => {
+            if (prevRoute) {
+              return prevRoute.slice(1);
+            }
+          });
 
           currentIndex++;
         } else {
@@ -252,6 +302,45 @@ const DRide = () => {
           socket.off("driver-location-update");
         }
       }, 3000);
+      trackingToPickupRef.current = interval;
+      return () => clearInterval(interval);
+    },
+    [messageApi]
+  );
+
+  const simulatedLiveTrackingToDropOff = useCallback(
+    (routeCoords: [number, number][]) => {
+      console.log(" route coords ", routeCoords);
+
+      let currentIndex = 0;
+      setCurrentLoc(undefined);
+
+      const interval = setInterval(() => {
+        if (currentIndex < routeCoords.length) {
+          const currentLocation = routeCoords[currentIndex];
+
+          socket.emit("driver-location-update", {
+            type: "toDropOff",
+            location: currentLocation,
+          });
+          // setCurrentLoc(currentLocation);
+
+          // Update the remaining route only after ride starts
+          // setRemainingDropOffRoute((prevRoute) => prevRoute.slice(1));
+          setRouteCoords((prevRoute) => {
+            if (prevRoute) {
+              return prevRoute.slice(1);
+            }
+          });
+          currentIndex++;
+        } else {
+          clearInterval(interval);
+          messageApi.success("Driver has reached the drop off location.");
+          socket.emit("dropOff-reached");
+          socket.off("driver-location-update");
+          setWaitPayment(true);
+        }
+      }, 2000);
 
       return () => clearInterval(interval);
     },
@@ -281,7 +370,10 @@ const DRide = () => {
         console.log("Otp verification complete");
         setOTPError("");
         setOtpDialog(false);
-        
+        setRidePhase("toDropOff");
+        if (routeCoords) {
+          simulatedLiveTrackingToDropOff(routeCoords);
+        }
       } else {
         setOTPError("Wrong OTP");
       }
@@ -293,7 +385,7 @@ const DRide = () => {
       }
     }
   };
-  
+
   useEffect(() => {
     if (driverRoute && !isRideStarted) {
       setRemainingRoute(driverRoute.formattedRoute);
@@ -352,7 +444,7 @@ const DRide = () => {
       pickupCoords,
       dropOffCoords,
     });
-
+    setRidePhase("toPickup");
     setPickupCoords(pickupCoords);
     setDropOffCoords(dropOffCoords);
     const location = await fetchCurrentStoredLocation();
@@ -393,10 +485,34 @@ const DRide = () => {
     }
   };
 
+  // Cancel Ride
+  const cancelTheRide = () => {
+    socket.emit("cancel-ride", "driver");
+
+    setPickupCoords(null);
+    setDropOffCoords(null);
+    setRouteCoords(undefined);
+    setRideReqInfo(null);
+    setDriverRoute(undefined);
+    setIsRideStarted(false);
+    setRemainingRoute(undefined);
+    socket.off("driver-location-update");
+    if (trackingToPickupRef.current) {
+      clearInterval(trackingToPickupRef.current);
+      trackingToPickupRef.current = null;
+    }
+  };
+
   return (
     <>
       <DNavBar />
       {contextHolder}
+
+      <WaitingModal
+        open={waitPayment}
+        message="Waiting for payment confirmation"
+      />
+
       <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         {rideReqInfo && (
           <AlertDialogContent className="bg-white">
@@ -405,31 +521,31 @@ const DRide = () => {
               <AlertDialogTitle className="text-black">
                 New ride request from {rideReqInfo.user.name}
               </AlertDialogTitle>
-              <AlertDialogDescription className="space-y-2">
-                <p>
+              <AlertDialogDescription className="text-gray-700 space-y-1">
+                <div>
                   <span className="font-bold">From:</span>{" "}
                   {rideReqInfo.pickupLocation}
-                </p>
-                <p>
+                </div>
+                <div>
                   <span className="font-bold">To:</span>{" "}
                   {rideReqInfo.dropOffLocation}
-                </p>
-                <p>
+                </div>
+                <div>
                   <span className="font-bold">Est Distance:</span>{" "}
                   {rideReqInfo.distance
                     ? (rideReqInfo.distance / 1000).toFixed(2) + " km"
                     : "N/A"}
-                </p>
-                <p>
+                </div>
+                <div>
                   <span className="font-bold">Est Time:</span>{" "}
                   {rideReqInfo.time
                     ? Math.ceil(rideReqInfo.time / 60) + " min"
                     : "N/A"}
-                </p>
-                <p>
+                </div>
+                <div>
                   <span className="font-bold">Est Fare:</span> ₹
                   {rideReqInfo.fare}
-                </p>
+                </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -502,46 +618,129 @@ const DRide = () => {
         </DialogContent>
       </Dialog>
 
+      <AlertDialog open={isCancelOpen} onOpenChange={setIsCancelOpen}>
+        {rideReqInfo && (
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Cancel Ride Confirmation</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to cancel this ride? This action cannot be
+                undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep Ride</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-500 text-white hover:bg-red-600 transition"
+                onClick={cancelTheRide}
+              >
+                Yes, Cancel Ride
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        )}
+      </AlertDialog>
+
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] mt-6 mx-5 gap-5 md:min-h-[calc(80vh-90px)] lg:min-h-[calc(100vh-90px)] overflow-x-auto">
         {/* Left Section - Info Card */}
         <div className="bg-white rounded-2xl shadow-xl p-6 flex flex-col gap-4">
-          <div className="bg-white mt-4 p-4 rounded-xl shadow-md ">
-            {!rideReqInfo && (
-              <button
-                onClick={handleLocationUpdate}
-                className="bg-black text-white px-4 py-2 rounded-lg transition-transform duration-200 hover:scale-105 hover:bg-gray-800"
-              >
-                Assign Location
-              </button>
-            )}
-            <div className="flex items-center gap-3">
-              <p className="text-gray-700 font-medium">Ready to take rides</p>
-              <ToggleSwitch
-                isChecked={isAvailable}
-                onChange={handleAvailabilityChange}
-              />
+          {!rideReqInfo && (
+            <div className="bg-white mt-4 p-4 rounded-xl shadow-md ">
+              <>
+                <button
+                  onClick={handleLocationUpdate}
+                  className="bg-black text-white px-4 py-2 rounded-lg transition-transform duration-200 hover:scale-105 hover:bg-gray-800"
+                >
+                  Assign Location
+                </button>
+                <div className="flex items-center gap-3">
+                  <p className="text-gray-700 font-medium">
+                    Ready to take rides
+                  </p>
+                  <ToggleSwitch
+                    isChecked={isAvailable}
+                    onChange={handleAvailabilityChange}
+                  />
+                </div>
+              </>
             </div>
-          </div>
+          )}
           <h2 className="text-xl font-bold text-gray-800">Ride Info</h2>
           <p className="text-gray-600">
             Details about your current status and rides.
           </p>
-          {rideReqInfo && driverRoute && (
-            <div className="mt-4 border-t border-gray-200 pt-4">
-              <p className="text-sm text-gray-500 mt-2">
-                <span className="font-medium text-black">Reach by:</span>{" "}
-                {driverRoute.reachBy.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
 
-              <p className="text-sm text-gray-500">
-                <span className="font-medium text-black">
-                  Distance to Pickup:
-                </span>{" "}
-                {(driverRoute.distance / 1000).toFixed(2)} km
-              </p>
+          {rideReqInfo && driverRoute && (
+            <div className="mt-4 border-t border-gray-200 pt-4 space-y-3">
+              {ridePhase === "toPickup" && (
+                <>
+                  <p className="text-sm text-gray-500 mt-2">
+                    <span className="font-medium text-black">Reach by:</span>{" "}
+                    {driverRoute.reachBy.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+
+                  <p className="text-sm text-gray-500">
+                    <span className="font-medium text-black">
+                      Distance to Pickup:
+                    </span>{" "}
+                    {(driverRoute.distance / 1000).toFixed(2)} km
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row mt-6 gap-3">
+                    <button className="bg-black text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 transition duration-200 w-full sm:w-auto flex items-center justify-center space-x-2">
+                      <TbMessage className="text-white text-base" />
+                      <span>Message User</span>
+                    </button>
+
+                    <button
+                      className="bg-red-500 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-red-600 transition duration-200 w-full sm:w-auto"
+                      onClick={() => setIsCancelOpen(true)}
+                    >
+                      Cancel Ride
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {ridePhase === "toDropOff" && (
+                <>
+                  <p className="text-sm text-gray-500">
+                    <span className="font-medium text-black">From:</span>{" "}
+                    {rideReqInfo.pickupLocation}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    <span className="font-medium text-black">To:</span>{" "}
+                    {rideReqInfo.dropOffLocation}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    <span className="font-medium text-black">Distance:</span>{" "}
+                    {rideReqInfo.distance
+                      ? (rideReqInfo.distance / 1000).toFixed(2)
+                      : "N/A"}{" "}
+                    km
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    <span className="font-medium text-black">Fare:</span> ₹
+                    {rideReqInfo.fare}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    <span className="font-medium text-black">
+                      Estimated Drop-off:
+                    </span>{" "}
+                    {rideReqInfo.time
+                      ? new Date(
+                          Date.now() + rideReqInfo.time * 1000
+                        ).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "NA"}
+                  </p>
+                </>
+              )}
             </div>
           )}
         </div>

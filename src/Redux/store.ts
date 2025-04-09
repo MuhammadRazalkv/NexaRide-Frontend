@@ -4,6 +4,7 @@ import storage from "redux-persist/lib/storage";
 import authReducer from "./slices/authSlice"; 
 import { combineReducers } from "redux";
 import driverAuthReducer from './slices/driverAuthSlice'
+import rideReducer from './slices/rideSlice' 
 
 const rootReducer = combineReducers({
   auth: persistReducer(
@@ -13,7 +14,13 @@ const rootReducer = combineReducers({
   driverAuth:persistReducer(
     {key:'driverAuth',storage, whitelist : ['driver','token']},
     driverAuthReducer
+  ),
+  ride: persistReducer(
+    {key: 'ride', storage, whitelist: ['isRideActive', 'rideInfo', 'pickupCoords', 'dropOffCoords','rideId','inPayment']},
+    rideReducer
   )
+
+  
 });
 
 
