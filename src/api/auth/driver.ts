@@ -427,6 +427,30 @@ export async function getDriverInfo() {
   }
 }
 
+export async function updateProfilePic(image:string) {
+  try {
+    const response = await axiosDriverInstance.patch("/updateProfilePic", {
+      image,
+     
+    });
+
+    return response.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+      console.log(
+        "Error message from server in getDriver info :",
+        err.response.data.message
+      );
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
 export async function updateDriverInfo(field: string, value: string) {
   try {
     const response = await axiosDriverInstance.patch("/updateDriverInfo", {
@@ -452,6 +476,7 @@ export async function updateDriverInfo(field: string, value: string) {
   }
 }
 
+
 export async function updateIsAvailable() {
   try {
     const response = await axiosDriverInstance.patch("/updateAvailability");
@@ -476,7 +501,7 @@ export async function updateIsAvailable() {
 
 export async function updateRandomLoc() {
   try {
-    const response = await axiosDriverInstance.post("/useRandomLocation",{});
+    const response = await axiosDriverInstance.post("/useRandomLocation", {});
 
     return response.data;
   } catch (err) {
@@ -518,14 +543,12 @@ export async function fetchCurrentStoredLocation() {
   }
 }
 
-
-
-export async function verifyRideOTP(otp:string) {
+export async function verifyRideOTP(otp: string) {
   if (!otp) {
-    throw new Error('Please provide an OTP')
+    throw new Error("Please provide an OTP");
   }
   try {
-    const response = await axiosDriverInstance.post("/verifyRideOTP",{otp});
+    const response = await axiosDriverInstance.post("/verifyRideOTP", { otp });
 
     return response.data;
   } catch (err) {
@@ -545,9 +568,7 @@ export async function verifyRideOTP(otp:string) {
   }
 }
 
-
 export async function getDriverWalletInfo() {
-
   try {
     const response = await axiosDriverInstance.get("/getWalletInfo");
 
@@ -569,11 +590,9 @@ export async function getDriverWalletInfo() {
   }
 }
 
-
-
-export async function getRideHistory(){
+export async function getRideHistory(page:number = 1 ) {
   try {
-    const res = await axiosDriverInstance.get(`/getRideHistory`);
+    const res = await axiosDriverInstance.get(`/getRideHistory?page=${page}`);
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {

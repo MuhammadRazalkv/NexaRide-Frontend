@@ -1,9 +1,11 @@
-import { getRideHistory } from "@/api/auth/driver";
-import DNavBar from "@/components/driver/DNavBar";
+import { getRideHistory } from "@/api/auth/user";
+import NavBar from "@/components/user/NavBar";
 import { useEffect, useState } from "react";
 import { message } from "antd";
 import RideHistoryTable from "@/components/RideHistoryTable";
 import { Pagination } from "antd";
+import { useNavigate } from "react-router-dom";
+
 
 export interface IRideHistoryItem {
   _id: string;
@@ -19,23 +21,21 @@ export interface IRideHistoryItem {
   canceledAt?: number;
   paymentStatus: "completed" | "pending" | "failed";
   driverId: string;
-  userId: string;
-  driverEarnings: number;
-  commission: number;
 }
 
-const DRideHistory = () => {
+const RideHistory = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [rideHistory, setRideHistory] = useState<IRideHistoryItem[]>([]);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const navigate = useNavigate()
   useEffect(() => {
     async function fetchRideHistory() {
       try {
         const res = await getRideHistory(currentPage);
         if (res.success && res.history && res.total) {
           setRideHistory(res.history);
-          setTotal(res.total);
+          setTotal(res.total)
         }
       } catch (error) {
         console.log(error);
@@ -45,24 +45,30 @@ const DRideHistory = () => {
     fetchRideHistory();
   }, [messageApi,currentPage]);
 
+  const handleNavigation = (id:string)=>{
+    navigate('/user/rideInfo',{state:id})
+  }
+
   return (
     <>
-      <DNavBar />
+      <NavBar />
       {contextHolder}
 
-      <div className="px-4 md:px-12 py-6 space-y-2">
+      <div className="px-4 md:px-12 py-6 space-y-4">
         <h2 className="text-2xl font-semibold mb-4">Your Ride History</h2>
-        <RideHistoryTable rideHistory={rideHistory} variant="driver" />
-        <Pagination
+
+        <RideHistoryTable rideHistory={rideHistory} variant="user" handleNavigation={handleNavigation} />
+        <Pagination 
           current={currentPage}
           total={total}
           pageSize={8}
           align="center"
           onChange={(page) => setCurrentPage(page)}
+       
         />
       </div>
     </>
   );
 };
 
-export default DRideHistory;
+export default RideHistory;

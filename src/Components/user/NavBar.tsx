@@ -1,23 +1,22 @@
-import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
-import { MdOutlineKeyboardArrowDown, MdMenu, MdClose  } from "react-icons/md";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { MdOutlineKeyboardArrowDown, MdMenu, MdClose } from "react-icons/md";
 import { useState } from "react";
-import { logout } from "@/Redux/slices/authSlice";
+import { logout } from "@/redux/slices/authSlice";
 import { useDispatch } from "react-redux";
 
 const NavBar = () => {
   const [open, setOpen] = useState(false);
   const links = [
-    { name: 'Travel', link: '/' },
-    { name: 'History', link: '/user/history' },
-    { name: 'Wallet', link: '/user/wallet' },
+    { name: "Travel", link: "/" },
+    { name: "History", link: "/user/history" },
+    { name: "Wallet", link: "/user/wallet" },
     // { name: 'About Us ', link: '/' }
-  ]
-  const dispatch = useDispatch()
+  ];
+  const dispatch = useDispatch();
 
   return (
     <div className="h-[70px] flex items-center justify-between px-9 shadow-md w-full bg-white">
-
       {/* Logo */}
       <h1 className="font-primary text-3xl md:text-4xl">NexaRide</h1>
 
@@ -34,18 +33,24 @@ const NavBar = () => {
       {open && (
         <div className="absolute top-16 z-50 right-0 w-full bg-gray-100 text-gray-600 text-sm h-dvh p-6 space-y-4">
           {links.map((item) => (
-            <div key={item.name} className="font-primary cursor-pointer hover:text-black">
+            <div
+              key={item.name}
+              className="font-primary cursor-pointer hover:text-black"
+            >
               <Link to={item.link}>{item.name}</Link>
               <hr className="h-px mt-2 mb-2 bg-gray-300 border-0" />
             </div>
           ))}
           <div className="font-primary cursor-pointer hover:text-black">
-            <Link to={'/user/profile'}>Profile</Link>
+            <Link to={"/user/profile"}>Profile</Link>
             <hr className="h-px mt-2 mb-2 bg-gray-300 border-0" />
           </div>
-         
+
           <div className="font-primary cursor-pointer text-red-600 hover:text-red-800">
-            <Link to={'/user/login'} onClick={()=>dispatch(logout())}>  Logout</Link>
+            <Link to={"/user/login"} onClick={() => dispatch(logout())}>
+              {" "}
+              Logout
+            </Link>
             <hr className="h-px mt-2 mb-2 bg-gray-300 border-0" />
           </div>
         </div>
@@ -61,23 +66,20 @@ const NavBar = () => {
             transition={{ duration: 0.5 + index * 0.1, ease: "easeOut" }}
             className="font-primary cursor-pointer hover:text-black"
           >
-            <Link to={item.link}>
-              {item.name}
-            </Link>
+            <Link to={item.link}>{item.name}</Link>
           </motion.p>
         ))}
       </div>
 
       {/* Profile Button */}
       <div className="hidden md:flex items-center text-white">
-        <Link to={'/user/profile'}>
+        <Link to={"/user/profile"}>
           <div className="bg-black hover:bg-gray-800 rounded-2xl w-fit py-2 px-4 text-sm flex items-center justify-center gap-2 font-semibold">
             Profile
             <MdOutlineKeyboardArrowDown />
           </div>
         </Link>
       </div>
-
     </div>
   );
 };

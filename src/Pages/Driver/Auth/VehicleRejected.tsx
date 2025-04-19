@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form"
 import * as yup from "yup";
 import { Upload } from "lucide-react"
 import { useState , useEffect } from "react"
-import { RootState } from "../../../Redux/store";
+import { RootState } from "@/redux/store";
 import BinButton from "../../../components/Icons/BinBtn"
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate } from "react-router-dom";

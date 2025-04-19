@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios';
-import { loginSuccessDriver , logoutDriver } from '@/Redux/slices/driverAuthSlice';
-import  {store} from '@/Redux/store';
+import { loginSuccessDriver , logoutDriver } from '@/redux/slices/driverAuthSlice';
+import  {store} from '@/redux/store';
 
 const isTokenError = (error: AxiosError): boolean => {
     const status = error.response?.status;
@@ -10,11 +10,11 @@ const isTokenError = (error: AxiosError): boolean => {
         status === 401 && 
         (errorMessage.includes('token') || errorMessage.includes('expired'))
     );
-};
+};  
 
 
 const axiosDriverInstance = axios.create({
-    baseURL: 'http://localhost:3000/driver',
+    baseURL: `${import.meta.env.VITE_BACKEND_URL}/driver`,
     withCredentials: true 
 });
 
@@ -34,22 +34,21 @@ axiosDriverInstance.interceptors.request.use(
 axiosDriverInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
-        console.log('error ',error);
+        
         
         const originalRequest = error.config;
 
         // Handle Token Expiry
         if (isTokenError(error) && !originalRequest._retry) {
-            console.log('Token expire error ');
+          
             
             originalRequest._retry = true;
 
             try {
-                console.log('before sending the response ');
+              
                 
-                const response = await axios.post('http://localhost:3000/driver/refreshToken', {}, { withCredentials: true });
-                console.log('Response ',response);
-                
+                const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/driver/refreshToken`, {}, { withCredentials: true });
+             
                 const newToken = response.data.accessToken;
                 const driver = store.getState().driverAuth.driver;
 

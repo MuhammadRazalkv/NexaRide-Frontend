@@ -1,4 +1,4 @@
-import { RootState } from "@/Redux/store"
+import { RootState } from "@/redux/store"
 import { useSelector } from "react-redux"
 
 const GetUserToken = () => {

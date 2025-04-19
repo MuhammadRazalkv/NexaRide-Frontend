@@ -1,83 +1,84 @@
-import axios , { AxiosError }from 'axios';
-import { logout , sLogin} from '@/Redux/slices/authSlice';
-import  {store} from '@/Redux/store';
+import axios, { AxiosError } from "axios";
+import { logout, sLogin } from "@/redux/slices/authSlice";
+import { store } from "@/redux/store";
 
 const isTokenError = (error: AxiosError): boolean => {
-    const status = error.response?.status;
-    const errorMessage = (error.response?.data as { message?: string })?.message || '';
+  const status = error.response?.status;
+  const errorMessage =
+    (error.response?.data as { message?: string })?.message || "";
 
-    return (
-        status === 401 && 
-        (errorMessage.includes('token') || errorMessage.includes('expired'))
-    );
+  return (
+    status === 401 &&
+    (errorMessage.includes("token") || errorMessage.includes("expired"))
+  );
 };
 
-
-
-
 const axiosUserInstance = axios.create({
-    baseURL: 'http://localhost:3000/user',
-    withCredentials: true ,
-    
+  baseURL: `${import.meta.env.VITE_BACKEND_URL}/user`,
+  withCredentials: true,
 });
 
 // Request Interceptor
 axiosUserInstance.interceptors.request.use(
-    (config) => {
-        const token = store.getState().auth.token;
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => Promise.reject(error)
+  (config) => {
+    const token = store.getState().auth.token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
 
 axiosUserInstance.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-        console.error('Error Details:', error);
+  (response) => response,
+  async (error) => {
+    console.error("Error Details:", error);
 
-        const originalRequest = error.config;
+    const originalRequest = error.config;
 
-        if (isTokenError(error) && !originalRequest._retry) {
-            console.log('Token expiry detected. Attempting token refresh...');
-            
-            originalRequest._retry = true;
+    if (isTokenError(error) && !originalRequest._retry) {
+      console.log("Token expiry detected. Attempting token refresh...");
 
-            try {
-                const response = await axios.post(
-                    'http://localhost:3000/user/refreshToken', 
-                    {}, 
-                    { withCredentials: true }
-                );
+      originalRequest._retry = true;
 
-                const newToken = response.data.accessToken;
-                const user = store.getState().auth.user;
+      try {
+        const response = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/user/refreshToken`,
+          {},
+          { withCredentials: true }
+        );
 
-                if (!user) throw new Error('No user data found');
+        const newToken = response.data.accessToken;
+        const user = store.getState().auth.user;
 
-                const dispatch = store.dispatch;
-                dispatch(sLogin({ user, token: newToken }));
+        if (!user) throw new Error("No user data found");
 
-                return axiosUserInstance(originalRequest);
-            } catch (refreshError) {
-                console.error('Refresh token failed:', refreshError);
+        const dispatch = store.dispatch;
+        dispatch(sLogin({ user, token: newToken }));
 
-                const dispatch = store.dispatch;
-                dispatch(logout());
+        return axiosUserInstance(originalRequest);
+      } catch (refreshError) {
+        console.error("Refresh token failed:", refreshError);
 
-                alert('Session expired. Logging out...');
-                window.location.href = '/user/login';  
-            }
-        }
+        const dispatch = store.dispatch;
+        dispatch(logout());
 
-        // Pass non-token-related errors to the original request
-        return Promise.reject(error);
+        alert("Session expired. Logging out...");
+        window.location.href = "/user/login";
+      }
     }
+
+    if (error.response?.status === 403) {
+      const dispatch = store.dispatch;
+      dispatch(logout());
+      alert("Your account has been blocked. Please contact support.");
+      window.location.href = "/user/login";
+    }
+
+    // Pass non-token-related errors to the original request
+    return Promise.reject(error);
+  }
 );
-
-
-
 
 export default axiosUserInstance;

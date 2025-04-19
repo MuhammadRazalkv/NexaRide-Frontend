@@ -5,7 +5,7 @@ import "./index.css";
 import App from "./App.tsx";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
-import { store, persistor } from "./Redux/store.ts";
+import { store, persistor } from "./redux/store.ts";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import "react-toastify/dist/ReactToastify.css";
 // import { ConfigProvider, theme } from 'antd';

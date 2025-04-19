@@ -1,15 +1,16 @@
 import { Route, Routes } from "react-router-dom";
-import Signup from "@/pages/Users/auth/Signup";
-import Otp from "@/pages/Users/auth/Otp";
-import AddInfo from "@/pages/Users/auth/AddInfo";
-import Login from "@/pages/Users/auth/Login";
-import Ride from "@/pages/Users/ride/Ride";
+import Signup from "@/pages/users/auth/Signup";
+import Otp from "@/pages/users/auth/Otp";
+import AddInfo from "@/pages/users/auth/AddInfo";
+import Login from "@/pages/users/auth/Login";
+import Ride from "@/pages/users/ride/Ride";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import PublicRoute from "@/routes/PublicRoute";
-import ResetPassword from "@/pages/Users/auth/ResetPassword";
-import Profile from "@/pages/Users/Profile";
-import Wallet from "@/pages/Users/Wallet";
-import RideHistory from "@/pages/Users/RideHistory";
+import ResetPassword from "@/pages/users/auth/ResetPassword";
+import Profile from "@/pages/users/Profile";
+import Wallet from "@/pages/users/Wallet";
+import RideHistory from "@/pages/users/ride/RideHistory";
+import RideInfo from "@/pages/users/ride/RideInfo";
 const UserRoutes = () => {
   return (
     <Routes>
@@ -28,6 +29,8 @@ const UserRoutes = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/wallet" element={<Wallet />} />
         <Route path="/history" element={<RideHistory />} />
+        <Route path="/rideInfo" element={<RideInfo />} />
+
       </Route>
     </Routes>
   );

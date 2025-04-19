@@ -6,7 +6,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import {  loginWithGoogle , forgotPass} from "../../../api/auth/driver";
-import { loginSuccessDriver } from "../../../Redux/slices/driverAuthSlice";
+import { loginSuccessDriver } from "@/redux/slices/driverAuthSlice";
 import { useDispatch } from "react-redux";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";

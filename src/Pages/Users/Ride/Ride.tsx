@@ -8,7 +8,7 @@ import { message } from "antd";
 import { checkCabs, payUsingStripe, payUsingWallet } from "@/api/auth/user";
 import { Car3D } from "@/Assets";
 import { socket, connectSocket, RideInfo } from "@/utils/socket";
-import { RootState } from "@/Redux/store";
+import { RootState } from "@/redux/store";
 // import Loader from "@/components/Loader";
 import WaitingModal from "@/components/user/WaitingModal";
 import { fetchRoute } from "@/utils/geoApify";
@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import PaymentOptions from "@/components/user/PaymentOptions";
 import { useDispatch, useSelector } from "react-redux";
-import { setInPayment, setRideIdInSlice } from "@/Redux/slices/rideSlice";
+import { setInPayment, setRideIdInSlice } from "@/redux/slices/rideSlice";
 
 interface LocationData {
   properties: {

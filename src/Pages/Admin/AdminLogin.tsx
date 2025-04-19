@@ -1,37 +1,40 @@
-import { useState , useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../components/Loader";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { login } from '../../api/auth/admin'
+import { login } from "../../api/auth/admin";
+import { useDispatch, useSelector } from "react-redux";
+import { adminLogin } from "@/redux/slices/adminAuthSlice";
+import { RootState } from "@/redux/store";
 
 const AdminLogin = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
 
   const [password, setPassword] = useState("");
   const [passwordErr, setPasswordErr] = useState<string | null>(null);
 
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const dispatch = useDispatch()
   const navigate = useNavigate();
-  useEffect(()=>{
-    if (localStorage.getItem('adminLoggedIn') == "true") {
-      navigate("/admin/dashboard");
-      return
+  const token = useSelector((state:RootState)=> state.adminAuth.token)
+  useEffect(() => {
+    if (token) {
+      navigate('/admin/dashboard')
     }
-    
-  },[navigate])
+  }, [navigate,token]);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim();
     setEmail(value);
 
     if (!value) {
-      setEmailError('Email is required');
+      setEmailError("Email is required");
     } else if (!/\S+@\S+\.\S+/.test(value)) {
-      setEmailError('Please enter a valid email address');
+      setEmailError("Please enter a valid email address");
     } else {
       setEmailError(null);
     }
@@ -43,8 +46,14 @@ const AdminLogin = () => {
 
     if (!value) {
       setPasswordErr("Password is required");
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value)) {
-      setPasswordErr("Password must be at least 8 characters long and include uppercase, lowercase, number & special character");
+    } else if (
+      !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+        value
+      )
+    ) {
+      setPasswordErr(
+        "Password must be at least 8 characters long and include uppercase, lowercase, number & special character"
+      );
     } else {
       setPasswordErr(null);
     }
@@ -55,49 +64,51 @@ const AdminLogin = () => {
   };
 
   const handleSubmit = async () => {
-    setEmailError('');
-    setPasswordErr('');
+    setEmailError("");
+    setPasswordErr("");
 
     if (!email.trim()) {
-      setEmailError('Email is required');
+      setEmailError("Email is required");
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setEmailError('Please enter a valid email address');
+      setEmailError("Please enter a valid email address");
     }
 
     if (!password.trim()) {
-      setPasswordErr('Password is required');
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password)) {
-      setPasswordErr("Password must be at least 8 characters long and include uppercase, lowercase, number & special character");
+      setPasswordErr("Password is required");
+    } else if (
+      !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+        password
+      )
+    ) {
+      setPasswordErr(
+        "Password must be at least 8 characters long and include uppercase, lowercase, number & special character"
+      );
     }
 
     if (email && password) {
       if (emailError || passwordErr) {
-        return
+        return;
       }
-      setLoading(true)
+      setLoading(true);
       try {
         // Proceed with the login request if no errors
-        const response = await login(email, password);
+        const response = await login(email, password);  
 
+        setLoading(false);
 
-        setLoading(false)
-        
-
-        if (response && response.message) {
-          localStorage.setItem('adminLoggedIn',"true")
+        if (response  && response.accessToken) {
+          dispatch(adminLogin({token:response.accessToken}))
           navigate("/admin/dashboard");
         }
       } catch (err: unknown) {
-
         setTimeout(() => {
-          setLoading(false)
+          setLoading(false);
           if (err instanceof Error) {
             setError(err.message);
           } else {
-            setError('An unexpected error occurred');
+            setError("An unexpected error occurred");
           }
-
-        }, 1000)
+        }, 1000);
       }
     }
   };
@@ -118,7 +129,9 @@ const AdminLogin = () => {
 
         {/* Email Input */}
         <div className="mb-6">
-          <label className="block text-gray-300 text-sm mb-2">Email Address</label>
+          <label className="block text-gray-300 text-sm mb-2">
+            Email Address
+          </label>
           <input
             type="email"
             placeholder="Enter your email address"

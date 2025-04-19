@@ -1,4 +1,4 @@
-import { getDriverInfo } from "@/api/auth/driver";
+import { getDriverInfo, updateProfilePic } from "@/api/auth/driver";
 import DNavBar from "@/components/driver/DNavBar";
 import { Default_Pfp } from "@/Assets";
 import { useEffect, useState } from "react";
@@ -53,7 +53,7 @@ const DProfile = () => {
   // const [editableFields, setEditableFields] = useState<Partial<IDriver>>({});
   const [fieldValue, setFieldValue] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!toUpdate) return;
 
@@ -142,14 +142,7 @@ const DProfile = () => {
   };
 
   const handleSubmit = async () => {
-    console.log("sub");
-    console.log(toUpdate, fieldValue);
-
     if (!toUpdate || !fieldValue) return;
-    // console.log(toUpdate , editableFields[toUpdate] as string);
-    console.log("submit");
-
-    console.log(toUpdate, fieldValue);
 
     try {
       // const res = await updateDriverInfo(toUpdate , editableFields[toUpdate] as string );
@@ -161,7 +154,7 @@ const DProfile = () => {
           [toUpdate]: res.updatedFiled,
         }));
         setIsDialogOpen(false);
-        navigate('/driver/ride')
+        navigate("/driver/ride");
       } else {
         messageApi.error(`Failed to update ${toUpdate}`);
       }
@@ -171,6 +164,46 @@ const DProfile = () => {
       messageApi.error(`Error updating ${toUpdate}`);
     }
   };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      const MAX_FILE_SIZE = 2 * 1024 * 1024;
+      const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+  
+      if (!file) return;
+  
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        messageApi.error("Only JPG, PNG, and WEBP images are allowed.");
+        return;
+      }
+  
+      if (file.size > MAX_FILE_SIZE) {
+        messageApi.error("File size must be less than 2MB.");
+        return;
+      }
+  
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (reader.result) callUpdateProfilePic(reader.result as string);
+      };
+      reader.onerror = () => {
+        messageApi.error("Failed to read the file.");
+      };
+      reader.readAsDataURL(file);
+    };
+  
+    const callUpdateProfilePic = async (image: string) => {
+      try {
+        const res = await updateProfilePic(image);
+        if (res.success) {
+          messageApi.success("Profile picture updated successfully!");
+          setDriver(prev => prev ? { ...prev, profilePic: res.image } : prev);
+        }
+      } catch (error) {
+        const errMsg = error instanceof Error ? error.message : "Failed to update profile picture.";
+        messageApi.error(errMsg);
+      }
+    };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -182,7 +215,9 @@ const DProfile = () => {
           <DialogHeader>
             <DialogTitle>Edit profile</DialogTitle>
             <DialogDescription>
-              Make changes to your profile here. Click save when you're done.
+              Update your profile details below. Once you click Save, your
+              changes will be submitted for review. Re-verification is required
+              — you'll receive an email once your information has been verified.
             </DialogDescription>
           </DialogHeader>
           {/* {/* {nameErr && <p className="text-red-500 text-xs">{nameErr}</p>} */}
@@ -232,7 +267,7 @@ const DProfile = () => {
                 id="profilePicInput"
                 className="hidden"
                 accept="image/*"
-                // onChange={handleImageUpload}
+                onChange={handleImageUpload}
               />
 
               <label

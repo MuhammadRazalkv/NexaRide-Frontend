@@ -5,7 +5,7 @@ import authReducer from "./slices/authSlice";
 import { combineReducers } from "redux";
 import driverAuthReducer from './slices/driverAuthSlice'
 import rideReducer from './slices/rideSlice' 
-
+import adminAuthReducer from '@/redux/slices/adminAuthSlice'
 const rootReducer = combineReducers({
   auth: persistReducer(
     { key: "auth", storage, whitelist: ["user", "token"] },
@@ -14,6 +14,10 @@ const rootReducer = combineReducers({
   driverAuth:persistReducer(
     {key:'driverAuth',storage, whitelist : ['driver','token']},
     driverAuthReducer
+  ),
+  adminAuth:persistReducer(
+    {key:'adminAuth',storage, whitelist : ['token']},
+    adminAuthReducer
   ),
   ride: persistReducer(
     {key: 'ride', storage, whitelist: ['isRideActive', 'rideInfo', 'pickupCoords', 'dropOffCoords','rideId','inPayment']},

@@ -9,7 +9,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate } from "react-router-dom";
 import { addVehicle } from "../../../api/auth/driver";
 import { useDispatch } from "react-redux";
-import { signUpSuccess} from '../../../Redux/slices/driverAuthSlice'
+import { signUpSuccess} from '@/redux/slices/driverAuthSlice'
 
 function validateLicensePlate(numberPlate: string): boolean {
   if (!numberPlate) return false;

@@ -2,7 +2,7 @@ import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import { MdOutlineKeyboardArrowDown, MdMenu, MdClose , MdLogout } from "react-icons/md";
 import { useState } from "react";
-import { logoutDriver } from "@/Redux/slices/driverAuthSlice";
+import { logoutDriver } from "@/redux/slices/driverAuthSlice";
 import { useDispatch } from "react-redux";
 
 const DNavBar = () => {

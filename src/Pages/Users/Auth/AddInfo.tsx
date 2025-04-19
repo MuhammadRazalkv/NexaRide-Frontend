@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { addInfo } from "../../../api/auth/user";
 import { useNavigate, useLocation } from "react-router-dom";
-import { sLogin } from "../../../Redux/slices/authSlice";
+import { sLogin } from "@/redux/slices/authSlice";
 import { useDispatch } from "react-redux";
 import Loader from "../../../components/Loader";
 

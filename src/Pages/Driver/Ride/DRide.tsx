@@ -18,7 +18,7 @@ import {
   ServerToClientEvents,
 } from "@/utils/socket";
 import { useSelector } from "react-redux";
-import { RootState } from "@/Redux/store";
+import { RootState } from "@/redux/store";
 import {
   AlertDialog,
   AlertDialogAction,

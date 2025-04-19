@@ -11,7 +11,7 @@ interface CheckCabs {
 //! sending email to backend to verify it
 export async function sendEmail(email: string) {
   const response = await axiosUserInstance.post("/verify-email", {
-    email: email,
+    email,
   });
   return response;
 }
@@ -334,7 +334,6 @@ export async function checkCabs(data: CheckCabs) {
   }
 }
 
-
 export async function addMoneyToWallet(amount: number) {
   try {
     const res = await axiosUserInstance.post("/addMoneyToWallet", {
@@ -358,7 +357,6 @@ export async function addMoneyToWallet(amount: number) {
   }
 }
 
-
 export async function getWalletInfo() {
   try {
     const res = await axiosUserInstance.get("/getWalletInfo");
@@ -380,31 +378,30 @@ export async function getWalletInfo() {
   }
 }
 
-export async function payUsingWallet(rideId:string) {
-    try {
-      const response = await axiosUserInstance.post('/payUsingWallet',{rideId})
-      return response.data
-
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
-        console.log(
-          "Error message from server in pay using Wallet :",
-          err.response.data.message
-        );
-        throw new Error(err.response.data.message);
-      } else if (err instanceof Error) {
-        console.log(err.message);
-        throw new Error(err.message);
-      } else {
-        console.log("Unknown error:", err);
-        throw new Error("An unexpected error occurred");
-      }
+export async function payUsingWallet(rideId: string) {
+  try {
+    const response = await axiosUserInstance.post("/payUsingWallet", {
+      rideId,
+    });
+    return response.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+      console.log(
+        "Error message from server in pay using Wallet :",
+        err.response.data.message
+      );
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
     }
+  }
 }
 
-
-
-export async function checkPaymentStatus(rideId:string) {
+export async function checkPaymentStatus(rideId: string) {
   try {
     const res = await axiosUserInstance.get(`/checkPaymentStatus/${rideId}`);
     return res.data;
@@ -424,10 +421,10 @@ export async function checkPaymentStatus(rideId:string) {
     }
   }
 }
-export async function payUsingStripe(rideId:string) {
+export async function payUsingStripe(rideId: string) {
   try {
     const res = await axiosUserInstance.post("/payUsingStripe", {
-      rideId
+      rideId,
     });
     return res.data;
   } catch (err) {
@@ -447,10 +444,30 @@ export async function payUsingStripe(rideId:string) {
   }
 }
 
-
-export async function getRideHistory(){
+export async function getRideHistory(page:number = 1 ) {
   try {
-    const res = await axiosUserInstance.get(`/getRideHistory`);
+    const res = await axiosUserInstance.get(`/getRideHistory?page=${page}`);
+    return res.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+      console.log(
+        "Error message from server in getRide history  :",
+        err.response.data.message
+      );
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+
+export async function getRideInfo(rideId:string) {
+  try {
+    const res = await axiosUserInstance.get(`/getRideInfo?rideId=${rideId}`);
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
