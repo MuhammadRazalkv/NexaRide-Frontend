@@ -1,32 +1,30 @@
-
-import styled from 'styled-components';
+import styled from "styled-components";
 
 const Loader = () => {
-    return (
-        <StyledWrapper>
-            <div className="dot-spinner">
-                <div className="dot-spinner__dot" />
-                <div className="dot-spinner__dot" />
-                <div className="dot-spinner__dot" />
-                <div className="dot-spinner__dot" />
-                <div className="dot-spinner__dot" />
-                <div className="dot-spinner__dot" />
-                <div className="dot-spinner__dot" />
-                <div className="dot-spinner__dot" />
-            </div>
-        </StyledWrapper>
-    );
-}
+  return (
+    <StyledWrapper>
+      <div className="dot-spinner ">
+        <div className="dot-spinner__dot" />
+        <div className="dot-spinner__dot" />
+        <div className="dot-spinner__dot" />
+        <div className="dot-spinner__dot" />
+        <div className="dot-spinner__dot" />
+        <div className="dot-spinner__dot" />
+        <div className="dot-spinner__dot" />
+        <div className="dot-spinner__dot" />
+      </div>
+    </StyledWrapper>
+  );
+};
 
 const StyledWrapper = styled.div`
- display: flex;
+  display: flex;
   align-items: center;
   justify-content: center;
- 
 
   .dot-spinner {
     --uib-size: 1.7rem;
-    --uib-speed: .9s;
+    --uib-speed: 0.9s;
     --uib-color: #000000;
     position: relative;
     display: flex;
@@ -48,7 +46,7 @@ const StyledWrapper = styled.div`
   }
 
   .dot-spinner__dot::before {
-    content: '';
+    content: "";
     height: 20%;
     width: 20%;
     border-radius: 50%;
@@ -126,6 +124,7 @@ const StyledWrapper = styled.div`
       transform: scale(1);
       opacity: 1;
     }
-  }`;
+  }
+`;
 
 export default Loader;

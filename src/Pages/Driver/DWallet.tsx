@@ -2,6 +2,7 @@ import DNavBar from "@/components/driver/DNavBar";
 import { useEffect, useState } from "react";
 import { message } from "antd";
 import { getDriverWalletInfo } from "@/api/auth/driver";
+import { formatDate } from "@/utils/DateAndTimeFormatter";
 interface IWallet {
   balance: number;
   transactions?: [
@@ -62,9 +63,7 @@ const DWallet = () => {
               <ul className="space-y-3 text-sm text-gray-700 max-h-[160px]  pr-1">
                 {[...wallet.transactions].reverse().map((item, index) => {
                   const isCredit = item.type === "credit";
-                  const formattedDate = new Date(
-                    item.date
-                  ).toLocaleDateString();
+                  const formattedDate = formatDate(item.date)
 
                   return (
                     <li key={index} className="flex justify-between">

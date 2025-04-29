@@ -10,7 +10,7 @@ import { sLogin } from "@/redux/slices/authSlice";
 import { useDispatch } from "react-redux";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import Loader from "../../../components/Loader";
+
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -103,22 +103,18 @@ const Login = () => {
           navigate("/user/ride");
         }
       } catch (err: unknown) {
-        setTimeout(() => {
-          setLoading(false);
-          if (err instanceof Error) {
-            setError(err.message);
-          } else {
-            setError("An unexpected error occurred");
-          }
-        }, 1000);
+        setLoading(false);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unexpected error occurred");
+        }
       }
     }
   };
 
   const googleLogin = useGoogleLogin({
     onSuccess: async (response) => {
-      console.log("Access Token:", response.access_token);
-
       // Fetch user details from Google API
       const userInfo = await axios.get(
         "https://www.googleapis.com/oauth2/v2/userinfo",
@@ -225,11 +221,9 @@ const Login = () => {
             Forgot password ?
           </p>
           <div className="">
-            {loading ? (
-              <Loader />
-            ) : (
-              <AuthBtn text={"Login"} onClick={handleSubmit} />
-            )}
+            
+              <AuthBtn text={loading ? 'Verifying...' : 'Login'} onClick={handleSubmit} />
+        
           </div>
 
           <p className="lg:mr-5 text-sm mt-4">or</p>

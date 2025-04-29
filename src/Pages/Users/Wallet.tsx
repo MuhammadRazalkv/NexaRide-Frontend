@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { addMoneyToWallet, getWalletInfo } from "@/api/auth/user";
 import { message } from "antd";
 import WaitingModal from "@/components/user/WaitingModal";
+import { formatDate, formatTime } from "@/utils/DateAndTimeFormatter";
 // import {  useNavigate } from "react-router-dom";
 interface IWallet {
   balance: number;
@@ -161,13 +162,12 @@ const Wallet = () => {
               <ul className="space-y-3 text-sm text-gray-700 max-h-[160px]  pr-1">
                 {[...wallet.transactions].reverse().map((item, index) => {
                   const isCredit = item.type === "credit";
-                  const formattedDate = new Date(
-                    item.date
-                  ).toLocaleDateString();
-
+                  const formattedDate = formatDate(item.date)
+                  const formattedTime = formatTime(item.date)
+                  
                   return (
-                    <li key={index} className="flex justify-between">
-                      <span>{formattedDate}</span>
+                    <li key={index} className="flex justify-between ">
+                      <span>{formattedDate},{formattedTime}</span>
                       <span>
                         {isCredit ? "Money Added" : "Payment to Driver"}
                       </span>

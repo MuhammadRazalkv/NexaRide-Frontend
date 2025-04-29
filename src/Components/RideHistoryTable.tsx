@@ -1,32 +1,35 @@
-// RideHistoryTable.tsx
 import React from "react";
-
-export interface IRideHistoryItem {
-  _id: string;
-  pickupLocation: string;
-  dropOffLocation: string;
-  totalFare: number;
-  distance: number;
-  estTime: number;
-  timeTaken?: number;
-  status: "completed" | "cancelled" | "ongoing";
-  startedAt?: number;
-  endedAt?: number;
-  canceledAt?: number;
-  paymentStatus: "completed" | "pending" | "failed";
-  driverId: string;
-  userId?: string;
-  driverEarnings?: number;
-  commission?: number;
-}
+import { IRideHistoryItem } from "@/interfaces/fullRideInfo.interface";
+// export interface IRideHistoryItem {
+//   _id: string;
+//   pickupLocation: string;
+//   dropOffLocation: string;
+//   totalFare: number;
+//   distance: number;
+//   estTime: number;
+//   timeTaken?: number;
+//   status: "completed" | "cancelled" | "ongoing";
+//   startedAt?: number;
+//   endedAt?: number;
+//   canceledAt?: number;
+//   paymentStatus: "completed" | "pending" | "failed"| 'Not required';
+//   // driverId: string;
+//   // userId?: string;
+//   driverEarnings?: number;
+//   commission?: number;
+// }
 
 interface RideHistoryTableProps {
   rideHistory: IRideHistoryItem[];
   variant: "user" | "driver";
-  handleNavigation:(id:string)=>void
+  handleNavigation: (id: string) => void;
 }
 
-const RideHistoryTable: React.FC<RideHistoryTableProps> = ({ rideHistory, variant , handleNavigation}) => {
+const RideHistoryTable: React.FC<RideHistoryTableProps> = ({
+  rideHistory,
+  variant,
+  handleNavigation,
+}) => {
   return (
     <div className="overflow-x-auto bg-white shadow-md rounded-xl">
       <table className="min-w-full table-auto text-sm text-left text-gray-700">
@@ -49,8 +52,10 @@ const RideHistoryTable: React.FC<RideHistoryTableProps> = ({ rideHistory, varian
         <tbody>
           {rideHistory.length > 0 ? (
             rideHistory.map((ride) => (
-              <tr key={ride._id} className="border-b hover:bg-gray-50"
-              onClick={()=>handleNavigation(ride._id)}
+              <tr
+                key={ride._id}
+                className="border-b hover:bg-gray-50"
+                onClick={() => handleNavigation(ride._id)}
               >
                 <td className="py-3 px-4">
                   {ride.pickupLocation.split(" ").slice(0, 3).join(" ")}
@@ -71,8 +76,12 @@ const RideHistoryTable: React.FC<RideHistoryTableProps> = ({ rideHistory, varian
                   </>
                 )}
 
-                <td className="py-3 px-4">{(ride.distance / 1000).toFixed(2)} km</td>
-                <td className="py-3 px-4">{(ride.estTime / 60).toFixed(2)} min</td>
+                <td className="py-3 px-4">
+                  {(ride.distance / 1000).toFixed(2)} km
+                </td>
+                <td className="py-3 px-4">
+                  {(ride.estTime / 60).toFixed(2)} min
+                </td>
                 <td className="py-3 px-4">
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-semibold ${
@@ -90,7 +99,10 @@ const RideHistoryTable: React.FC<RideHistoryTableProps> = ({ rideHistory, varian
             ))
           ) : (
             <tr>
-              <td colSpan={variant === "driver" ? 8 : 6} className="text-center py-6 text-gray-500">
+              <td
+                colSpan={variant === "driver" ? 8 : 6}
+                className="text-center py-6 text-gray-500"
+              >
                 No rides found.
               </td>
             </tr>

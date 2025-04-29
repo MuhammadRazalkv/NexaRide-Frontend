@@ -18,7 +18,8 @@ import VehicleRejected from '@/pages/driver/auth/VehicleRejected'
 import DResetPassword from '@/pages/driver/auth/DResetPassword'
 import DProfile from '@/pages/driver/DProfile'
 import DWallet from '@/pages/driver/DWallet'
-import DRideHistory from '@/pages/driver/DRideHistory'
+import DRideHistory from '@/pages/driver/ride/DRideHistory'
+import DRideInfo from '@/pages/driver/ride/DRideInfo'
 const DriverRoutes = () => {
   return (
 
@@ -48,6 +49,7 @@ const DriverRoutes = () => {
           <Route path='/profile' element={<DProfile />} />
           <Route path='/wallet' element={<DWallet />} />
           <Route path='/history' element={<DRideHistory />} />
+          <Route path='/rideInfo' element={<DRideInfo />} />  
 
         </Route>
 

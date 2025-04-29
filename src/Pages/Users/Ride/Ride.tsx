@@ -1,17 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import NavBar from "@/components/user/NavBar";
 import MapComponent from "@/components/MapComp";
-import { MdLocationPin } from "react-icons/md";
-// import { GeocoderAutocomplete, Location } from "@geoapify/geocoder-autocomplete";
 import axios from "axios";
 import { message } from "antd";
-import { checkCabs, payUsingStripe, payUsingWallet } from "@/api/auth/user";
+import {
+  checkCabs,
+  giveFeedback,
+  payUsingStripe,
+  payUsingWallet,
+} from "@/api/auth/user";
 import { Car3D } from "@/Assets";
 import { socket, connectSocket, RideInfo } from "@/utils/socket";
 import { RootState } from "@/redux/store";
-// import Loader from "@/components/Loader";
 import WaitingModal from "@/components/user/WaitingModal";
-import { fetchRoute } from "@/utils/geoApify";
+import { fetchRoute, getRouteDetails } from "@/utils/geoApify";
 import { TbMessage } from "react-icons/tb";
 import {
   AlertDialog,
@@ -26,78 +28,39 @@ import {
 import PaymentOptions from "@/components/user/PaymentOptions";
 import { useDispatch, useSelector } from "react-redux";
 import { setInPayment, setRideIdInSlice } from "@/redux/slices/rideSlice";
+import RatingModal from "@/components/RatingModal";
 
-interface LocationData {
-  properties: {
-    place_id: string;
-    formatted: string;
-  };
-  geometry: {
-    coordinates: [number, number];
-  };
-}
-
-interface CheckCabs {
-  pickUpPoint: { lat: number; lng: number };
-  dropOffPoint: { lat: number; lng: number };
-  distance: number;
-  time: number;
-}
-
-interface Drivers {
-  _id: string;
-  name: string;
-  totalFare: number;
-  location: {
-    type: string;
-    coordinates: [number, number];
-  };
-  vehicleDetails: {
-    brand: string;
-    vehicleModel: string;
-    color: string;
-    category: string;
-  };
-  distanceInKm?: string;
-  timeInMinutes?: number | string;
-}
-
-interface DriverRoute {
-  formattedRoute: [number, number][];
-  time: number;
-  distance: number;
-}
+import AvailableDriverList from "@/components/user/AvailableDriverList";
+import ChatModal from "@/components/ChatModal";
+import { IMessage } from "@/interfaces/chat.interface";
+import { CheckCabs, DriverRoute, Drivers } from "@/interfaces/ride.interface";
+import RideLocationsInput from "@/components/user/RideLocationsInput";
+// import { useRide } from "@/context/SocketContext";
 
 const Ride = () => {
-  const [input, setInput] = useState("");
-  const [dropOff, setDropOff] = useState("");
-  const [suggestions, setSuggestions] = useState<LocationData[]>([]);
-  const [dropSugg, setDropSugg] = useState<LocationData[]>([]);
-  const previousInput = useRef<string>("");
-  const previousDropInput = useRef<string>("");
-  const [pickupCoords, setPickupCoords] = useState<[number, number] | null>(
-    null
-  );
-  const [dropOffCoords, setDropOffCoords] = useState<[number, number] | null>(
-    null
-  );
+
+  // const {chatOn,driverArrived,isRateModalOpen,isRideStarted,messages,paymentModalOpen,rideInfo} = useRide()
+
+
+
+
+  const [pickupCoords, setPickupCoords] = useState<[number, number]>();
+  const [dropOffCoords, setDropOffCoords] = useState<[number, number]>();
   const [routeCoords, setRouteCoords] = useState<
     [number, number][] | undefined
   >([]);
   const routeCoordsRef = useRef<[number, number][] | undefined>([]);
-  const [distance, setDistance] = useState<number | null>(null);
+  const [distance, setDistance] = useState<number>();
   const [availableDrivers, setAvailableDrivers] = useState<
     Drivers[] | undefined
   >(undefined);
-  const [time, setTime] = useState<number | null>(null);
+  const [time, setTime] = useState<number>();
   const [messageApi, contextHolder] = message.useMessage();
   const [markDrivers, setMarkDrivers] = useState<
     | { driverId: string; name: string; coordinates: [number, number] }[]
     | undefined
   >(undefined);
   const [noDriversFound, setNoDriversFound] = useState<boolean>(false);
-  const [noPickUpLoc, setNoPickUpLoc] = useState<boolean>(false);
-  const [noDropOffLoc, setNoDropOffLoc] = useState<boolean>(false);
   const [sendRideReq, setSendRideReq] = useState(false);
   const token = useSelector((state: RootState) => state.auth.token);
   const [rideInfo, setRideInfo] = useState<RideInfo | null>(null);
@@ -123,16 +86,39 @@ const Ride = () => {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [rideId, setRideId] = useState<string>();
   const dispatch = useDispatch();
-
+  const [isRateModalOpen, setIsRateModalOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [reviewComments, setReviewComments] = useState("");
+  const [ratingErr, setRatingError] = useState("");
   const rideIdFromSlice = useSelector((state: RootState) => state.ride.rideId);
-  const inPayment = useSelector((state: RootState) => state.ride.inPayment);
+   const inPayment = useSelector((state: RootState) => state.ride.inPayment);
+  const userId = useSelector((state: RootState) => state.auth.user?._id);
+
+  const [chatOn, setChatOn] = useState(false);
+  const [messages, setMessages] = useState<IMessage[]>([]);
+
+  const clearAllStateData = () => {
+    // setInput("");
+    // setDropOff("");
+    setPickupCoords(undefined);
+    setDropOffCoords(undefined);
+    setRouteCoords(undefined);
+    setDistance(undefined);
+    setTime(undefined);
+    setRideInfo(null);
+    setDriverRoute(undefined);
+    setIsRideStarted(false);
+    setDriverArrived(false);
+    setRemainingDropOffRoute(undefined);
+    setRemainingRoute(undefined);
+  };
   useEffect(() => {
     if (inPayment) {
-      setPaymentModalOpen(true)
-      setRideId(rideIdFromSlice)
+      setPaymentModalOpen(true);
+      setRideId(rideIdFromSlice);
     }
-  }, [rideIdFromSlice,inPayment]);
-  
+  }, [rideIdFromSlice, inPayment]);
+
   useEffect(() => {
     sendRideReqRef.current = sendRideReq;
   }, [sendRideReq]);
@@ -140,50 +126,6 @@ const Ride = () => {
   useEffect(() => {
     routeCoordsRef.current = routeCoords;
   }, [routeCoords]);
-
-  useEffect(() => {
-    const trimmedInput = input.trim();
-    if (trimmedInput === previousInput.current) return;
-
-    setNoPickUpLoc(false);
-    const controller = new AbortController();
-
-    const timer = setTimeout(() => {
-      if (trimmedInput) {
-        fetchLocations(trimmedInput, "Pickup", controller);
-        previousInput.current = trimmedInput;
-      } else {
-        setSuggestions([]);
-      }
-    }, 1500);
-
-    return () => {
-      controller.abort(); // Cancel ongoing requests
-      clearTimeout(timer);
-    };
-  }, [input]);
-
-  useEffect(() => {
-    const trimmedInput = dropOff.trim();
-    if (trimmedInput === previousDropInput.current) return;
-
-    setNoDropOffLoc(false);
-    const controller = new AbortController();
-
-    const timer = setTimeout(() => {
-      if (trimmedInput) {
-        fetchLocations(trimmedInput, "Drop", controller);
-        previousDropInput.current = trimmedInput;
-      } else {
-        setDropSugg([]);
-      }
-    }, 1500);
-
-    return () => {
-      controller.abort(); // Cancel ongoing requests
-      clearTimeout(timer);
-    };
-  }, [dropOff]);
 
   useEffect(() => {
     const fetchRoute = async () => {
@@ -198,8 +140,6 @@ const Ride = () => {
 
       try {
         const response = await axios.get(api);
-        console.log("Response ", response);
-
         const coordinates = response.data.features[0].geometry.coordinates;
         const distance = response.data.features[0].properties.distance;
         const time = response.data.features[0].properties.time;
@@ -222,22 +162,21 @@ const Ride = () => {
     }
   }, [pickupCoords, dropOffCoords]);
 
-  // * Handle no response form driver
+  // Handle no response form driver
   const handleNoDriverResponse = useCallback(() => {
     messageApi.info("Driver did not respond. Please try again.");
     sendRideReqRef.current = false;
     setSendRideReq(false);
   }, [messageApi]);
 
-
   //! Listen to driver ride response
   useEffect(() => {
     if (!token) {
       messageApi.error("Token missing. Please ensure you are logged in.");
-      
-      return
+
+      return;
     }
-  connectSocket(token, "user");
+    connectSocket(token, "user");
 
     const stopSendingRequest = () => setSendRideReq(false);
 
@@ -352,21 +291,8 @@ const Ride = () => {
     };
 
     const handleRideCancelled = async () => {
-      console.log("Ride got cancelled");
       messageApi.error("The ride was cancelled by the driver");
-      setInput("");
-      setDropOff("");
-      setPickupCoords(null);
-      setDropOffCoords(null);
-      setRouteCoords(undefined);
-      setDistance(null);
-      setTime(null);
-      setRideInfo(null);
-      setDriverRoute(undefined);
-      setIsRideStarted(false);
-      setDriverArrived(false);
-      setRemainingDropOffRoute(undefined);
-      setRemainingRoute(undefined);
+      clearAllStateData();
       socket.off("driver-location-update");
     };
     const handleDropOffReached = async (data: {
@@ -379,15 +305,21 @@ const Ride = () => {
       dispatch(setInPayment(true));
     };
 
-    const handlePaymentSuccess = async ()=>{
-      console.log('Payment success from user side');
-      
-      dispatch(setRideIdInSlice(''));
+    const handlePaymentSuccess = async () => {
+      setIsRateModalOpen(true);
+      messageApi.success("Payment success");
+      // dispatch(setRideIdInSlice(""));
       dispatch(setInPayment(false));
-      setPaymentModalOpen(false)
-      setRideId(undefined)
-      clearAllStateData()
-    }
+      setPaymentModalOpen(false);
+      setIsRateModalOpen(true);
+      // setRideId(undefined);
+      setChatOn(false);
+      clearAllStateData();
+    };
+
+    const handleChat = (data: IMessage) => {
+      setMessages((pre) => [...pre, data]);
+    };
 
     socket.on("ride-rejected", handleRideRejected);
     socket.on("no-driver-response", handleNoDriverResponse);
@@ -396,7 +328,8 @@ const Ride = () => {
     socket.on("driver-reached", handleDriverReached);
     socket.on("ride-cancelled", handleRideCancelled);
     socket.on("dropOff-reached", handleDropOffReached);
-    socket.on('payment-success',handlePaymentSuccess)
+    socket.on("payment-success", handlePaymentSuccess);
+    socket.on("chat-msg", handleChat);
     return () => {
       socket.off("ride-rejected", handleRideRejected);
       socket.off("no-driver-response", handleNoDriverResponse);
@@ -404,78 +337,29 @@ const Ride = () => {
       socket.off("driver-location-update", handleDriverLocationUpdate);
       socket.off("driver-reached", handleDriverReached);
       socket.off("ride-cancelled", handleRideCancelled);
-      socket.off('payment-success')
+      socket.off("payment-success");
+      socket.off("chat-msg", handleChat);
+
       if (timerRef.current) {
         clearTimeout(timerRef.current);
         timerRef.current = null;
       }
       console.log("Comp unmounting");
     };
-  }, [messageApi, handleNoDriverResponse,dispatch,token]);
-
-  const fetchLocations = async (
-    query: string,
-    type: string,
-    controller: AbortController
-  ) => {
-    try {
-      const response = await axios.get(
-        `https://api.geoapify.com/v1/geocode/autocomplete`,
-        {
-          params: {
-            text: query,
-            filter: "rect:77.4656,12.8342,77.7398,13.1431",
-            apiKey: "5f91c9c458154879844c3d0447834abf",
-          },
-          signal: controller.signal,
-        }
-      );
-
-      if (type === "Pickup") {
-        if (response.data.features.length === 0) {
-          setNoPickUpLoc(true);
-        } else {
-          setNoPickUpLoc(false);
-          setSuggestions(response.data.features);
-        }
-      } else {
-        if (response.data.features.length === 0) {
-          setNoDropOffLoc(true);
-        } else {
-          setNoDropOffLoc(false);
-          setDropSugg(response.data.features);
-        }
-      }
-    } catch (error: unknown) {
-      if (axios.isCancel(error)) {
-        console.log("Request canceled:", error.message);
-      } else {
-        console.error("Error fetching locations:", error);
-      }
-    }
-  };
+  }, [messageApi, handleNoDriverResponse, dispatch, token]);
 
   const handleSuggestionClick = (
-    place: string,
     coordinates: [number, number],
     type: string
   ) => {
     if (!coordinates) {
-      console.warn("Coordinates are undefined or missing");
       return;
     }
 
     if (type === "Pickup") {
-      console.log("Co ", coordinates);
       setPickupCoords([coordinates[1], coordinates[0]]);
-      setInput(place);
-      previousInput.current = place;
-      setSuggestions([]);
     } else {
-      setDropOff(place);
       setDropOffCoords([coordinates[1], coordinates[0]]);
-      previousDropInput.current = place;
-      setDropSugg([]);
     }
   };
 
@@ -532,8 +416,6 @@ const Ride = () => {
           setMarkDrivers(convertedDrivers);
         }
       } else {
-        console.log("Else case in check cabs");
-
         setAvailableDrivers(undefined);
         setNoDriversFound(true);
       }
@@ -553,21 +435,21 @@ const Ride = () => {
   ): Promise<
     { distanceInKm: string; timeInMinutes: number | string } | undefined
   > => {
-    const api = `https://api.geoapify.com/v1/routing?waypoints=${driverCoords[1]},${driverCoords[0]}|${pickupCoords[0]},${pickupCoords[1]}&mode=drive&apiKey=5f91c9c458154879844c3d0447834abf&type=short`;
-
     try {
-      const response = await axios.get(api);
+      const response = await getRouteDetails(
+        [driverCoords[1], driverCoords[0]],
+        pickupCoords
+      );
 
-      if (response && response.data) {
-        const { distance, time } = response.data.features[0].properties;
-        const distanceInKm = (distance / 1000).toFixed(1);
-        const timeInMinutes = Math.round(time / 60);
+      if (response) {
+        const distanceInKm = (response.distance / 1000).toFixed(1);
+        const timeInMinutes = Math.round(response.time / 60);
         return { distanceInKm, timeInMinutes };
       }
       return { distanceInKm: "N/A", timeInMinutes: "N/A" };
     } catch (error) {
       console.error("Error fetching route:", error);
-      return undefined; // Ensures consistency with the return type
+      return undefined;
     }
   };
 
@@ -579,6 +461,7 @@ const Ride = () => {
     sendRideReqRef.current = false;
     if (!driverId) {
       messageApi.error("Driver not found");
+      return;
     }
 
     if (!token) {
@@ -614,36 +497,9 @@ const Ride = () => {
 
   const cancelTheRide = () => {
     socket.emit("cancel-ride", "user");
-    setInput("");
-    setDropOff("");
-    setPickupCoords(null);
-    setDropOffCoords(null);
-    setRouteCoords(undefined);
-    setDistance(null);
-    setTime(null);
-    setRideInfo(null);
-    setDriverRoute(undefined);
-    setIsRideStarted(false);
-    setDriverArrived(false);
-    setRemainingDropOffRoute(undefined);
-    setRemainingRoute(undefined);
+    clearAllStateData();
+    setChatOn(false);
     socket.off("driver-location-update");
-  };
-
-  const clearAllStateData = () => {
-    setInput("");
-    setDropOff("");
-    setPickupCoords(null);
-    setDropOffCoords(null);
-    setRouteCoords(undefined);
-    setDistance(null);
-    setTime(null);
-    setRideInfo(null);
-    setDriverRoute(undefined);
-    setIsRideStarted(false);
-    setDriverArrived(false);
-    setRemainingDropOffRoute(undefined);
-    setRemainingRoute(undefined);
   };
 
   const handlePaymentSelection = async (method: "wallet" | "stripe") => {
@@ -657,10 +513,11 @@ const Ride = () => {
         if (response.success) {
           messageApi.success("Payment successful");
           setPaymentModalOpen(false);
+          setIsRateModalOpen(true);
           clearAllStateData();
-          dispatch(setRideIdInSlice(''));
+          // dispatch(setRideIdInSlice(""));
           dispatch(setInPayment(false));
-          setRideId(undefined)
+          // setRideId(undefined);
         }
       } catch (error) {
         console.log(error);
@@ -680,7 +537,6 @@ const Ride = () => {
         if (res.success && res.url) {
           // window.location.href = res.url;
           window.open(res.url, "_blank");
-
         }
       } catch (error) {
         console.log(error);
@@ -693,11 +549,81 @@ const Ride = () => {
     }
   };
 
+  const handleRating = (rating: number) => {
+    setRating(rating);
+  };
+  const handleReviewComments = (value: string) => {
+    setReviewComments(value.trim());
+  };
+  const closeReviewModal = () => {
+    dispatch(setRideIdInSlice(""));
+    setIsRateModalOpen(false);
+  };
+
+  const submitReview = async () => {
+    setRatingError("");
+    if (!rating) {
+      setRatingError("Please give a rating");
+      return;
+    }
+    if (reviewComments.length > 0 && reviewComments.length < 5) {
+      setRatingError("Please enter minimum five characters");
+      return;
+    }
+    if (/[^a-zA-Z0-9\s]/g.test(reviewComments)) {
+      setRatingError("No special characters allowed");
+      return;
+    }
+    if (!rideId) {
+      messageApi.error("Ride id not found");
+      return;
+    }
+
+    try {
+      const res = await giveFeedback(rideId, rating, reviewComments);
+      if (res.success) {
+        messageApi.success("Your feedback has been saved ");
+        setIsRateModalOpen(false);
+        dispatch(setRideIdInSlice(""));
+        setRideId(undefined);
+      }
+    } catch (error) {
+      if (error instanceof Error) messageApi.error(error.message);
+      else messageApi.error("Failed to submit feedback");
+    }
+  };
+
+  const closeChat = () => {
+    setChatOn(false);
+  };
+
+  const sendChatMsg = (text: string) => {
+    if (!userId) {
+      return;
+    }
+    const newMessage: IMessage = {
+      id: Date.now().toString(),
+      text,
+      senderId: userId,
+    };
+
+    setMessages((prev) => [...prev, newMessage]);
+    socket.emit("chat-msg", { text: text, sendBy: "user" });
+  };
+
   return (
     <>
       <NavBar />
       {contextHolder}
-
+      {isRateModalOpen && (
+        <RatingModal
+          handleChange={handleRating}
+          handleComments={handleReviewComments}
+          closeModal={closeReviewModal}
+          error={ratingErr}
+          submitReview={submitReview}
+        />
+      )}
       <WaitingModal
         open={sendRideReq}
         message="Waiting for driver response..."
@@ -705,6 +631,14 @@ const Ride = () => {
       <PaymentOptions
         isOpen={paymentModalOpen}
         onSelect={handlePaymentSelection}
+      />
+
+      <ChatModal
+        messages={messages}
+        currentUserId={userId}
+        isOpen={chatOn}
+        changeOpen={closeChat}
+        submit={sendChatMsg}
       />
       <AlertDialog open={isCancelOpen} onOpenChange={setIsCancelOpen}>
         {rideInfo && (
@@ -736,124 +670,17 @@ const Ride = () => {
             {/* Input section for adding location  */}
             {!rideInfo && (
               <>
-                <div className="relative w-full">
-                  <div className="flex items-center gap-2 p-2">
-                    <MdLocationPin />
-                    <input
-                      type="text"
-                      className="w-full px-2 rounded-2xl border border-gray-300 focus:border-blue-500 focus:outline-none text-sm placeholder:text-black p-3"
-                      placeholder="Pickup location"
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                    />
-                  </div>
-
-                  {/* Suggestions Dropdown */}
-                  {suggestions.length > 0 && (
-                    <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                      {suggestions.map((item, index) => (
-                        <li
-                          key={`${item.properties.place_id}-${index}`}
-                          className="p-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() =>
-                            handleSuggestionClick(
-                              item.properties.formatted,
-                              item.geometry?.coordinates,
-                              "Pickup"
-                            )
-                          }
-                        >
-                          {item.properties.formatted}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  {noPickUpLoc && (
-                    <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                      <li className="p-2 hover:bg-gray-100 cursor-pointer">
-                        🚫 Location not found
-                      </li>
-                    </ul>
-                  )}
-                </div>
-
-                <div className="relative w-full">
-                  <div className="flex items-center gap-2 p-2">
-                    <MdLocationPin />
-                    <input
-                      type="text"
-                      className="w-full px-2 rounded-2xl border border-gray-300 focus:border-blue-500 focus:outline-none text-sm placeholder:text-black p-3"
-                      placeholder="Drop off location"
-                      value={dropOff}
-                      onChange={(e) => setDropOff(e.target.value)}
-                    />
-                  </div>
-
-                  {dropSugg.length > 0 && (
-                    <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                      {dropSugg.map((item, index) => (
-                        <li
-                          key={`${item.properties.place_id}-${index}`}
-                          className="p-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() =>
-                            handleSuggestionClick(
-                              item.properties.formatted,
-                              item.geometry?.coordinates,
-                              "Drop"
-                            )
-                          }
-                        >
-                          {item.properties.formatted}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  {noDropOffLoc && (
-                    <ul className="absolute top-full left-0 w-full bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                      <li className="p-2 hover:bg-gray-100 cursor-pointer">
-                        🚫 Location not found
-                      </li>
-                    </ul>
-                  )}
-                </div>
-
-                <p className="text-xs italic text-center sm:text-left">
-                  Note: This service is currently available exclusively in
-                  Bengaluru.
-                </p>
-
-                {time && distance && (
-                  <div className="bg-gray-50 border border-blue-200 rounded-lg p-4 mt-4 shadow-md">
-                    <h3 className="text-lg font-semibold text-black mb-2">
-                      Trip Details
-                    </h3>
-                    <p className="text-gray-700">
-                      Estimated Distance:{" "}
-                      <span className="font-bold">
-                        {(distance / 1000).toFixed(2)} km
-                      </span>
-                    </p>
-                    <p className="text-gray-700">
-                      Estimated Duration:{" "}
-                      <span className="font-bold">
-                        {Math.ceil(time / 60)} minutes
-                      </span>
-                    </p>
-                  </div>
-                )}
-
-                <div className="w-full flex items-center justify-center p-2">
-                  <button
-                    className="bg-black text-white w-full sm:w-auto p-2 px-4 rounded-xl hover:bg-gray-800 disabled:cursor-not-allowed"
-                    disabled={!dropOffCoords || !pickupCoords}
-                    onClick={handleCheckCabs}
-                  >
-                    Check cabs
-                  </button>
-                </div>
+                <RideLocationsInput
+                  handleCheckCabs={handleCheckCabs}
+                  handleSuggestionClick={handleSuggestionClick}
+                  distance={distance}
+                  dropOffCoords={dropOffCoords}
+                  pickupCoords={pickupCoords}
+                  time={time}
+                />
               </>
             )}
+
             {/* To show the ride info when the drive starts */}
             {rideInfo && (
               <>
@@ -955,7 +782,10 @@ const Ride = () => {
                     )}
 
                     <div className="flex flex-col sm:flex-row mt-6 gap-3">
-                      <button className="bg-black text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 transition duration-200 w-full sm:w-auto flex items-center justify-center gap-2">
+                      <button
+                        className="bg-black text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 transition duration-200 w-full sm:w-auto flex items-center justify-center gap-2"
+                        onClick={() => setChatOn(true)}
+                      >
                         <TbMessage className="text-white text-sm" />
                         <span>Message Driver</span>
                       </button>
@@ -978,50 +808,10 @@ const Ride = () => {
             </div>
           )}
           {availableDrivers && availableDrivers.length > 0 && (
-            <div className="grid grid-cols-1 bg-gray-50 mt-2 rounded-2xl gap-4 p-4">
-              {availableDrivers.map((driver, index) => (
-                <div
-                  key={index}
-                  className="bg-white flex items-center hover:bg-gray-200 shadow-md rounded-2xl p-3 border border-gray-200 hover:shadow-lg transition duration-300"
-                  onClick={() => bookTheCab(driver._id, driver.totalFare)}
-                >
-                  <img
-                    src={Car3D}
-                    alt="car model"
-                    className="h-28 w-28 object-contain rounded-lg p-2"
-                  />
-
-                  <div className="ml-4 w-full">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {driver.name}
-                    </h3>
-
-                    <div className="flex justify-between items-center mt-2 text-sm text-gray-600">
-                      <div>
-                        <p className="font-medium">
-                          {driver.vehicleDetails.vehicleModel}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {driver.vehicleDetails.category}
-                        </p>
-                      </div>
-
-                      <div className="text-center">
-                        <p className="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm font-bold">
-                          ₹{driver.totalFare}
-                        </p>
-                        {driver.distanceInKm && driver.timeInMinutes && (
-                          <p className="text-xs text-gray-500">
-                            {driver.distanceInKm} km • {driver.timeInMinutes}{" "}
-                            min
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <AvailableDriverList
+              availableDrivers={availableDrivers}
+              bookTheCab={bookTheCab}
+            />
           )}
         </div>
 

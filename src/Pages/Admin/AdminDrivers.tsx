@@ -6,7 +6,7 @@ import {
   toggleBlockUnblockDriver,
 } from "../../api/auth/admin";
 import { Link } from "react-router-dom";
-import { message } from "antd";
+import { message , Pagination } from "antd";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import AdminTable from "@/components/admin/AdminTable";
-import { Pagination } from "antd";
+
 import SearchSort from "@/components/SearchSort";
 export interface IUser {
   _id: string;

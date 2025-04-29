@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   fetchCurrentStoredLocation,
   getStatus,
+  giveFeedbackDriver,
   updateIsAvailable,
   updateRandomLoc,
   verifyRideOTP,
@@ -17,7 +18,7 @@ import {
   socket,
   ServerToClientEvents,
 } from "@/utils/socket";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import {
   AlertDialog,
@@ -50,6 +51,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { TbMessage } from "react-icons/tb";
 import WaitingModal from "@/components/user/WaitingModal";
+import { setRideIdInSlice } from "@/redux/slices/rideSlice";
+import RatingModal from "@/components/RatingModal";
+import { IMessage } from "@/interfaces/chat.interface";
+import ChatModal from "@/components/ChatModal";
 
 interface IRideReqInfo {
   user: { id: string; name: string };
@@ -114,7 +119,30 @@ const DRide = () => {
   const [otpDialog, setOtpDialog] = useState(false);
   const [OTP, setOTP] = useState<string | null>(null);
   const [OTPError, setOTPError] = useState("");
+
+  const dispatch = useDispatch();
+  const [isRateModalOpen, setIsRateModalOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [reviewComments, setReviewComments] = useState("");
+  const [ratingErr, setRatingError] = useState("");
+  const rideId = useSelector((state: RootState) => state.ride.rideId);
   // sync the value of rejected when it changes
+  const driverId = useSelector(
+    (state: RootState) => state.driverAuth.driver?._id
+  );
+  const [chatOn, setChatOn] = useState(false);
+  const [messages, setMessages] = useState<IMessage[]>([]);
+
+  const clearAllStateData = async () => {
+    setOtpDialog(false);
+    setRideReqInfo(null);
+    setDriverRoute(undefined);
+    setPickupCoords(null);
+    setDropOffCoords(null);
+    setIsRideStarted(false);
+    setRouteCoords(undefined);
+    setRemainingRoute(undefined);
+  };
   useEffect(() => {
     rejectedRef.current = rejected;
   }, [rejected]);
@@ -134,16 +162,6 @@ const DRide = () => {
       connectSocket(token, "driver");
     }
 
-    const clearAllStateData = async () => {
-      setOtpDialog(false);
-      setRideReqInfo(null);
-      setDriverRoute(undefined);
-      setPickupCoords(null);
-      setDropOffCoords(null);
-      setIsRideStarted(false);
-      setRouteCoords(undefined);
-      setRemainingRoute(undefined);
-    };
     // Handling new ride requests
     const handleNewRideReq = async (data: NewRideReqData) => {
       try {
@@ -157,8 +175,8 @@ const DRide = () => {
 
         const updatedRideReqInfo = {
           ...data,
-          pickupLocation,
-          dropOffLocation,
+          pickupLocation:pickupLocation.address_line1 +pickupLocation.address_line2 ,
+          dropOffLocation:dropOffLocation.address_line1 + dropOffLocation.address_line2 ,
           ...timeAndDistance,
         };
 
@@ -191,7 +209,10 @@ const DRide = () => {
       console.log("Ride got cancelled");
       messageApi.error("The ride was cancelled by the User");
       socket.off("driver-location-update");
+      setChatOn(false);
+
       clearAllStateData();
+      dispatch(setRideIdInSlice(""));
       if (trackingToPickupRef.current) {
         clearInterval(trackingToPickupRef.current);
         trackingToPickupRef.current = null;
@@ -201,19 +222,25 @@ const DRide = () => {
     const handlePaymentReceived = async () => {
       messageApi.success("Payment received successfully");
       clearAllStateData();
+      setIsRateModalOpen(true);
       setWaitPayment(false);
+    };
+    const handleChat = (data: IMessage) => {
+      setMessages((pre) => [...pre, data]);
     };
     socket.on("new-ride-req", handleNewRideReq);
     socket.on("ride-cancelled", handleRideCancelled);
     socket.on("payment-received", handlePaymentReceived);
+    socket.on("chat-msg", handleChat);
     return () => {
       socket.off("new-ride-req");
       socket.off("ride-cancelled");
-      socket.off('payment-received')
+      socket.off("payment-received");
+      socket.off("chat-msg");
       setIsDialogOpen(false);
       disconnectSocket();
     };
-  }, [token, messageApi]);
+  }, [token, messageApi, dispatch]);
 
   // To Fetch driver info and redirect
   useEffect(() => {
@@ -366,11 +393,12 @@ const DRide = () => {
     }
     try {
       const response = await verifyRideOTP(OTP);
-      if (response.success) {
+      if (response.success && response.rideId) {
         console.log("Otp verification complete");
         setOTPError("");
         setOtpDialog(false);
         setRidePhase("toDropOff");
+        dispatch(setRideIdInSlice(response.rideId));
         if (routeCoords) {
           simulatedLiveTrackingToDropOff(routeCoords);
         }
@@ -488,6 +516,7 @@ const DRide = () => {
   // Cancel Ride
   const cancelTheRide = () => {
     socket.emit("cancel-ride", "driver");
+    setChatOn(false);
 
     setPickupCoords(null);
     setDropOffCoords(null);
@@ -503,6 +532,63 @@ const DRide = () => {
     }
   };
 
+  const handleRating = (rating: number) => {
+    setRating(rating);
+  };
+  const handleReviewComments = (value: string) => {
+    setReviewComments(value.trim());
+  };
+  const closeReviewModal = () => {
+    setIsRateModalOpen(false);
+    dispatch(setRideIdInSlice(""));
+  };
+
+  const submitReview = async () => {
+    setRatingError("");
+    if (!rating) {
+      setRatingError("Please give a rating");
+      return;
+    }
+    if (reviewComments.length > 0 && reviewComments.length < 5) {
+      setRatingError("Please enter minimum five characters");
+      return;
+    }
+    if (!rideId) {
+      messageApi.error("Ride id not found");
+      return;
+    }
+
+    try {
+      const res = await giveFeedbackDriver(rideId, rating, reviewComments);
+      if (res.success) {
+        messageApi.success("Your feedback has been saved ");
+        setIsRateModalOpen(false);
+        dispatch(setRideIdInSlice(""));
+      }
+    } catch (error) {
+      if (error instanceof Error) messageApi.error(error.message);
+      else messageApi.error("Failed to submit feedback");
+    }
+  };
+
+  const closeChat = () => {
+    setChatOn(false);
+  };
+
+  const sendChatMsg = (text: string) => {
+    if (!driverId) {
+      return;
+    }
+    const newMessage: IMessage = {
+      id: Date.now().toString(),
+      text,
+      senderId: driverId,
+    };
+
+    setMessages((prev) => [...prev, newMessage]);
+    socket.emit("chat-msg", { text: text, sendBy: "driver" });
+  };
+
   return (
     <>
       <DNavBar />
@@ -512,7 +598,23 @@ const DRide = () => {
         open={waitPayment}
         message="Waiting for payment confirmation"
       />
+      {isRateModalOpen && (
+        <RatingModal
+          handleChange={handleRating}
+          handleComments={handleReviewComments}
+          closeModal={closeReviewModal}
+          error={ratingErr}
+          submitReview={submitReview}
+        />
+      )}
 
+      <ChatModal
+        messages={messages}
+        currentUserId={driverId}
+        isOpen={chatOn}
+        changeOpen={closeChat}
+        submit={sendChatMsg}
+      />
       <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         {rideReqInfo && (
           <AlertDialogContent className="bg-white">
@@ -521,7 +623,8 @@ const DRide = () => {
               <AlertDialogTitle className="text-black">
                 New ride request from {rideReqInfo.user.name}
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-gray-700 space-y-1">
+              <AlertDialogDescription></AlertDialogDescription>
+              <div className="text-gray-700 space-y-1">
                 <div>
                   <span className="font-bold">From:</span>{" "}
                   {rideReqInfo.pickupLocation}
@@ -546,7 +649,7 @@ const DRide = () => {
                   <span className="font-bold">Est Fare:</span> ₹
                   {rideReqInfo.fare}
                 </div>
-              </AlertDialogDescription>
+              </div>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel
@@ -690,7 +793,10 @@ const DRide = () => {
                   </p>
 
                   <div className="flex flex-col sm:flex-row mt-6 gap-3">
-                    <button className="bg-black text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 transition duration-200 w-full sm:w-auto flex items-center justify-center space-x-2">
+                    <button
+                      className="bg-black text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 transition duration-200 w-full sm:w-auto flex items-center justify-center space-x-2"
+                      onClick={() => setChatOn(true)}
+                    >
                       <TbMessage className="text-white text-base" />
                       <span>Message User</span>
                     </button>

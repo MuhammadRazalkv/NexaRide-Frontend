@@ -39,15 +39,7 @@ const DProfile = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const key = "updatable";
-  // const [name, setName] = useState<string | null>(null)
-  // const [phone, setPhone] = useState<string | null>(null)
-  // const [dob, setDob] = useState<string | null>(null)
-  // const [street, setStreet] = useState<string | null>(null)
-  // const [pinCode, setPinCode] = useState<string | null>(null)
-  // const [city, setCity] = useState<string | null>(null)
-  // const [state, setState] = useState<string | null>(null)
-  // const [licenseNumber, setLicenseNumber] = useState<string | null>(null)
-  // const [license_exp, setLicenseExp] = useState<string | null>(null)
+
   const [toUpdate, setToUpdate] = useState<keyof IDriver | null>(null);
 
   // const [editableFields, setEditableFields] = useState<Partial<IDriver>>({});

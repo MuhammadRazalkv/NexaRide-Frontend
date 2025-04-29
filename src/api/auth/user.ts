@@ -485,3 +485,42 @@ export async function getRideInfo(rideId:string) {
     }
   }
 }
+
+export async function submitComplaint(rideId:string,reason:string,by:string,description?:string) {
+  try {
+    const res = await axiosUserInstance.post(`/submitComplaint`,{
+      rideId,reason,description,by
+    });
+    return res.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+
+
+export async function giveFeedback(rideId:string,rating:number,feedback:string) {
+  try {
+    const res = await axiosUserInstance.post(`/giveFeedBack`,{
+      rideId,rating,feedback,submittedBy:'user'
+    });
+    return res.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}

@@ -5,6 +5,7 @@ import {
   FaUser,
   FaSignOutAlt,
   FaCar,
+  FaExclamationTriangle 
 } from "react-icons/fa";
 import { useSidebar } from "../../hooks/useSidebar";
 import { Link } from "react-router-dom";
@@ -13,10 +14,9 @@ import { adminLogout } from "@/redux/slices/adminAuthSlice";
 
 const AdminNavBar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
-    const dispatch = useDispatch()
+  const dispatch = useDispatch();
   return (
     <>
-      
       {!isOpen && (
         <button
           className="fixed top-5 left-5 z-50 bg-[#202936] text-white p-3 rounded-full shadow-lg hover:bg-[#282c3f] transition-all"
@@ -26,13 +26,11 @@ const AdminNavBar = () => {
         </button>
       )}
 
-     
       <div
         className={`fixed top-0 left-0 h-full w-64 bg-[#0b0f1f] text-white shadow-lg transform ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } transition-transform duration-300 z-40 flex flex-col`}
       >
-   
         <div className="flex items-center justify-between p-6 text-xl font-bold">
           <span>NexaRide</span>
           <button
@@ -43,7 +41,6 @@ const AdminNavBar = () => {
           </button>
         </div>
 
-        
         <nav className="flex flex-col gap-4 p-4 flex-1">
           {/* <NavItem icon={<FaHome />} text="Dashboard" /> */}
           <Link to={"/admin/dashboard"}>
@@ -58,6 +55,10 @@ const AdminNavBar = () => {
             {" "}
             <NavItem icon={<FaCar />} text="Drivers" />
           </Link>
+          <Link to={"/admin/ride-complaints"}>
+            {" "}
+            <NavItem icon={<FaExclamationTriangle  />} text="Complaints" />
+          </Link>
           {/* <NavItem icon={<FaCog />} text="Settings" /> */}
         </nav>
 
@@ -65,7 +66,7 @@ const AdminNavBar = () => {
           <button
             className="flex items-center gap-3 text-red-500 hover:text-red-400 transition-all"
             onClick={() => {
-              dispatch(adminLogout())
+              dispatch(adminLogout());
               window.location.href = "/admin/login";
             }}
           >

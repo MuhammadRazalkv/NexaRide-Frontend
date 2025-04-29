@@ -1,3 +1,4 @@
+import { IMessage } from "@/interfaces/chat.interface";
 import { io, Socket } from "socket.io-client";
 
 export interface RideInfo {
@@ -36,14 +37,15 @@ export interface ServerToClientEvents {
     dropOffCoords: [number, number];
     fare: number;
   }) => void;
-  "ride-cancelled":()=> void;
+  "ride-cancelled": () => void;
   "driver-reached": () => void;
   connect: () => void;
   disconnect: () => void;
   "no-driver-response": () => void;
-  "dropOff-reached":(data:{rideId:string,fare:number})=>void
-  "payment-received":()=>void
-  "payment-success":()=>void
+  "dropOff-reached": (data: { rideId: string; fare: number }) => void;
+  "payment-received": () => void;
+  "payment-success": () => void;
+  "chat-msg": (data: IMessage) => void;
 }
 
 interface ClientToServerEvents {
@@ -74,11 +76,12 @@ interface ClientToServerEvents {
     location: [number, number];
   }) => void;
   "driver-reached": () => void;
-  "cancel-ride":(cancelledBy:'driver'|'user')=> void;
-  "dropOff-reached":()=>void
+  "cancel-ride": (cancelledBy: "driver" | "user") => void;
+  "dropOff-reached": () => void;
+  "chat-msg": (data: { text: string; sendBy: "user" | "driver" }) => void;
 }
 
-const SOCKET_URL = "http://localhost:3000";
+const SOCKET_URL = import.meta.env.VITE_BACKEND_URL;
 
 export const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
   SOCKET_URL,

@@ -7,6 +7,7 @@ import AdminDrivers from "@/pages/admin/AdminDrivers";
 import AdminPendingDriver from "@/pages/admin/AdminPendingDriver";
 import { ConfigProvider, theme } from "antd";
 import AProtectedRoute from "./AdminProtectedRoutes";
+import AdminComplaints from "@/pages/admin/AdminComplaints";
 
 const AdminRoutes = () => {
   return (
@@ -23,6 +24,7 @@ const AdminRoutes = () => {
           <Route path="/users" element={<AdminUsers />} />
           <Route path="/drivers" element={<AdminDrivers />} />
           <Route path="/pending-drivers" element={<AdminPendingDriver />} />
+          <Route path="/ride-complaints" element={<AdminComplaints />} />
           </Route>
         </Routes>
       </SidebarProvider>

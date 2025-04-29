@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface Driver {
-  id?: string;
+  _id: string;
   name: string;
   email: string;
 }

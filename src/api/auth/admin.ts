@@ -36,9 +36,15 @@ export async function login(email: string, password: string) {
   }
 }
 
-export async function getUsers(page: number = 1,searchTerm:string = '',sortBy:string ='A-Z') {
+export async function getUsers(
+  page: number = 1,
+  searchTerm: string = "",
+  sortBy: string = "A-Z"
+) {
   try {
-    const response = await axiosAdminInstance.get(`/getUsers?page=${page}&search=${searchTerm}&sort=${sortBy}`);
+    const response = await axiosAdminInstance.get(
+      `/getUsers?page=${page}&search=${searchTerm}&sort=${sortBy}`
+    );
     console.log(response.data);
 
     return response.data;
@@ -84,9 +90,15 @@ export async function updateStatus(id: string) {
   }
 }
 
-export async function getDrivers(page: number = 1,searchTerm:string = '',sortBy:string ='A-Z') {
+export async function getDrivers(
+  page: number = 1,
+  searchTerm: string = "",
+  sortBy: string = "A-Z"
+) {
   try {
-    const response = await axiosAdminInstance.get(`/getDrivers?page=${page}&search=${searchTerm}&sort=${sortBy}`);
+    const response = await axiosAdminInstance.get(
+      `/getDrivers?page=${page}&search=${searchTerm}&sort=${sortBy}`
+    );
     return response.data;
   } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
@@ -346,6 +358,100 @@ export async function getFares() {
   } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
       console.log("Error message from get fares:", err.response.data.message);
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+
+export async function getComplaints(
+  page: number = 1,
+  filter: string = ""
+) {
+  try {
+    const response = await axiosAdminInstance.get(
+      `/getComplaints?page=${page}&filter=${filter}`
+    );
+
+    return response.data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response) {
+      console.log(
+        "Error message from server in login :",
+        err.response.data.message
+      );
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+
+export async function getComplaintInDetail(id: string) {
+  try {
+    const response = await axiosAdminInstance.get(
+      `/getComplaintInDetail?complaintId=${id}`
+    );
+
+    return response.data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response) {
+      console.log(
+        "Error message from server in login :",
+        err.response.data.message
+      );
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+
+export async function updateComplaintStatus(
+  complaintId: string,
+  type: "resolved" | "rejected"
+) {
+  try {
+    const response = await axiosAdminInstance.patch(`/changeComplaintStatus`, {
+      complaintId,
+      type,
+    });
+
+    return response.data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+export async function sendWarningEmail(complaintId: string) {
+  try {
+    const response = await axiosAdminInstance.post(`/sendWarningMail`, {
+      complaintId,
+    });
+
+    return response.data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response) {
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
       console.log(err.message);

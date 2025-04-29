@@ -16,12 +16,7 @@ createRoot(document.getElementById("root")!).render(
       <BrowserRouter>
         <Provider store={store}>
           <PersistGate loading={null} persistor={persistor}>
-            {/* <ConfigProvider theme={{
-          algorithm:theme.darkAlgorithm
-        }}> */}
-
             <App />
-            {/* </ConfigProvider> */}
           </PersistGate>
         </Provider>
       </BrowserRouter>
