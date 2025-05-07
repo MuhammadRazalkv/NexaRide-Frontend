@@ -173,7 +173,7 @@ const RideLocationsInput: React.FC<IRideLocationsInputProps> = ({
       } else {
         setLoading(false);
         messageApi.error(
-          "Sorry, our services are currently not available in your area."
+          "Sorry, no cabs are currently available in your area. Please try again later or move to a nearby location."
         );
       }
     } catch (error) {

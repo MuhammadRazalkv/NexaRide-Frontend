@@ -11,6 +11,7 @@ import Profile from "@/pages/users/Profile";
 import Wallet from "@/pages/users/Wallet";
 import RideHistory from "@/pages/users/ride/RideHistory";
 import RideInfo from "@/pages/users/ride/RideInfo";
+import { RideProvider } from "@/context/SocketContext";
 const UserRoutes = () => {
   return (
     <Routes>
@@ -24,13 +25,18 @@ const UserRoutes = () => {
 
       {/* Protected Routes */}
 
-      <Route element={<ProtectedRoute />}>
+      <Route
+        element={
+          <RideProvider>
+            <ProtectedRoute />
+          </RideProvider>
+        }
+      >
         <Route path="/ride" element={<Ride />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/wallet" element={<Wallet />} />
         <Route path="/history" element={<RideHistory />} />
         <Route path="/rideInfo" element={<RideInfo />} />
-
       </Route>
     </Routes>
   );

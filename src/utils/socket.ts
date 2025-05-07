@@ -2,6 +2,7 @@ import { IMessage } from "@/interfaces/chat.interface";
 import { io, Socket } from "socket.io-client";
 
 export interface RideInfo {
+  rideId:string;
   driver: {
     name: string;
     location: {
@@ -64,7 +65,7 @@ interface ClientToServerEvents {
   }) => void;
   "no-response": (userId: string) => void;
   "request-ride": (data: {
-    driverId: string;
+    category: string;
     pickupCoords: [number, number];
     dropOffCoords: [number, number];
     distance: number;

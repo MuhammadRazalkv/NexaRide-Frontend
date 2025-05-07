@@ -14,7 +14,7 @@ const ToggleSwitch: FC<CheckBox> = ({ isChecked, onChange }) => {
           <input
             className="checkbox"
             type="checkbox"
-            checked={isChecked}  // Directly use isChecked without negation
+            checked={isChecked} // Directly use isChecked without negation
             onChange={onChange}
           />
           <div className="knobs" />
@@ -32,6 +32,7 @@ const StyledWrapper = styled.div`
     width: 200px;
     height: 140px;
     box-sizing: border-box;
+    z-index: 10;
   }
 
   .button-cover {

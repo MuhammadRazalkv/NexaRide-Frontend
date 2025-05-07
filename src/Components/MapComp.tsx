@@ -50,49 +50,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
         // url=''
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      {/* {pickupCoords && (
-        <Marker position={pickupCoords}>
-          <Popup>Pickup Location</Popup>
-        </Marker>
-      )}
-      {dropOffCoords && (
-        <Marker position={dropOffCoords}>
-          <Popup>Drop-off Location</Popup>
-        </Marker>
-      )}
-
-      {driverLoc &&  (
-        <Marker icon={driverIcon} position={driverLoc}>
-          <Popup>Driver location</Popup>
-        </Marker>
-      )}
-
-      {availableDrivers &&
-        availableDrivers.length > 0 &&
-        availableDrivers.map((driver, index) => (
-          <Marker key={index} icon={driverIcon} position={driver.coordinates}>
-            <Popup>{driver.name}</Popup>
-          </Marker>
-        ))}
-
-      {routeCoords && routeCoords?.length > 0 && (
-        <Polyline
-          positions={routeCoords}
-          color="rgba(20, 137, 255, 0.7)"
-          weight={4}
-        />
-      )}
-
-      {!isRideStarted && driverRoute && driverRoute?.length > 0 && (
-        <Marker icon={driverIcon} position={driverRoute[0]}>
-          <Popup>Driver starting location</Popup>
-        </Marker>
-      )}
-
-      {driverRoute && driverRoute.length > 0 && (
-        <Polyline positions={driverRoute} color="black" weight={4} />
-      )}
-       */}
 
       {pickupCoords &&
         Array.isArray(pickupCoords) &&

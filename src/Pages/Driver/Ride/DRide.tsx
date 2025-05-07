@@ -165,6 +165,8 @@ const DRide = () => {
     // Handling new ride requests
     const handleNewRideReq = async (data: NewRideReqData) => {
       try {
+        console.log("ride request ");
+
         setRejected(false);
         const [pickupLocation, dropOffLocation, timeAndDistance] =
           await Promise.all([
@@ -175,8 +177,10 @@ const DRide = () => {
 
         const updatedRideReqInfo = {
           ...data,
-          pickupLocation:pickupLocation.address_line1 +pickupLocation.address_line2 ,
-          dropOffLocation:dropOffLocation.address_line1 + dropOffLocation.address_line2 ,
+          pickupLocation:
+            pickupLocation.address_line1 + pickupLocation.address_line2,
+          dropOffLocation:
+            dropOffLocation.address_line1 + dropOffLocation.address_line2,
           ...timeAndDistance,
         };
 
@@ -196,7 +200,7 @@ const DRide = () => {
             setRideReqInfo(null);
             setIsDialogOpen(false);
           }
-        }, 30000);
+        }, 15000);
 
         return () => clearTimeout(timeout);
       } catch (error) {
@@ -310,8 +314,7 @@ const DRide = () => {
             type: "toPickup",
             location: currentLocation,
           });
-          // setCurrentLoc(currentLocation);
-
+        
           // Update the remaining route only after ride starts
 
           setRemainingRoute((prevRoute) => {
@@ -324,11 +327,13 @@ const DRide = () => {
         } else {
           clearInterval(interval);
           messageApi.success("Driver has reached the pickup location.");
+          setRemainingRoute(undefined)
+          // setDriverRoute(undefined)
           socket.emit("driver-reached");
           setOtpDialog(true);
           socket.off("driver-location-update");
         }
-      }, 3000);
+      }, 1000);
       trackingToPickupRef.current = interval;
       return () => clearInterval(interval);
     },
@@ -336,6 +341,7 @@ const DRide = () => {
   );
 
   const simulatedLiveTrackingToDropOff = useCallback(
+
     (routeCoords: [number, number][]) => {
       console.log(" route coords ", routeCoords);
 
@@ -367,7 +373,7 @@ const DRide = () => {
           socket.off("driver-location-update");
           setWaitPayment(true);
         }
-      }, 2000);
+      }, 1000);
 
       return () => clearInterval(interval);
     },
@@ -494,11 +500,6 @@ const DRide = () => {
       }
       setIsRideStarted(true);
     }
-
-    // if (driverRoute) {
-
-    //   simulatedLiveTrackingToPickUp(driverRoute);
-    // }
   };
 
   // Reject the ride
@@ -618,7 +619,7 @@ const DRide = () => {
       <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         {rideReqInfo && (
           <AlertDialogContent className="bg-white">
-            <TimeProgressBar duration={30} />
+            <TimeProgressBar duration={15} />
             <AlertDialogHeader>
               <AlertDialogTitle className="text-black">
                 New ride request from {rideReqInfo.user.name}
@@ -746,7 +747,7 @@ const DRide = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] mt-6 mx-5 gap-5 md:min-h-[calc(80vh-90px)] lg:min-h-[calc(100vh-90px)] overflow-x-auto">
         {/* Left Section - Info Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 flex flex-col gap-4">
+        <div className="bg-white rounded-2xl shadow-xl p-6 flex max-h-min flex-col gap-4">
           {!rideReqInfo && (
             <div className="bg-white mt-4 p-4 rounded-xl shadow-md ">
               <>
@@ -761,6 +762,7 @@ const DRide = () => {
                     Ready to take rides
                   </p>
                   <ToggleSwitch
+
                     isChecked={isAvailable}
                     onChange={handleAvailabilityChange}
                   />

@@ -10,10 +10,10 @@ import {
   payUsingWallet,
 } from "@/api/auth/user";
 import { Car3D } from "@/Assets";
-import { socket, connectSocket, RideInfo } from "@/utils/socket";
+import { socket, RideInfo } from "@/utils/socket";
 import { RootState } from "@/redux/store";
 import WaitingModal from "@/components/user/WaitingModal";
-import { fetchRoute, getRouteDetails } from "@/utils/geoApify";
+import { fetchRoute } from "@/utils/geoApify";
 import { TbMessage } from "react-icons/tb";
 import {
   AlertDialog,
@@ -27,97 +27,220 @@ import {
 } from "@/components/ui/alert-dialog";
 import PaymentOptions from "@/components/user/PaymentOptions";
 import { useDispatch, useSelector } from "react-redux";
-import { setInPayment, setRideIdInSlice } from "@/redux/slices/rideSlice";
+import {
+  resetRide,
+  setDriverRouteInSlice,
+  setDropOffCoordsInSlice,
+  setInPaymentInSlice,
+  setIsToDropOffInSlice,
+  setPickupCoordsInSlice,
+  setRemainingDropOffRouteInSlice,
+  setRemainingRouteInSlice,
+  setRideActive,
+  setRideIdInSlice,
+  setRideInfoInSlice,
+} from "@/redux/slices/rideSlice";
 import RatingModal from "@/components/RatingModal";
 
 import AvailableDriverList from "@/components/user/AvailableDriverList";
 import ChatModal from "@/components/ChatModal";
 import { IMessage } from "@/interfaces/chat.interface";
-import { CheckCabs, DriverRoute, Drivers } from "@/interfaces/ride.interface";
+import {
+  CheckCabs,
+  DriverRoute,
+  // Drivers,
+  IAvailableCabs,
+} from "@/interfaces/ride.interface";
 import RideLocationsInput from "@/components/user/RideLocationsInput";
-// import { useRide } from "@/context/SocketContext";
+import { useRide } from "@/hooks/useRide";
+import { sliceRouteFromLocation } from "@/utils/sliceRouteFromLocation";
 
 const Ride = () => {
+  const {
+    chatOn,
+    driverArrived,
+    isRateModalOpen,
+    isRideStarted,
+    messages,
+    paymentModalOpen,
+    rideId,
+    rideInfo,
+    rideGotCancelled,
+    setRideInfo,
+    setDriverArrived,
+    setIsRideStarted,
+    setIsRateModalOpen,
+    setPaymentModalOpen,
+    setChatOn,
+    setMessages,
+    clearAllStateDataInContext,
+  } = useRide();
 
-  // const {chatOn,driverArrived,isRateModalOpen,isRideStarted,messages,paymentModalOpen,rideInfo} = useRide()
+  //  Ant Design message API
+  const [messageApi, contextHolder] = message.useMessage();
 
+  //  Auth & Redux
+  const token = useSelector((state: RootState) => state.auth.token);
+  const userId = useSelector((state: RootState) => state.auth.user?._id);
+  const dispatch = useDispatch();
 
-
-
+  //  Location & Routing
   const [pickupCoords, setPickupCoords] = useState<[number, number]>();
   const [dropOffCoords, setDropOffCoords] = useState<[number, number]>();
   const [routeCoords, setRouteCoords] = useState<
     [number, number][] | undefined
   >([]);
   const routeCoordsRef = useRef<[number, number][] | undefined>([]);
+  const [remainingRoute, setRemainingRoute] = useState<
+    [number, number][] | undefined
+  >([]);
+  const remainingRouteRef = useRef<[number, number][] | undefined>([]);
+
+  const [remainingDropOffRoute, setRemainingDropOffRoute] = useState<
+    [number, number][] | undefined
+  >([]);
+  const remainingDropOffRouteRef = useRef<[number, number][] | undefined>([]);
+
   const [distance, setDistance] = useState<number>();
-  const [availableDrivers, setAvailableDrivers] = useState<
-    Drivers[] | undefined
-  >(undefined);
   const [time, setTime] = useState<number>();
-  const [messageApi, contextHolder] = message.useMessage();
+
   const [markDrivers, setMarkDrivers] = useState<
     | { driverId: string; name: string; coordinates: [number, number] }[]
     | undefined
   >(undefined);
-  const [noDriversFound, setNoDriversFound] = useState<boolean>(false);
-  const [sendRideReq, setSendRideReq] = useState(false);
-  const token = useSelector((state: RootState) => state.auth.token);
-  const [rideInfo, setRideInfo] = useState<RideInfo | null>(null);
+
   const [driverRoute, setDriverRoute] = useState<DriverRoute | undefined>(
     undefined
   );
-  const [isRideStarted, setIsRideStarted] = useState(false);
-  const [driverArrived, setDriverArrived] = useState(false);
   const [driverLiveLocation, setDriverLiveLocation] =
     useState<[number, number]>();
-  const [remainingRoute, setRemainingRoute] = useState<
-    [number, number][] | undefined
-  >([]);
-  const [remainingDropOffRoute, setRemainingDropOffRoute] = useState<
-    [number, number][] | undefined
-  >([]);
+  const [noDriversFound, setNoDriversFound] = useState<boolean>(false);
 
+  //  Ride
+  const [cabsInfo, setCabsInfo] = useState<IAvailableCabs[]>();
+  const [sendRideReq, setSendRideReq] = useState(false);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
-  const noResRef = useRef<() => void>();
+  // const noResRef = useRef<() => void>();
   const sendRideReqRef = useRef(false);
   const toDropOff = useRef(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-  const [rideId, setRideId] = useState<string>();
-  const dispatch = useDispatch();
-  const [isRateModalOpen, setIsRateModalOpen] = useState(false);
+
+  //  Rating & Review
   const [rating, setRating] = useState(0);
   const [reviewComments, setReviewComments] = useState("");
   const [ratingErr, setRatingError] = useState("");
-  const rideIdFromSlice = useSelector((state: RootState) => state.ride.rideId);
-   const inPayment = useSelector((state: RootState) => state.ride.inPayment);
-  const userId = useSelector((state: RootState) => state.auth.user?._id);
 
-  const [chatOn, setChatOn] = useState(false);
-  const [messages, setMessages] = useState<IMessage[]>([]);
+  //  Redux - Ride Slice
+  const existingRideInfo = useSelector(
+    (state: RootState) => state.ride.rideInfo
+  );
+  const routeCoordsInSlice = useSelector(
+    (state: RootState) => state.ride.routeCoords
+  );
+  const driverRouteInfoSlice = useSelector(
+    (state: RootState) => state.ride.driverRoute
+  );
+  const remainingDropOffRouteInSlice = useSelector(
+    (state: RootState) => state.ride.remainingDropOffRoute
+  );
+  const remainingRouteInSlice = useSelector(
+    (state: RootState) => state.ride.remainingRoute
+  );
+  const isRideActive = useSelector(
+    (state: RootState) => state.ride.isRideActive
+  );
+  const driverReached = useSelector(
+    (state: RootState) => state.ride.driverArrived
+  );
+  const dropOffCoordsInSlice = useSelector(
+    (state: RootState) => state.ride.dropOffCoords
+  );
+
+  const pickupCoordsSlice = useSelector(
+    (state: RootState) => state.ride.pickupCoords
+  );
+
+  const inPaymentSlice = useSelector(
+    (state: RootState) => state.ride.inPayment
+  );
+
+  const isToDropOff = useSelector((state: RootState) => state.ride.isToDropOff);
 
   const clearAllStateData = () => {
-    // setInput("");
-    // setDropOff("");
     setPickupCoords(undefined);
     setDropOffCoords(undefined);
     setRouteCoords(undefined);
     setDistance(undefined);
     setTime(undefined);
-    setRideInfo(null);
     setDriverRoute(undefined);
-    setIsRideStarted(false);
-    setDriverArrived(false);
     setRemainingDropOffRoute(undefined);
     setRemainingRoute(undefined);
   };
+
   useEffect(() => {
-    if (inPayment) {
-      setPaymentModalOpen(true);
-      setRideId(rideIdFromSlice);
+    remainingRouteRef.current = remainingRoute;
+  }, [remainingRoute]);
+  useEffect(() => {
+    remainingDropOffRouteRef.current = remainingDropOffRoute;
+  }, [remainingDropOffRoute]);
+
+  useEffect(() => {
+    if (isRideActive) setIsRideStarted(true);
+
+    if (existingRideInfo) setRideInfo(existingRideInfo);
+
+    if (Array.isArray(routeCoordsInSlice) && routeCoordsInSlice.length > 0)
+      setRouteCoords(routeCoordsInSlice);
+
+    if (driverRouteInfoSlice) setDriverRoute(driverRouteInfoSlice);
+
+    if (
+      Array.isArray(remainingDropOffRouteInSlice) &&
+      remainingDropOffRouteInSlice.length > 0
+    ) {
+      console.log("setting remainingDropOffRouteInSlice ");
+      setRemainingDropOffRoute(remainingDropOffRouteInSlice);
     }
-  }, [rideIdFromSlice, inPayment]);
+
+    if (
+      Array.isArray(remainingRouteInSlice) &&
+      remainingRouteInSlice.length > 0
+    )
+      setRemainingRoute(remainingRouteInSlice);
+
+    if (driverReached) setDriverArrived(true);
+
+    if (isToDropOff) {
+      toDropOff.current = true;
+      setRemainingRoute(undefined);
+    }
+    if (pickupCoordsSlice) {
+      setPickupCoords(pickupCoordsSlice);
+    }
+    if (dropOffCoordsInSlice) {
+      setDropOffCoords(dropOffCoordsInSlice);
+    }
+    if (inPaymentSlice) {
+      setPaymentModalOpen(true);
+    }
+    // }
+  }, [
+    isRideActive,
+    setIsRideStarted,
+    existingRideInfo,
+    routeCoordsInSlice,
+    driverRouteInfoSlice,
+    remainingRouteInSlice,
+    remainingDropOffRouteInSlice,
+    pickupCoordsSlice,
+    dropOffCoordsInSlice,
+    setRideInfo,
+    driverReached,
+    setDriverArrived,
+    inPaymentSlice,
+    setPaymentModalOpen,
+    isToDropOff,
+  ]);
 
   useEffect(() => {
     sendRideReqRef.current = sendRideReq;
@@ -133,7 +256,7 @@ const Ride = () => {
         console.warn("Pickup or Drop-off coordinates are missing.");
         return;
       }
-      setAvailableDrivers(undefined);
+      setCabsInfo(undefined);
       setMarkDrivers(undefined);
 
       const api = `https://api.geoapify.com/v1/routing?waypoints=${pickupCoords[0]},${pickupCoords[1]}|${dropOffCoords[0]},${dropOffCoords[1]}&mode=drive&apiKey=5f91c9c458154879844c3d0447834abf&type=short`;
@@ -153,6 +276,7 @@ const Ride = () => {
 
         setRouteCoords(formattedRoute);
       } catch (error) {
+        message.error("Failed to fetch route");
         console.error("Error fetching route:", error);
       }
     };
@@ -162,22 +286,22 @@ const Ride = () => {
     }
   }, [pickupCoords, dropOffCoords]);
 
+  useEffect(() => {
+    if (rideGotCancelled) {
+      clearAllStateData();
+    }
+  }, [rideGotCancelled]);
   // Handle no response form driver
   const handleNoDriverResponse = useCallback(() => {
-    messageApi.info("Driver did not respond. Please try again.");
+    messageApi.info(
+      "No drivers responded to your request. Please try again shortly."
+    );
     sendRideReqRef.current = false;
     setSendRideReq(false);
   }, [messageApi]);
 
   //! Listen to driver ride response
   useEffect(() => {
-    if (!token) {
-      messageApi.error("Token missing. Please ensure you are logged in.");
-
-      return;
-    }
-    connectSocket(token, "user");
-
     const stopSendingRequest = () => setSendRideReq(false);
 
     //* Handle ride rejection
@@ -186,18 +310,20 @@ const Ride = () => {
         clearTimeout(timerRef.current);
         timerRef.current = null;
       }
+      console.log(driverId);
+
       sendRideReqRef.current = false;
-      setAvailableDrivers((prevDrivers) =>
-        prevDrivers
-          ? prevDrivers.filter((driver) => driver._id !== driverId)
-          : []
-      );
+      // setAvailableDrivers((prevDrivers) =>
+      //   prevDrivers
+      //     ? prevDrivers.filter((driver) => driver._id !== driverId)
+      //     : []
+      // );
 
       messageApi.info("Your ride request has been rejected by the driver.");
       stopSendingRequest();
     };
 
-    noResRef.current = handleNoDriverResponse;
+    // noResRef.current = handleNoDriverResponse;
 
     //* Handle driver ride acceptance
     const handleRideAccepted = async (data: RideInfo) => {
@@ -208,10 +334,17 @@ const Ride = () => {
         }
         sendRideReqRef.current = false;
         stopSendingRequest();
-        setAvailableDrivers(undefined);
         setMarkDrivers(undefined);
+
         setRideInfo(data);
+        dispatch(setRideInfoInSlice(data));
+        dispatch(setRideIdInSlice(data.rideId));
+
         setIsRideStarted(true);
+        dispatch(setRideActive(true));
+
+        dispatch(setPickupCoordsInSlice(data.pickupCoords));
+        dispatch(setDropOffCoordsInSlice(data.dropOffCoords));
         const routeDetails = await fetchRoute(
           data.driver.location.coordinates,
           data.pickupCoords
@@ -220,10 +353,23 @@ const Ride = () => {
         if (!routeDetails) {
           throw new Error("Failed to calculate driver route");
         }
+
+        // Used to to show the drivers location before starting the ride
         setDriverLiveLocation(data.driver.location.coordinates);
+
+        // To show the drivers info such as how long , distance and route
         setDriverRoute(routeDetails);
+        dispatch(setDriverRouteInSlice(routeDetails));
+
+        // The remaining route of the driver to pickup
         setRemainingRoute(routeDetails.formattedRoute);
+        dispatch(setRemainingRouteInSlice(routeDetails.formattedRoute));
+
+        // The remaining route from pickup to drop off
+
         setRemainingDropOffRoute(routeCoordsRef.current);
+        dispatch(setRemainingDropOffRouteInSlice(routeCoordsRef.current));
+
         messageApi.success(`${data.driver.name} accepted your ride request`);
       } catch (error: unknown) {
         if (error instanceof Error) {
@@ -238,107 +384,42 @@ const Ride = () => {
       type: "toPickup" | "toDropOff";
       location: [number, number];
     }) => {
+      console.log("Driver location update ");
+
       if (data.type == "toPickup") {
         const location = data.location;
         setDriverLiveLocation(undefined);
 
         setRemainingRoute((prevRoute) => {
           if (!prevRoute || prevRoute.length === 0) return [];
-          const isSameLocation = (a: [number, number], b: [number, number]) => {
-            const TOLERANCE = 0.0001;
-            return (
-              Math.abs(a[0] - b[0]) < TOLERANCE &&
-              Math.abs(a[1] - b[1]) < TOLERANCE
-            );
-          };
-
-          if (isSameLocation(prevRoute[0], location)) {
-            return prevRoute.slice(1);
-          }
-
-          return prevRoute;
+          const updatedRoute = sliceRouteFromLocation(prevRoute, location);
+          return updatedRoute;
         });
       } else if (data.type == "toDropOff") {
         toDropOff.current = true;
+        dispatch(setIsToDropOffInSlice(true));
         setRemainingDropOffRoute((prevRoute) => {
           if (!prevRoute || prevRoute.length === 0) return [];
-          const isSameLocation = (a: [number, number], b: [number, number]) => {
-            const TOLERANCE = 0.0001;
-            return (
-              Math.abs(a[0] - b[0]) < TOLERANCE &&
-              Math.abs(a[1] - b[1]) < TOLERANCE
-            );
-          };
-          if (isSameLocation(prevRoute[0], data.location)) {
-            console.log("Matched, slicing the route");
-            return prevRoute.slice(1);
-          }
-          console.log("No match, keeping the same route");
-          return prevRoute;
+          const updatedRoute = sliceRouteFromLocation(prevRoute, data.location);
+          return updatedRoute;
         });
       }
-    };
-
-    const handleDriverReached = async () => {
-      messageApi.success(
-        "Driver reached your location please share your otp to start the ride"
-      );
-      setDriverLiveLocation(undefined);
-      setRemainingRoute(undefined);
-      setDriverArrived(true);
-
-      // socket.off("driver-location-update", handleDriverLocationUpdate);
-    };
-
-    const handleRideCancelled = async () => {
-      messageApi.error("The ride was cancelled by the driver");
-      clearAllStateData();
-      socket.off("driver-location-update");
-    };
-    const handleDropOffReached = async (data: {
-      rideId: string;
-      fare: number;
-    }) => {
-      setPaymentModalOpen(true);
-      setRideId(data.rideId);
-      dispatch(setRideIdInSlice(data.rideId));
-      dispatch(setInPayment(true));
-    };
-
-    const handlePaymentSuccess = async () => {
-      setIsRateModalOpen(true);
-      messageApi.success("Payment success");
-      // dispatch(setRideIdInSlice(""));
-      dispatch(setInPayment(false));
-      setPaymentModalOpen(false);
-      setIsRateModalOpen(true);
-      // setRideId(undefined);
-      setChatOn(false);
-      clearAllStateData();
-    };
-
-    const handleChat = (data: IMessage) => {
-      setMessages((pre) => [...pre, data]);
     };
 
     socket.on("ride-rejected", handleRideRejected);
     socket.on("no-driver-response", handleNoDriverResponse);
     socket.on("ride-accepted", handleRideAccepted);
     socket.on("driver-location-update", handleDriverLocationUpdate);
-    socket.on("driver-reached", handleDriverReached);
-    socket.on("ride-cancelled", handleRideCancelled);
-    socket.on("dropOff-reached", handleDropOffReached);
-    socket.on("payment-success", handlePaymentSuccess);
-    socket.on("chat-msg", handleChat);
+
     return () => {
       socket.off("ride-rejected", handleRideRejected);
       socket.off("no-driver-response", handleNoDriverResponse);
       socket.off("ride-accepted", handleRideAccepted);
       socket.off("driver-location-update", handleDriverLocationUpdate);
-      socket.off("driver-reached", handleDriverReached);
-      socket.off("ride-cancelled", handleRideCancelled);
-      socket.off("payment-success");
-      socket.off("chat-msg", handleChat);
+      dispatch(setRemainingRouteInSlice(remainingRouteRef.current));
+      dispatch(
+        setRemainingDropOffRouteInSlice(remainingDropOffRouteRef.current)
+      );
 
       if (timerRef.current) {
         clearTimeout(timerRef.current);
@@ -346,7 +427,13 @@ const Ride = () => {
       }
       console.log("Comp unmounting");
     };
-  }, [messageApi, handleNoDriverResponse, dispatch, token]);
+  }, [
+    messageApi,
+    handleNoDriverResponse,
+    setIsRideStarted,
+    dispatch,
+    setRideInfo,
+  ]);
 
   const handleSuggestionClick = (
     coordinates: [number, number],
@@ -385,38 +472,12 @@ const Ride = () => {
 
       const res = await checkCabs(data);
 
-      if (res.success && res.drivers && res.drivers.length > 0) {
+      if (res.success && res.availableCabs.length > 0) {
         setNoDriversFound(false);
-        const updatedDrivers = await Promise.all(
-          res.drivers.map(async (driver: Drivers) => {
-            const result = await fetchTimeAndDistance(
-              driver.location.coordinates,
-              pickupCoords
-            );
+        console.log("success and setting ", res.availableCabs);
 
-            return {
-              ...driver,
-              distanceInKm: result?.distanceInKm || "N/A",
-              timeInMinutes: result?.timeInMinutes || "N/A",
-            };
-          })
-        );
-
-        setAvailableDrivers(updatedDrivers);
-        if (res.drivers) {
-          const convertedDrivers = res.drivers.map((driver: Drivers) => ({
-            driverId: driver._id,
-            name: driver.name,
-            coordinates: [
-              driver.location.coordinates[1],
-              driver.location.coordinates[0],
-            ],
-          }));
-
-          setMarkDrivers(convertedDrivers);
-        }
+        setCabsInfo(res.availableCabs);
       } else {
-        setAvailableDrivers(undefined);
         setNoDriversFound(true);
       }
     } catch (error: unknown) {
@@ -429,38 +490,38 @@ const Ride = () => {
     }
   };
 
-  const fetchTimeAndDistance = async (
-    driverCoords: [number, number],
-    pickupCoords: [number, number]
-  ): Promise<
-    { distanceInKm: string; timeInMinutes: number | string } | undefined
-  > => {
-    try {
-      const response = await getRouteDetails(
-        [driverCoords[1], driverCoords[0]],
-        pickupCoords
-      );
+  // const fetchTimeAndDistance = async (
+  //   driverCoords: [number, number],
+  //   pickupCoords: [number, number]
+  // ): Promise<
+  //   { distanceInKm: string; timeInMinutes: number | string } | undefined
+  // > => {
+  //   try {
+  //     const response = await getRouteDetails(
+  //       [driverCoords[1], driverCoords[0]],
+  //       pickupCoords
+  //     );
 
-      if (response) {
-        const distanceInKm = (response.distance / 1000).toFixed(1);
-        const timeInMinutes = Math.round(response.time / 60);
-        return { distanceInKm, timeInMinutes };
-      }
-      return { distanceInKm: "N/A", timeInMinutes: "N/A" };
-    } catch (error) {
-      console.error("Error fetching route:", error);
-      return undefined;
-    }
-  };
+  //     if (response) {
+  //       const distanceInKm = (response.distance / 1000).toFixed(1);
+  //       const timeInMinutes = Math.round(response.time / 60);
+  //       return { distanceInKm, timeInMinutes };
+  //     }
+  //     return { distanceInKm: "N/A", timeInMinutes: "N/A" };
+  //   } catch (error) {
+  //     console.error("Error fetching route:", error);
+  //     return undefined;
+  //   }
+  // };
 
-  const bookTheCab = (driverId: string, fare: number) => {
+  const bookTheCab = (category: string, fare: number) => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
     }
     sendRideReqRef.current = false;
-    if (!driverId) {
-      messageApi.error("Driver not found");
+    if (!category) {
+      messageApi.error("Category not found");
       return;
     }
 
@@ -473,13 +534,13 @@ const Ride = () => {
       return;
     }
 
-    setMarkDrivers((prevDrivers) =>
-      prevDrivers
-        ? prevDrivers.filter((driver) => driver.driverId !== driverId)
-        : []
-    );
+    // setMarkDrivers((prevDrivers) =>
+    //   prevDrivers
+    //     ? prevDrivers.filter((driver) => driver.driverId !== driverId)
+    //     : []
+    // );
     socket.emit("request-ride", {
-      driverId,
+      category,
       pickupCoords,
       dropOffCoords,
       time,
@@ -488,21 +549,25 @@ const Ride = () => {
     });
     setSendRideReq(true);
 
-    timerRef.current = setTimeout(() => {
-      if (sendRideReqRef.current) {
-        handleNoDriverResponse();
-      }
-    }, 35000);
+    // timerRef.current = setTimeout(() => {
+    //   if (sendRideReqRef.current) {
+    //     handleNoDriverResponse();
+    //   }
+    // }, 35000);
   };
 
   const cancelTheRide = () => {
     socket.emit("cancel-ride", "user");
     clearAllStateData();
     setChatOn(false);
+    clearAllStateDataInContext();
+    dispatch(resetRide());
     socket.off("driver-location-update");
   };
 
   const handlePaymentSelection = async (method: "wallet" | "stripe") => {
+    console.log("Ride id ", rideId);
+
     if (method === "wallet") {
       try {
         if (!rideId) {
@@ -516,7 +581,7 @@ const Ride = () => {
           setIsRateModalOpen(true);
           clearAllStateData();
           // dispatch(setRideIdInSlice(""));
-          dispatch(setInPayment(false));
+          dispatch(setInPaymentInSlice(false));
           // setRideId(undefined);
         }
       } catch (error) {
@@ -556,8 +621,9 @@ const Ride = () => {
     setReviewComments(value.trim());
   };
   const closeReviewModal = () => {
-    dispatch(setRideIdInSlice(""));
+    clearAllStateDataInContext();
     setIsRateModalOpen(false);
+    dispatch(resetRide());
   };
 
   const submitReview = async () => {
@@ -584,8 +650,8 @@ const Ride = () => {
       if (res.success) {
         messageApi.success("Your feedback has been saved ");
         setIsRateModalOpen(false);
-        dispatch(setRideIdInSlice(""));
-        setRideId(undefined);
+        clearAllStateDataInContext();
+        dispatch(resetRide());
       }
     } catch (error) {
       if (error instanceof Error) messageApi.error(error.message);
@@ -807,21 +873,30 @@ const Ride = () => {
               🚫 No drivers found in your area. Please try again later.
             </div>
           )}
-          {availableDrivers && availableDrivers.length > 0 && (
+          {cabsInfo && cabsInfo.length > 0 && (
+            <AvailableDriverList
+              availableCabs={cabsInfo}
+              bookTheCab={bookTheCab}
+            />
+          )}
+          {/* {availableDrivers && availableDrivers.length > 0 && (
             <AvailableDriverList
               availableDrivers={availableDrivers}
               bookTheCab={bookTheCab}
             />
-          )}
+          )} */}
         </div>
 
         {/* Right Section - Map */}
         <div className="w-full min-h-[400px] max-h-[80vh] z-0">
           <MapComponent
+            // markers
             pickupCoords={pickupCoords || null}
             dropOffCoords={dropOffCoords || null}
-            routeCoords={isRideStarted ? remainingDropOffRoute : routeCoords}
+            // drivers location markers
             availableDrivers={markDrivers}
+            // routes
+            routeCoords={isRideStarted ? remainingDropOffRoute : routeCoords}
             driverRoute={
               isRideStarted ? remainingRoute : driverRoute?.formattedRoute
             }

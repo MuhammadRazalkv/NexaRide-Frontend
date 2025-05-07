@@ -40,3 +40,9 @@ export interface Drivers {
   distanceInKm?: string;
   timeInMinutes?: number | string;
 }
+
+export interface IAvailableCabs {
+  category: string;
+  count: number;
+  totalFare: number;
+}

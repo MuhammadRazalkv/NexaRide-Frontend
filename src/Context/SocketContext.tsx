@@ -1,76 +1,73 @@
-import { createContext, useEffect, useState, useContext } from "react";
+import { useEffect, useState } from "react";
+import { RideContext } from "@/hooks/useRide";
+import { socket, connectSocket, RideInfo } from "@/utils/socket";
 import {
-  socket,
-  RideInfo,
-  connectSocket,
-  // disconnectSocket,
-} from "@/utils/socket";
-import { setInPayment, setRideIdInSlice } from "@/redux/slices/rideSlice";
+  resetRide,
+  setDriverArrivedInSlice,
+  setInPaymentInSlice,
+  setRideIdInSlice,
+  setRemainingRouteInSlice,
+  setRemainingDropOffRouteInSlice,
+} from "@/redux/slices/rideSlice";
 
 import { IMessage } from "@/interfaces/chat.interface";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { message } from "antd";
 import { useDispatch } from "react-redux";
-interface SocketContextTypes {
-  // socket : typeof socket;
-  // pickupCoords: [number, number] | undefined;
-  // setPickupCoords: React.Dispatch<
-  //   React.SetStateAction<[number, number] | undefined>
-  // >;
-  // dropOffCoords: [number, number] | undefined;
-  // setDropOffCoords: React.Dispatch<
-  //   React.SetStateAction<[number, number] | undefined>
-  // >;
-  // Add all the other states you need here...
-  rideInfo: RideInfo | null;
+export interface SocketContextTypes {
   isRideStarted: boolean;
-  // driverLiveLocation?: [number, number];
+  setIsRideStarted: React.Dispatch<React.SetStateAction<boolean>>;
+  setPaymentModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   messages: IMessage[];
   chatOn: boolean;
-  // sendRideReq: boolean;
-  driverArrived:boolean;
-  paymentModalOpen:boolean;
-  isRateModalOpen:boolean
-  // ... any others you want globally
+  setChatOn: React.Dispatch<React.SetStateAction<boolean>>;
+  driverArrived: boolean;
+  setDriverArrived: React.Dispatch<React.SetStateAction<boolean>>;
+  paymentModalOpen: boolean;
+  isRateModalOpen: boolean;
+  setIsRateModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setMessages: React.Dispatch<React.SetStateAction<IMessage[]>>;
+  rideId: string;
+  setRideId: React.Dispatch<React.SetStateAction<string>>;
+  rideInfo: RideInfo | null;
+  setRideInfo: React.Dispatch<React.SetStateAction<RideInfo | null>>;
+  clearAllStateDataInContext: () => void;
+  rideGotCancelled: boolean;
 }
 
-const RideContext = createContext<SocketContextTypes | undefined>(undefined);
-
 export const RideProvider = ({ children }: { children: React.ReactNode }) => {
-  // const [pickupCoords, setPickupCoords] = useState<[number, number]>();
-  // const [dropOffCoords, setDropOffCoords] = useState<[number, number]>();
-  const [rideInfo, setRideInfo] = useState<RideInfo | null>(null);
   const [isRideStarted, setIsRideStarted] = useState(false);
-  // const [driverLiveLocation, setDriverLiveLocation] = useState<[number, number]>();
+  const [rideInfo, setRideInfo] = useState<RideInfo | null>(null);
+
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [chatOn, setChatOn] = useState(false);
-  // const [sendRideReq, setSendRideReq] = useState(false);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-
+  const [rideId, setRideId] = useState("");
   const token = useSelector((state: RootState) => state.auth.token);
 
   const [driverArrived, setDriverArrived] = useState(false);
   const [isRateModalOpen, setIsRateModalOpen] = useState(false);
-  
+  const [rideGotCancelled, setRideGotCancelled] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
-  // socket listeners here
+  const clearAllStateDataInContext = () => {
+    setIsRideStarted(false);
+    setRideInfo(null);
+    setMessages([]);
+    setChatOn(false);
+    setPaymentModalOpen(false);
+    setRideId("");
+    setDriverArrived(false);
+    setIsRateModalOpen(false);
+    setRideGotCancelled(false);
+  };
+
+  // socket listeners
   useEffect(() => {
     if (!token) return;
     connectSocket(token, "user");
-
-    const handleRideAccepted = (data: RideInfo) => {
-      setRideInfo(data);
-      setIsRideStarted(true);
-    };
-
-    // const handleDriverLocationUpdate = (data: {
-    //   location: [number, number];
-    // }) => {
-    //   setDriverLiveLocation(data.location);
-    // };
 
     const handleChat = (data: IMessage) => {
       setMessages((prev) => [...prev, data]);
@@ -78,6 +75,9 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
 
     const handleRideCancelled = async () => {
       messageApi.error("The ride was cancelled by the driver");
+      clearAllStateDataInContext();
+      dispatch(resetRide());
+      setRideGotCancelled(true);
       socket.off("driver-location-update");
     };
 
@@ -86,7 +86,8 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
         "Driver reached your location please share your otp to start the ride"
       );
       setDriverArrived(true);
-
+      dispatch(setDriverArrivedInSlice(true));
+      dispatch(setRemainingRouteInSlice([]));
     };
 
     const handleDropOffReached = async (data: {
@@ -94,16 +95,18 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
       fare: number;
     }) => {
       setPaymentModalOpen(true);
-      // setRideId(data.rideId);
+
+      setRideId(data.rideId);
       dispatch(setRideIdInSlice(data.rideId));
-      dispatch(setInPayment(true));
+      dispatch(setInPaymentInSlice(true));
+      dispatch(setRemainingDropOffRouteInSlice([]));
     };
 
     const handlePaymentSuccess = async () => {
       setIsRateModalOpen(true);
       messageApi.success("Payment success");
       // dispatch(setRideIdInSlice(""));
-      dispatch(setInPayment(false));
+      dispatch(setInPaymentInSlice(false));
       setPaymentModalOpen(false);
       setIsRateModalOpen(true);
       // setRideId(undefined);
@@ -111,46 +114,41 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
       // clearAllStateData();
     };
 
-    socket.on("ride-accepted", handleRideAccepted);
-    // socket.on("driver-location-update", handleDriverLocationUpdate);
-
     socket.on("driver-reached", handleDriverReached);
     socket.on("ride-cancelled", handleRideCancelled);
     socket.on("dropOff-reached", handleDropOffReached);
     socket.on("payment-success", handlePaymentSuccess);
     socket.on("chat-msg", handleChat);
     return () => {
-      socket.off("ride-accepted", handleRideAccepted);
-      // socket.off("driver-location-update", handleDriverLocationUpdate);
       socket.off("chat-msg", handleChat);
     };
-  }, [token,messageApi,dispatch]);
+  }, [token, messageApi, dispatch]);
 
   return (
     <RideContext.Provider
       value={{
-     
+        setRideInfo,
+        setRideId,
+        setMessages,
+        setIsRateModalOpen,
+        setPaymentModalOpen,
+        setChatOn,
+        setIsRideStarted,
+        clearAllStateDataInContext,
+        setDriverArrived,
+        rideGotCancelled,
         rideInfo,
+        rideId,
         isRideStarted,
         driverArrived,
         isRateModalOpen,
         paymentModalOpen,
-        
         messages,
         chatOn,
-        // sendRideReq,
       }}
     >
       {contextHolder}
       {children}
     </RideContext.Provider>
   );
-};
-
-export const useRide = () => {
-  const context = useContext(RideContext);
-  if (context === undefined) {
-    throw new Error("useRide must be used inside RideProvider");
-  }
-  return context;
 };
