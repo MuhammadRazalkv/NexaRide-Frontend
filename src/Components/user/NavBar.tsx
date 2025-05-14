@@ -1,9 +1,16 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MdOutlineKeyboardArrowDown, MdMenu, MdClose } from "react-icons/md";
+import { MdOutlineKeyboardArrowDown, MdMenu, MdClose , MdLogout } from "react-icons/md";
+import { FaUser } from "react-icons/fa";
 import { useState } from "react";
 import { logout } from "@/redux/slices/authSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { RootState } from "@/redux/store";
 
 const NavBar = () => {
   const [open, setOpen] = useState(false);
@@ -14,6 +21,7 @@ const NavBar = () => {
     // { name: 'About Us ', link: '/' }
   ];
   const dispatch = useDispatch();
+  const name = useSelector((state: RootState) => state.auth.user?.name);
 
   return (
     <div className="h-[70px] flex items-center justify-between px-9 shadow-md w-full bg-white">
@@ -71,14 +79,34 @@ const NavBar = () => {
         ))}
       </div>
 
-      {/* Profile Button */}
+      {/* Other links */}
       <div className="hidden md:flex items-center text-white">
-        <Link to={"/user/profile"}>
+        {/* <Link to={"/user/profile"}>
           <div className="bg-black hover:bg-gray-800 rounded-2xl w-fit py-2 px-4 text-sm flex items-center justify-center gap-2 font-semibold">
             Profile
             <MdOutlineKeyboardArrowDown />
           </div>
-        </Link>
+        </Link> */}
+        <HoverCard>
+          <HoverCardTrigger className="bg-black hover:bg-gray-800 rounded-2xl w-fit py-2 px-4 text-sm flex items-center justify-center gap-2 font-semibold">
+            {name}
+            <MdOutlineKeyboardArrowDown />
+          </HoverCardTrigger>
+          <HoverCardContent className="w-xs">
+            <Link to={"/user/profile"}>
+              <div className="rounded-lg p-2 font-semibold bg-gray-100 hover:bg-gray-200 flex  items-center justify-start gap-2 m-1">
+                <FaUser />
+                Profile
+              </div>
+            </Link>
+            <Link to={"/user/login"} onClick={() => dispatch(logout())}>
+              <div className=" rounded-lg p-2 font-semibold bg-gray-100   flex  items-center justify-start gap-2 cursor-pointer text-red-600 hover:bg-red-100 hover:text-red-800 m-1">
+                <MdLogout />
+                Logout
+              </div>
+            </Link>
+          </HoverCardContent>
+        </HoverCard>
       </div>
     </div>
   );

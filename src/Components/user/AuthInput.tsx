@@ -9,13 +9,13 @@ interface InputFieldProps {
   error?: string | null;
 }
 
-// Use React.ForwardRefRenderFunction to define the type of the ref
+
 const AuthInput = forwardRef<HTMLInputElement, InputFieldProps>(  
   ({ type, placeholder, value, onChange, error, className }, ref) => {
     return (
       <div>
         <input
-          ref={ref} // Forward the ref to the input element
+          ref={ref} 
           type={type}
           placeholder={placeholder}
           value={value}

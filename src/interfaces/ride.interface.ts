@@ -44,5 +44,9 @@ export interface Drivers {
 export interface IAvailableCabs {
   category: string;
   count: number;
-  totalFare: number;
+  baseFare: number;
+  discountApplied?: number;
+  offerTitle?: string | null;
+  offerId: string | null;
+  finalFare: number;
 }

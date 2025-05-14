@@ -4,11 +4,18 @@ import {
   MdOutlineKeyboardArrowDown,
   MdMenu,
   MdClose,
+  MdLogout,
 } from "react-icons/md";
 import { useState } from "react";
 import { logoutDriver } from "@/redux/slices/driverAuthSlice";
-import { useDispatch } from "react-redux";
-
+import { useDispatch, useSelector } from "react-redux";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { FaUser } from "react-icons/fa";
+import { RootState } from "@/redux/store";
 const DNavBar = () => {
   const [open, setOpen] = useState(false);
   const links = [
@@ -17,7 +24,7 @@ const DNavBar = () => {
     { name: "Wallet", link: "/driver/wallet" },
   ];
   const dispatch = useDispatch();
-
+  const name = useSelector((state: RootState) => state.driverAuth.driver?.name);
   return (
     <div className="z-50 h-[70px] flex items-center justify-between px-9 shadow-md w-full bg-white">
       {/* Logo */}
@@ -75,12 +82,35 @@ const DNavBar = () => {
 
       {/* Profile Button */}
       <div className="hidden md:flex items-center text-white">
-        <Link to={"/driver/profile"}>
+        {/* <Link to={"/driver/profile"}>
           <div className="bg-black hover:bg-gray-800 rounded-2xl w-fit py-2 px-4 text-sm flex items-center justify-center gap-2 font-semibold">
             Profile
             <MdOutlineKeyboardArrowDown />
           </div>
-        </Link>
+        </Link> */}
+        <HoverCard>
+          <HoverCardTrigger className="bg-black hover:bg-gray-800 rounded-2xl w-fit py-2 px-4 text-sm flex items-center justify-center gap-2 font-semibold">
+            {name || "Others"}
+            <MdOutlineKeyboardArrowDown />
+          </HoverCardTrigger>
+          <HoverCardContent className="w-xs">
+            <Link to={"/driver/profile"}>
+              <div className="rounded-lg p-2 font-semibold bg-gray-100 hover:bg-gray-200 flex  items-center justify-start gap-2 m-1">
+                <FaUser />
+                Profile
+              </div>
+            </Link>
+
+            <Link to={"/driver/login"} onClick={() => dispatch(logoutDriver())}>
+              <div className=" rounded-lg p-2 font-semibold bg-gray-100   flex  items-center justify-start gap-2 cursor-pointer text-red-600 hover:bg-red-100 hover:text-red-800 m-1">
+                <MdLogout />
+                Logout
+              </div>
+            </Link>
+          </HoverCardContent>
+        </HoverCard>
+
+       
       </div>
     </div>
   );

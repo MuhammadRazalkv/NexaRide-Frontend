@@ -287,7 +287,7 @@ const RideLocationsInput: React.FC<IRideLocationsInputProps> = ({
 
       <div className="w-full flex items-center justify-center p-2">
         <button
-          className="bg-black text-white w-full sm:w-auto p-2 px-4 rounded-xl hover:bg-gray-800 disabled:cursor-not-allowed"
+          className="bg-black text-white w-full  p-2 px-4 rounded-xl hover:bg-gray-800 disabled:cursor-not-allowed"
           disabled={!dropOffCoords || !pickupCoords}
           onClick={handleCheckCabs}
         >

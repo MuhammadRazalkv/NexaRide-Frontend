@@ -163,7 +163,6 @@ const AdminComplaints = () => {
                         Ride Information
                       </h3>
                       <p>
-                        
                         <strong>Pickup:</strong> {rideInfo.pickupLocation}
                       </p>
                       <p>

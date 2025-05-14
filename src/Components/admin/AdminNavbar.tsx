@@ -7,6 +7,7 @@ import {
   FaCar,
   FaExclamationTriangle 
 } from "react-icons/fa";
+import { RiDiscountPercentFill } from "react-icons/ri";
 import { useSidebar } from "../../hooks/useSidebar";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
@@ -58,6 +59,10 @@ const AdminNavBar = () => {
           <Link to={"/admin/ride-complaints"}>
             {" "}
             <NavItem icon={<FaExclamationTriangle  />} text="Complaints" />
+          </Link>
+          <Link to={"/admin/offers"}>
+            {" "}
+            <NavItem icon={<RiDiscountPercentFill  />} text="Offers" />
           </Link>
           {/* <NavItem icon={<FaCog />} text="Settings" /> */}
         </nav>

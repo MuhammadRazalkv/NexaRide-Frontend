@@ -120,10 +120,8 @@ const Ride = () => {
   const [cabsInfo, setCabsInfo] = useState<IAvailableCabs[]>();
   const [sendRideReq, setSendRideReq] = useState(false);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
-  // const noResRef = useRef<() => void>();
   const sendRideReqRef = useRef(false);
   const toDropOff = useRef(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   //  Rating & Review
   const [rating, setRating] = useState(0);
@@ -258,7 +256,7 @@ const Ride = () => {
       }
       setCabsInfo(undefined);
       setMarkDrivers(undefined);
-
+    
       const api = `https://api.geoapify.com/v1/routing?waypoints=${pickupCoords[0]},${pickupCoords[1]}|${dropOffCoords[0]},${dropOffCoords[1]}&mode=drive&apiKey=5f91c9c458154879844c3d0447834abf&type=short`;
 
       try {
@@ -266,6 +264,13 @@ const Ride = () => {
         const coordinates = response.data.features[0].geometry.coordinates;
         const distance = response.data.features[0].properties.distance;
         const time = response.data.features[0].properties.time;
+        if (distance < 1000) {
+          const shortDist = (distance / 1000).toFixed(2);
+          message.error(
+            `The ride distance is only ${shortDist} km. Minimum required is 1 km.`
+          );
+          return;
+        }
         setTime(time);
         setDistance(distance);
 
@@ -303,35 +308,9 @@ const Ride = () => {
   //! Listen to driver ride response
   useEffect(() => {
     const stopSendingRequest = () => setSendRideReq(false);
-
-    //* Handle ride rejection
-    const handleRideRejected = (driverId: string) => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-      console.log(driverId);
-
-      sendRideReqRef.current = false;
-      // setAvailableDrivers((prevDrivers) =>
-      //   prevDrivers
-      //     ? prevDrivers.filter((driver) => driver._id !== driverId)
-      //     : []
-      // );
-
-      messageApi.info("Your ride request has been rejected by the driver.");
-      stopSendingRequest();
-    };
-
-    // noResRef.current = handleNoDriverResponse;
-
     //* Handle driver ride acceptance
     const handleRideAccepted = async (data: RideInfo) => {
       try {
-        if (timerRef.current) {
-          clearTimeout(timerRef.current);
-          timerRef.current = null;
-        }
         sendRideReqRef.current = false;
         stopSendingRequest();
         setMarkDrivers(undefined);
@@ -405,14 +384,10 @@ const Ride = () => {
         });
       }
     };
-
-    socket.on("ride-rejected", handleRideRejected);
     socket.on("no-driver-response", handleNoDriverResponse);
     socket.on("ride-accepted", handleRideAccepted);
     socket.on("driver-location-update", handleDriverLocationUpdate);
-
     return () => {
-      socket.off("ride-rejected", handleRideRejected);
       socket.off("no-driver-response", handleNoDriverResponse);
       socket.off("ride-accepted", handleRideAccepted);
       socket.off("driver-location-update", handleDriverLocationUpdate);
@@ -420,12 +395,6 @@ const Ride = () => {
       dispatch(
         setRemainingDropOffRouteInSlice(remainingDropOffRouteRef.current)
       );
-
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-      console.log("Comp unmounting");
     };
   }, [
     messageApi,
@@ -474,10 +443,9 @@ const Ride = () => {
 
       if (res.success && res.availableCabs.length > 0) {
         setNoDriversFound(false);
-        console.log("success and setting ", res.availableCabs);
-
         setCabsInfo(res.availableCabs);
       } else {
+        setCabsInfo(undefined);
         setNoDriversFound(true);
       }
     } catch (error: unknown) {
@@ -497,7 +465,7 @@ const Ride = () => {
   //   { distanceInKm: string; timeInMinutes: number | string } | undefined
   // > => {
   //   try {
-  //     const response = await getRouteDetails(
+  // const response = await getRouteDetails(
   //       [driverCoords[1], driverCoords[0]],
   //       pickupCoords
   //     );
@@ -514,11 +482,11 @@ const Ride = () => {
   //   }
   // };
 
-  const bookTheCab = (category: string, fare: number) => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
+  const bookTheCab = (
+    category: string,
+    fare: number,
+    offerId: string | null
+  ) => {
     sendRideReqRef.current = false;
     if (!category) {
       messageApi.error("Category not found");
@@ -534,26 +502,16 @@ const Ride = () => {
       return;
     }
 
-    // setMarkDrivers((prevDrivers) =>
-    //   prevDrivers
-    //     ? prevDrivers.filter((driver) => driver.driverId !== driverId)
-    //     : []
-    // );
     socket.emit("request-ride", {
       category,
       pickupCoords,
       dropOffCoords,
+      offerId,
       time,
       distance,
       fare,
     });
     setSendRideReq(true);
-
-    // timerRef.current = setTimeout(() => {
-    //   if (sendRideReqRef.current) {
-    //     handleNoDriverResponse();
-    //   }
-    // }, 35000);
   };
 
   const cancelTheRide = () => {
@@ -735,16 +693,14 @@ const Ride = () => {
           <div className="bg-white rounded-2xl shadow-xl p-6">
             {/* Input section for adding location  */}
             {!rideInfo && (
-              <>
-                <RideLocationsInput
-                  handleCheckCabs={handleCheckCabs}
-                  handleSuggestionClick={handleSuggestionClick}
-                  distance={distance}
-                  dropOffCoords={dropOffCoords}
-                  pickupCoords={pickupCoords}
-                  time={time}
-                />
-              </>
+              <RideLocationsInput
+                handleCheckCabs={handleCheckCabs}
+                handleSuggestionClick={handleSuggestionClick}
+                distance={distance}
+                dropOffCoords={dropOffCoords}
+                pickupCoords={pickupCoords}
+                time={time}
+              />
             )}
 
             {/* To show the ride info when the drive starts */}
@@ -879,12 +835,6 @@ const Ride = () => {
               bookTheCab={bookTheCab}
             />
           )}
-          {/* {availableDrivers && availableDrivers.length > 0 && (
-            <AvailableDriverList
-              availableDrivers={availableDrivers}
-              bookTheCab={bookTheCab}
-            />
-          )} */}
         </div>
 
         {/* Right Section - Map */}

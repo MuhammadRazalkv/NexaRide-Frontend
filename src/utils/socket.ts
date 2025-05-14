@@ -2,7 +2,7 @@ import { IMessage } from "@/interfaces/chat.interface";
 import { io, Socket } from "socket.io-client";
 
 export interface RideInfo {
-  rideId:string;
+  rideId: string;
   driver: {
     name: string;
     location: {
@@ -47,6 +47,7 @@ export interface ServerToClientEvents {
   "payment-received": () => void;
   "payment-success": () => void;
   "chat-msg": (data: IMessage) => void;
+  'ride-error':(data:{message:string})=> void
 }
 
 interface ClientToServerEvents {
@@ -69,6 +70,7 @@ interface ClientToServerEvents {
     pickupCoords: [number, number];
     dropOffCoords: [number, number];
     distance: number;
+    offerId: string | null;
     time: number;
     fare: number;
   }) => void;

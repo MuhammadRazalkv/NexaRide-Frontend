@@ -75,7 +75,7 @@ interface DriverRoute {
   reachBy: Date;
 }
 const DRide = () => {
-  const [isAvailable, setIsAvailable] = useState(false);
+  const [isAvailable, setIsAvailable] = useState(true);
   const [currentLoc, setCurrentLoc] = useState<[number, number] | undefined>(
     undefined
   );
@@ -255,11 +255,11 @@ const DRide = () => {
         const res = await getStatus();
         if (!isMounted) return;
 
-        const { driverStatus, vehicleStatus, available } = res;
+        const { driverStatus, vehicleStatus } = res;
 
         // Correctly set availability state based on fetched data
-        const availability = available !== "offline";
-        setIsAvailable(availability); // Directly assign true/false
+        // const availability = available !== "offline";
+        // setIsAvailable(availability); // Directly assign true/false
 
         if (driverStatus === "pending" || vehicleStatus === "pending")
           navigate("/driver/verification-pending");
@@ -314,7 +314,7 @@ const DRide = () => {
             type: "toPickup",
             location: currentLocation,
           });
-        
+
           // Update the remaining route only after ride starts
 
           setRemainingRoute((prevRoute) => {
@@ -327,7 +327,7 @@ const DRide = () => {
         } else {
           clearInterval(interval);
           messageApi.success("Driver has reached the pickup location.");
-          setRemainingRoute(undefined)
+          setRemainingRoute(undefined);
           // setDriverRoute(undefined)
           socket.emit("driver-reached");
           setOtpDialog(true);
@@ -341,7 +341,6 @@ const DRide = () => {
   );
 
   const simulatedLiveTrackingToDropOff = useCallback(
-
     (routeCoords: [number, number][]) => {
       console.log(" route coords ", routeCoords);
 
@@ -762,7 +761,6 @@ const DRide = () => {
                     Ready to take rides
                   </p>
                   <ToggleSwitch
-
                     isChecked={isAvailable}
                     onChange={handleAvailabilityChange}
                   />

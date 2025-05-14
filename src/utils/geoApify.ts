@@ -7,7 +7,7 @@ export const getLocationFromCoords = async (location: [number, number]) => {
     }&lon=${location[1]}&format=json&apiKey=${import.meta.env.VITE_GEOAPI_KEY}`;
     const response = await axios.get(apiUrl);
     console.log(response.data.results[0]);
-    
+
     return (
       // response.data.results[0].address_line1 +
       // response.data.results[0].address_line2

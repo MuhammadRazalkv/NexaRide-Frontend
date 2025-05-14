@@ -113,7 +113,12 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
       setChatOn(false);
       // clearAllStateData();
     };
+    const handleError = async ({ message }: { message: string }) => {
+      console.log(message);
 
+      messageApi.error(message);
+    };
+    socket.on("ride-error", handleError);
     socket.on("driver-reached", handleDriverReached);
     socket.on("ride-cancelled", handleRideCancelled);
     socket.on("dropOff-reached", handleDropOffReached);

@@ -39,7 +39,6 @@ const ChatModal = ({
     submit(text);
     setText("");
   };
-
   return (
     <>
       <Sheet open={isOpen} onOpenChange={changeOpen}>
@@ -78,6 +77,7 @@ const ChatModal = ({
 
           <div className="mt-auto flex ">
             <input
+              autoFocus
               type="text"
               value={text}
               className="w-9/10 bg-neutral-200 text-gray-950 text-sm p-2 rounded-xl shadow-2xl"

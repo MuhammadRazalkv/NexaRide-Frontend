@@ -14,7 +14,7 @@ const ToggleSwitch: FC<CheckBox> = ({ isChecked, onChange }) => {
           <input
             className="checkbox"
             type="checkbox"
-            checked={isChecked} // Directly use isChecked without negation
+            checked={isChecked} 
             onChange={onChange}
           />
           <div className="knobs" />

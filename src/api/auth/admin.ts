@@ -1,6 +1,7 @@
 import axios from "axios";
 
 import axiosAdminInstance from "../axios/admin.axios.instance";
+import { IOffer } from "@/components/admin/AddOffers";
 interface Fare {
   basic: number;
   premium: number;
@@ -369,10 +370,7 @@ export async function getFares() {
   }
 }
 
-export async function getComplaints(
-  page: number = 1,
-  filter: string = ""
-) {
+export async function getComplaints(page: number = 1, filter: string = "") {
   try {
     const response = await axiosAdminInstance.get(
       `/getComplaints?page=${page}&filter=${filter}`
@@ -462,3 +460,54 @@ export async function sendWarningEmail(complaintId: string) {
     }
   }
 }
+
+export async function addOffers(data:IOffer) {
+  try {
+    const response = await axiosAdminInstance.post(`/addOffer`, data);
+    return response.data
+  } catch (err:unknown) {
+    if (axios.isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+
+export async function changeOfferStatus(offerId:string) {
+  try {
+    const response = await axiosAdminInstance.patch(`/changeOfferStatus`,{offerId});
+    return response.data
+  } catch (err:unknown) {
+    if (axios.isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+export async function fetchOffers() {
+  try {
+    const response = await axiosAdminInstance.get(`/getOffers`);
+    return response.data
+  } catch (err:unknown) {
+    if (axios.isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+
