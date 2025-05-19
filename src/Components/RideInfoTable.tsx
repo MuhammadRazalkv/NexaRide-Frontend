@@ -139,12 +139,40 @@ const RideInfoTable: React.FC<RideInfoTableProps> = ({
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <h2 className="text-sm font-medium text-gray-500">
-                        Fare
+                        Base Fare
                       </h2>
                       <p className="mt-1 text-lg font-semibold">
-                        ₹ {rideInfo.totalFare.toFixed(2)}
+                        ₹ {rideInfo.baseFare.toFixed(2)}
                       </p>
                     </div>
+                    {variant == "user" && (
+                      <>
+                        <div>
+                          <h2 className="text-sm font-medium text-gray-500">
+                            Premium Discount
+                          </h2>
+                          <p className="mt-1 text-lg font-semibold">
+                            ₹ {rideInfo.premiumDiscount.toFixed(2)}
+                          </p>
+                        </div>
+                        <div>
+                          <h2 className="text-sm font-medium text-gray-500">
+                            Offer Discount
+                          </h2>
+                          <p className="mt-1 text-lg font-semibold">
+                            ₹ {rideInfo.offerDiscountAmount.toFixed(2)}
+                          </p>
+                        </div>
+                        <div>
+                          <h2 className="text-sm font-medium text-gray-500">
+                            Total Fare
+                          </h2>
+                          <p className="mt-1 text-lg font-semibold">
+                            ₹ {rideInfo.totalFare.toFixed(2)}
+                          </p>
+                        </div>
+                      </>
+                    )}
 
                     {variant == "driver" && (
                       <>
@@ -160,9 +188,12 @@ const RideInfoTable: React.FC<RideInfoTableProps> = ({
                           <h2 className="text-sm font-medium text-gray-500">
                             App fee
                           </h2>
+                          {rideInfo.driverEarnings && (
+
                           <p className="mt-1 text-lg font-semibold">
-                            ₹ {rideInfo?.commission?.toFixed(2)}
+                            ₹ {( rideInfo?.baseFare - rideInfo?.driverEarnings).toFixed(2)}
                           </p>
+                          )}
                         </div>
                       </>
                     )}
@@ -180,7 +211,7 @@ const RideInfoTable: React.FC<RideInfoTableProps> = ({
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <h2 className="text-sm font-medium text-gray-500">
-                        Est. Time
+                        Time
                       </h2>
                       <p className="mt-1 text-base">
                         {Math.round(rideInfo.estTime / 60)} mins

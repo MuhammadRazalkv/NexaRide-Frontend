@@ -1,7 +1,12 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { MdOutlineKeyboardArrowDown, MdMenu, MdClose , MdLogout } from "react-icons/md";
-import { FaUser } from "react-icons/fa";
+import {
+  MdOutlineKeyboardArrowDown,
+  MdMenu,
+  MdClose,
+  MdLogout,
+} from "react-icons/md";
+import { FaCrown, FaUser } from "react-icons/fa";
 import { useState } from "react";
 import { logout } from "@/redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -53,6 +58,10 @@ const NavBar = () => {
             <Link to={"/user/profile"}>Profile</Link>
             <hr className="h-px mt-2 mb-2 bg-gray-300 border-0" />
           </div>
+          <div className="font-primary cursor-pointer hover:text-black">
+            <Link to={"/user/subscription"}>Subscription</Link>
+            <hr className="h-px mt-2 mb-2 bg-gray-300 border-0" />
+          </div>
 
           <div className="font-primary cursor-pointer text-red-600 hover:text-red-800">
             <Link to={"/user/login"} onClick={() => dispatch(logout())}>
@@ -81,12 +90,6 @@ const NavBar = () => {
 
       {/* Other links */}
       <div className="hidden md:flex items-center text-white">
-        {/* <Link to={"/user/profile"}>
-          <div className="bg-black hover:bg-gray-800 rounded-2xl w-fit py-2 px-4 text-sm flex items-center justify-center gap-2 font-semibold">
-            Profile
-            <MdOutlineKeyboardArrowDown />
-          </div>
-        </Link> */}
         <HoverCard>
           <HoverCardTrigger className="bg-black hover:bg-gray-800 rounded-2xl w-fit py-2 px-4 text-sm flex items-center justify-center gap-2 font-semibold">
             {name}
@@ -97,6 +100,12 @@ const NavBar = () => {
               <div className="rounded-lg p-2 font-semibold bg-gray-100 hover:bg-gray-200 flex  items-center justify-start gap-2 m-1">
                 <FaUser />
                 Profile
+              </div>
+            </Link>
+            <Link to={"/user/subscription"}>
+              <div className="rounded-lg p-2 font-semibold bg-gray-100 hover:bg-gray-200 flex  items-center justify-start gap-2 m-1">
+                <FaCrown />
+                Subscription
               </div>
             </Link>
             <Link to={"/user/login"} onClick={() => dispatch(logout())}>

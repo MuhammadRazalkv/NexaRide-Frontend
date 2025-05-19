@@ -48,5 +48,7 @@ export interface IAvailableCabs {
   discountApplied?: number;
   offerTitle?: string | null;
   offerId: string | null;
+  isPremiumUser:boolean;
+  premiumDiscount:number;
   finalFare: number;
 }

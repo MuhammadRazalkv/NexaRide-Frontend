@@ -10,14 +10,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogDescription
+  DialogDescription,
 } from "@/components/ui/edit-dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import RideInfoTable from "@/components/RideInfoTable";
 import { IRideHistoryItem } from "@/interfaces/fullRideInfo.interface";
-
-
 
 const RideInfo = () => {
   const [messageApi, contextHolder] = message.useMessage();
@@ -31,7 +29,7 @@ const RideInfo = () => {
   const [isDialogueOpen, setIsDialogueOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [reason, setReason] = useState("");
-  
+
   const [error, setError] = useState("");
   useEffect(() => {
     const fetchRideInfo = async () => {
@@ -63,7 +61,6 @@ const RideInfo = () => {
     }
   }, [rideId, messageApi]);
 
-
   const handleDescription = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value.trim();
     setDescription(value);
@@ -87,11 +84,11 @@ const RideInfo = () => {
       return;
     } else if (reason == "other" && description.trim().length < 10) {
       setError("Please provide more details about your issue.");
-      return
+      return;
     }
     setError("");
     console.log(description.trim().length);
-    
+
     try {
       const res = await submitComplaint(rideId, reason, "user", description);
       if (res.success && res.complaint) {
@@ -129,12 +126,12 @@ const RideInfo = () => {
               <select
                 id="reason"
                 className="col-span-3 p-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
-                defaultValue={''}
+                defaultValue={""}
                 onChange={(e) => {
                   handleSelection(e.target.value);
                 }}
               >
-                <option value=""  disabled>
+                <option value="" disabled>
                   Choose
                 </option>
 

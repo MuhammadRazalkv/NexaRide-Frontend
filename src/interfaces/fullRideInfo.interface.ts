@@ -3,6 +3,9 @@ export interface IRideHistoryItem {
   pickupLocation: string;
   dropOffLocation: string;
   totalFare: number;
+  baseFare: number;
+  premiumDiscount: number;
+  offerDiscountAmount: number;
   distance: number;
   estTime: number;
   timeTaken?: number;

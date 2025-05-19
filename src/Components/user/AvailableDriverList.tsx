@@ -1,7 +1,8 @@
 import { IAvailableCabs } from "@/interfaces/ride.interface";
 import { Car3D } from "@/Assets";
-import { Car,  Tag, Users } from "lucide-react";
+import { Car, Tag, Users } from "lucide-react";
 import { useState } from "react";
+import { FaCrown } from "react-icons/fa";
 interface DriverListProps {
   availableCabs: IAvailableCabs[];
   // availableDrivers: Drivers[];
@@ -12,7 +13,7 @@ const AvailableDriverList: React.FC<DriverListProps> = ({
 
   bookTheCab,
 }) => {
-  const [hoveredCab, setHoveredCab] = useState<number|null>(null);
+  const [hoveredCab, setHoveredCab] = useState<number | null>(null);
   return (
     // <div className="grid grid-cols-1 bg-gray-50 mt-2 rounded-2xl gap-4 p-4">
     //   {availableCabs.map((category, index) => (
@@ -105,13 +106,15 @@ const AvailableDriverList: React.FC<DriverListProps> = ({
 
             <div className="flex-1 p-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-gray-800">
-                  {category.category.charAt(0).toUpperCase() +
-                    category.category.slice(1)}
-                </h3>
+                
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    {category.category.charAt(0).toUpperCase() +
+                      category.category.slice(1)}
+                  </h3>
+         
                 <div className="flex items-center text-gray-600">
-                  <Users size={16} className="mr-1" />
-                  <span className="text-sm">{category.count} available</span>
+                  <Users size={12} className="mr-1" />
+                  <span className="text-xs">{category.count} available</span>
                 </div>
               </div>
 
@@ -120,32 +123,28 @@ const AvailableDriverList: React.FC<DriverListProps> = ({
                   <div className="flex items-center">
                     <Tag className="w-4 h-4 mr-2 text-blue-600" />
                     <div>
-                      <div className="text-sm font-medium text-blue-600">
+                      <div className="text-xs font-medium text-blue-600">
                         {category.offerTitle} (-₹{category.discountApplied})
                       </div>
-                      <p className="text-xs text-gray-500">
-                        Final fare confirmed on booking
-                      </p>
                     </div>
                   </div>
                 )}
-
-                {/* <div className="flex items-center justify-between mt-1">
-                  <div className="flex items-center text-gray-600">
-                    <Clock className="w-4 h-4 mr-2" />
-                    <span className="text-sm">{category.estimatedTime || "15-20"} mins</span>
+                {category.isPremiumUser && category.premiumDiscount > 0 && (
+                  <div className="flex items-center">
+                    <FaCrown className="text-green-600 w-4 h-4 mr-2 " />
+                    <div>
+                      <div className="text-xs font-medium text-green-600">
+                        Premium Discount (-₹{category.premiumDiscount})
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center text-gray-600">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    <span className="text-sm">{category.distance || "1.5"} km</span>
-                  </div>
-                </div> */}
+                )}
               </div>
-
+              <p className="text-xs text-gray-500">
+                Final fare confirmed on booking
+              </p>
               <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
-                <div className="text-sm font-medium text-gray-600">
-                  Estimated Fare:
-                </div>
+                <div className="text-sm font-medium text-gray-600">Fare:</div>
                 <div className="flex items-center">
                   {category.baseFare !== category.finalFare && (
                     <span className="mr-2 text-sm text-gray-500 line-through">

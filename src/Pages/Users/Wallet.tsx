@@ -16,6 +16,7 @@ import { addMoneyToWallet, getWalletInfo } from "@/api/auth/user";
 import { message } from "antd";
 import WaitingModal from "@/components/user/WaitingModal";
 import { formatDate, formatTime } from "@/utils/DateAndTimeFormatter";
+import Loader from "@/components/Loader";
 // import {  useNavigate } from "react-router-dom";
 interface IWallet {
   balance: number;
@@ -30,21 +31,26 @@ interface IWallet {
 
 const Wallet = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [fetchingData, setFetchingData] = useState(false);
   const [amount, setAmount] = useState<number | null>(null);
   const [amountError, setAmountError] = useState<string | null>(null);
+  const [page, setPages] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   //   const navigate = useNavigate();
   const [messageApi, contextHolder] = message.useMessage();
   const [wallet, setWallet] = useState<IWallet | null>();
-  const [loading,setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     const fetchWalletInfo = async () => {
+      setFetchingData(true);
       try {
         const res = await getWalletInfo();
         if (res.success && res.wallet) {
           setWallet(res.wallet);
+          setFetchingData(false);
         }
       } catch (error) {
-        console.log(error);
+        setFetchingData(false);
         if (error instanceof Error) {
           message.error(error.message);
         } else {
@@ -77,17 +83,14 @@ const Wallet = () => {
     if (!amount) {
       return;
     }
-    setLoading(true)
-    setIsDialogOpen(false)
+    setLoading(true);
+    setIsDialogOpen(false);
     try {
       const res = await addMoneyToWallet(amount);
       if (res.success && res.url) {
-        // window.location.href = res.url
-        // navigate(res.url, { replace: true });
-        setLoading(false)
+        setLoading(false);
         window.location.href = res.url;
       }
-
     } catch (error) {
       console.log(error);
     }
@@ -162,12 +165,14 @@ const Wallet = () => {
               <ul className="space-y-3 text-sm text-gray-700 max-h-[160px]  pr-1">
                 {[...wallet.transactions].reverse().map((item, index) => {
                   const isCredit = item.type === "credit";
-                  const formattedDate = formatDate(item.date)
-                  const formattedTime = formatTime(item.date)
-                  
+                  const formattedDate = formatDate(item.date);
+                  const formattedTime = formatTime(item.date);
+
                   return (
                     <li key={index} className="flex justify-between ">
-                      <span>{formattedDate},{formattedTime}</span>
+                      <span>
+                        {formattedDate},{formattedTime}
+                      </span>
                       <span>
                         {isCredit ? "Money Added" : "Payment to Driver"}
                       </span>
@@ -186,6 +191,8 @@ const Wallet = () => {
           ) : (
             <p className="text-gray-500">No transactions found</p>
           )}
+          {fetchingData && <Loader />}
+
         </div>
       </div>
     </>

@@ -39,6 +39,7 @@ const UserRoutes = () => {
         <Route path="/history" element={<RideHistory />} />
         <Route path="/rideInfo" element={<RideInfo />} />
         <Route path="/subscription" element={<Subscription />} />
+
       </Route>
     </Routes>
   );

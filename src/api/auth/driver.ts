@@ -142,7 +142,7 @@ export async function login(email: string, password: string) {
     if (!email || !password) {
       throw new Error("Fields are missing");
     }
-    const response = await axiosDriverInstance.post("/login", {
+    const response = await axios.post( `${import.meta.env.VITE_BACKEND_URL}/user/login`, {
       email,
       password,
     });
