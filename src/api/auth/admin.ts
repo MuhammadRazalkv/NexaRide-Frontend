@@ -510,4 +510,20 @@ export async function fetchOffers() {
     }
   }
 }
+export async function getDashBoardInfo() {
+  try {
+    const response = await axiosAdminInstance.get(`/dashboard`);
+    return response.data
+  } catch (err:unknown) {
+    if (axios.isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
 

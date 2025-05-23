@@ -5,6 +5,7 @@ import {
   MdMenu,
   MdClose,
   MdLogout,
+  MdDashboard
 } from "react-icons/md";
 import { useState } from "react";
 import { logoutDriver } from "@/redux/slices/driverAuthSlice";
@@ -52,6 +53,10 @@ const DNavBar = () => {
             </div>
           ))}
           <div className="font-primary cursor-pointer hover:text-black">
+            <Link to={"/driver/dashboard"}>DashBoard</Link>
+            <hr className="h-px mt-2 mb-2 bg-gray-300 border-0" />
+          </div>
+          <div className="font-primary cursor-pointer hover:text-black">
             <Link to={"/driver/profile"}>Profile</Link>
             <hr className="h-px mt-2 mb-2 bg-gray-300 border-0" />
           </div>
@@ -82,18 +87,19 @@ const DNavBar = () => {
 
       {/* Profile Button */}
       <div className="hidden md:flex items-center text-white">
-        {/* <Link to={"/driver/profile"}>
-          <div className="bg-black hover:bg-gray-800 rounded-2xl w-fit py-2 px-4 text-sm flex items-center justify-center gap-2 font-semibold">
-            Profile
-            <MdOutlineKeyboardArrowDown />
-          </div>
-        </Link> */}
+        
         <HoverCard>
           <HoverCardTrigger className="bg-black hover:bg-gray-800 rounded-2xl w-fit py-2 px-4 text-sm flex items-center justify-center gap-2 font-semibold">
             {name || "Others"}
             <MdOutlineKeyboardArrowDown />
           </HoverCardTrigger>
           <HoverCardContent className="w-xs">
+            <Link to={"/driver/dashboard"}>
+              <div className="rounded-lg p-2 font-semibold bg-gray-100 hover:bg-gray-200 flex  items-center justify-start gap-2 m-1">
+                <MdDashboard />
+                DashBoard
+              </div>
+            </Link>
             <Link to={"/driver/profile"}>
               <div className="rounded-lg p-2 font-semibold bg-gray-100 hover:bg-gray-200 flex  items-center justify-start gap-2 m-1">
                 <FaUser />

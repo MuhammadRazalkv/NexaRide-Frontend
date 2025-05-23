@@ -9,6 +9,9 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "overrides": {
+    "react-is": "^19.0.0-rc-69d4b800-20241021"
+  },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
@@ -49,6 +52,7 @@
     "react-router-dom": "^7.1.5",
     "react-sweetalert2": "^0.6.0",
     "react-toastify": "^11.0.5",
+    "recharts": "^2.15.3",
     "redux-persist": "^6.0.0",
     "socket.io-client": "^4.8.1",
     "styled-components": "^6.1.15",

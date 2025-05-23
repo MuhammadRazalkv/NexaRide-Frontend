@@ -256,7 +256,7 @@ const Ride = () => {
       }
       setCabsInfo(undefined);
       setMarkDrivers(undefined);
-    
+
       const api = `https://api.geoapify.com/v1/routing?waypoints=${pickupCoords[0]},${pickupCoords[1]}|${dropOffCoords[0]},${dropOffCoords[1]}&mode=drive&apiKey=5f91c9c458154879844c3d0447834abf&type=short`;
 
       try {
@@ -311,9 +311,11 @@ const Ride = () => {
     //* Handle driver ride acceptance
     const handleRideAccepted = async (data: RideInfo) => {
       try {
+        console.log('Inside the handleAccept');
+        
         sendRideReqRef.current = false;
         stopSendingRequest();
-        setMarkDrivers(undefined);
+        setMarkDrivers(undefined);    
 
         setRideInfo(data);
         dispatch(setRideInfoInSlice(data));

@@ -95,7 +95,7 @@ export async function login(email: string, password: string) {
     const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/user/login`, {
       email,
       password,
-    });
+    },{withCredentials:true});
     console.log(response.data);
 
     return response.data;
@@ -576,3 +576,56 @@ export async function checkSubscriptionStatus() {
     }
   }
 }
+export async function getRideSummary() {
+  try {
+    const res = await axiosUserInstance.get("/ride-summary?requestedBy=user");
+    return res.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+     
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+export async function getTransactionSummary() {
+  try {
+    const res = await axiosUserInstance.get("/payment-summary?requestedBy=user");
+    return res.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+     
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+export async function getFeedBackSummary() {
+  try {
+    const res = await axiosUserInstance.get("/feedback-summary?requestedBy=user");
+    return res.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+     
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+
+

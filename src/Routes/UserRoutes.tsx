@@ -13,6 +13,7 @@ import RideHistory from "@/pages/users/ride/RideHistory";
 import RideInfo from "@/pages/users/ride/RideInfo";
 import { RideProvider } from "@/context/SocketContext";
 import Subscription from "@/pages/users/Subscription";
+import DashBoard from "@/pages/users/DashBoard";
 const UserRoutes = () => {
   return (
     <Routes>
@@ -39,6 +40,7 @@ const UserRoutes = () => {
         <Route path="/history" element={<RideHistory />} />
         <Route path="/rideInfo" element={<RideInfo />} />
         <Route path="/subscription" element={<Subscription />} />
+        <Route path="/dashboard" element={<DashBoard />} />
 
       </Route>
     </Routes>

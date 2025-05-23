@@ -5,6 +5,7 @@ import {
   MdMenu,
   MdClose,
   MdLogout,
+  MdDashboard,
 } from "react-icons/md";
 import { FaCrown, FaUser } from "react-icons/fa";
 import { useState } from "react";
@@ -55,6 +56,10 @@ const NavBar = () => {
             </div>
           ))}
           <div className="font-primary cursor-pointer hover:text-black">
+            <Link to={"/user/dashboard"}>DashBoard</Link>
+            <hr className="h-px mt-2 mb-2 bg-gray-300 border-0" />
+          </div>
+          <div className="font-primary cursor-pointer hover:text-black">
             <Link to={"/user/profile"}>Profile</Link>
             <hr className="h-px mt-2 mb-2 bg-gray-300 border-0" />
           </div>
@@ -96,6 +101,12 @@ const NavBar = () => {
             <MdOutlineKeyboardArrowDown />
           </HoverCardTrigger>
           <HoverCardContent className="w-xs">
+            <Link to={"/user/dashboard"}>
+              <div className="rounded-lg p-2 font-semibold bg-gray-100 hover:bg-gray-200 flex  items-center justify-start gap-2 m-1">
+                <MdDashboard />
+                Dashboard
+              </div>
+            </Link>
             <Link to={"/user/profile"}>
               <div className="rounded-lg p-2 font-semibold bg-gray-100 hover:bg-gray-200 flex  items-center justify-start gap-2 m-1">
                 <FaUser />

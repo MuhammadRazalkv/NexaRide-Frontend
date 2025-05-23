@@ -20,6 +20,7 @@ import DProfile from '@/pages/driver/DProfile'
 import DWallet from '@/pages/driver/DWallet'
 import DRideHistory from '@/pages/driver/ride/DRideHistory'
 import DRideInfo from '@/pages/driver/ride/DRideInfo'
+import DDashboard from '@/pages/driver/ride/DDashboard'
 const DriverRoutes = () => {
   return (
 
@@ -50,6 +51,7 @@ const DriverRoutes = () => {
           <Route path='/wallet' element={<DWallet />} />
           <Route path='/history' element={<DRideHistory />} />
           <Route path='/rideInfo' element={<DRideInfo />} />  
+          <Route path='/dashboard' element={<DDashboard />} />  
 
         </Route>
 
