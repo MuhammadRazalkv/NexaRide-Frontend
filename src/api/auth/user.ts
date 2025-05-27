@@ -10,10 +10,24 @@ interface CheckCabs {
 
 //! sending email to backend to verify it
 export async function sendEmail(email: string) {
-  const response = await axiosUserInstance.post("/verify-email", {
+
+   try {
+    const response = await axiosUserInstance.post("/verify-email", {
     email,
   });
-  return response;
+    return response.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+      console.log("Error message from server:", err.response.data.message);
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
 }
 
 //! sending otp and email to backend for verification

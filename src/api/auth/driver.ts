@@ -217,10 +217,7 @@ export async function rejectReason() {
 
 export async function reApplyDriver(data: driverInfo) {
   try {
-    // if (!token) throw new Error("token is missing");
-    console.log("data", data);
-
-    const response = await axios.patch("/reApplyDriver", data);
+    const response = await axiosDriverInstance.patch("/reApplyDriver", data);
 
     return response.data;
   } catch (error) {
