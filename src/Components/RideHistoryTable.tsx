@@ -1,5 +1,6 @@
 import React from "react";
 import { IRideHistoryItem } from "@/interfaces/fullRideInfo.interface";
+import { formatDate } from "@/utils/DateAndTimeFormatter";
 // export interface IRideHistoryItem {
 //   _id: string;
 //   pickupLocation: string;
@@ -35,6 +36,7 @@ const RideHistoryTable: React.FC<RideHistoryTableProps> = ({
       <table className="min-w-full table-auto text-sm text-left text-gray-700">
         <thead className="bg-gray-100 text-gray-900 uppercase text-xs">
           <tr>
+            <th className="py-3 px-4">Date</th>
             <th className="py-3 px-4">Pickup</th>
             <th className="py-3 px-4">Drop-off</th>
             <th className="py-3 px-4">Total Fare (₹)</th>
@@ -57,6 +59,9 @@ const RideHistoryTable: React.FC<RideHistoryTableProps> = ({
                 className="border-b hover:bg-gray-50"
                 onClick={() => handleNavigation(ride._id)}
               >
+                <td className="py-3 px-4">
+                  {ride.startedAt ? formatDate(ride.startedAt) : 'N/A'}
+                </td>
                 <td className="py-3 px-4">
                   {ride.pickupLocation.split(" ").slice(0, 3).join(" ")}
                 </td>

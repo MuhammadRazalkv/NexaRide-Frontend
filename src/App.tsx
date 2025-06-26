@@ -5,6 +5,7 @@ import UserRoutes from "@/routes/UserRoutes";
 import PublicRoute from "@/routes/PublicRoute";
 import DriverRoutes from "@/routes/DriverRoutes";
 import AdminRoutes from "@/routes/AdminRoutes";
+import NotFoundPage from "./pages/NotFound";
 function App() {
   return (
     <>
@@ -15,6 +16,8 @@ function App() {
         <Route path="/user/*" element={<UserRoutes />} />
         <Route path="/driver/*" element={<DriverRoutes />} />
         <Route path="/admin/*" element={<AdminRoutes />} />
+        <Route path="/*" element={<NotFoundPage />} />
+
       </Routes>
     </>
   );

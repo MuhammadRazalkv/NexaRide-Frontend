@@ -30,15 +30,15 @@ export interface SocketContextTypes {
   setMessages: React.Dispatch<React.SetStateAction<IMessage[]>>;
   rideId: string;
   setRideId: React.Dispatch<React.SetStateAction<string>>;
-  rideInfo: RideInfo | null;
-  setRideInfo: React.Dispatch<React.SetStateAction<RideInfo | null>>;
+  rideInfo?: RideInfo ;
+  setRideInfo: React.Dispatch<React.SetStateAction<RideInfo | undefined>>;
   clearAllStateDataInContext: () => void;
   rideGotCancelled: boolean;
 }
 
 export const RideProvider = ({ children }: { children: React.ReactNode }) => {
   const [isRideStarted, setIsRideStarted] = useState(false);
-  const [rideInfo, setRideInfo] = useState<RideInfo | null>(null);
+  const [rideInfo, setRideInfo] = useState<RideInfo>();
 
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [chatOn, setChatOn] = useState(false);
@@ -54,7 +54,7 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
 
   const clearAllStateDataInContext = () => {
     setIsRideStarted(false);
-    setRideInfo(null);
+    setRideInfo(undefined);
     setMessages([]);
     setChatOn(false);
     setPaymentModalOpen(false);
@@ -70,6 +70,7 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
     connectSocket(token, "user");
 
     const handleChat = (data: IMessage) => {
+      messageApi.info('You have a new message ')
       setMessages((prev) => [...prev, data]);
     };
 

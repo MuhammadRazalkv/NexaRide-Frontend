@@ -18,14 +18,14 @@ const AdminLogin = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const token = useSelector((state:RootState)=> state.adminAuth.token)
+  const token = useSelector((state: RootState) => state.adminAuth.token);
   useEffect(() => {
     if (token) {
-      navigate('/admin/dashboard')
+      navigate("/admin/dashboard");
     }
-  }, [navigate,token]);
+  }, [navigate, token]);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim();
@@ -92,23 +92,21 @@ const AdminLogin = () => {
       setLoading(true);
       try {
         // Proceed with the login request if no errors
-        const response = await login(email, password);  
+        const response = await login(email, password);
 
         setLoading(false);
 
-        if (response  && response.accessToken) {
-          dispatch(adminLogin({token:response.accessToken}))
+        if (response && response.accessToken) {
+          dispatch(adminLogin({ token: response.accessToken }));
           navigate("/admin/dashboard");
         }
       } catch (err: unknown) {
-        setTimeout(() => {
-          setLoading(false);
-          if (err instanceof Error) {
-            setError(err.message);
-          } else {
-            setError("An unexpected error occurred");
-          }
-        }, 1000);
+        setLoading(false);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unexpected error occurred");
+        }
       }
     }
   };

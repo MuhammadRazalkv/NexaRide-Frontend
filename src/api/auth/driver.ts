@@ -589,9 +589,9 @@ export async function getDriverWalletInfo() {
   }
 }
 
-export async function getRideHistory(page: number = 1) {
+export async function getRideHistory(sort:'new'|'old',page: number = 1) {
   try {
-    const res = await axiosDriverInstance.get(`/getRideHistory?page=${page}`);
+    const res = await axiosDriverInstance.get(`/getRideHistory?page=${page}&sort=${sort}`);
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {

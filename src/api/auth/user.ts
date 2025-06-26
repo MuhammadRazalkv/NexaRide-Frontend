@@ -458,9 +458,9 @@ export async function payUsingStripe(rideId: string) {
   }
 }
 
-export async function getRideHistory(page: number = 1) {
+export async function getRideHistory(sort:'new'|'old',page: number = 1) {
   try {
-    const res = await axiosUserInstance.get(`/getRideHistory?page=${page}`);
+    const res = await axiosUserInstance.get(`/getRideHistory?page=${page}&sort=${sort}`);
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
@@ -627,6 +627,23 @@ export async function getTransactionSummary() {
 export async function getFeedBackSummary() {
   try {
     const res = await axiosUserInstance.get("/feedback-summary?requestedBy=user");
+    return res.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+     
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+export async function subscriptionHistory(page:number = 1) {
+  try {
+    const res = await axiosUserInstance.get(`/subscription-history?page=${page}`);
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {

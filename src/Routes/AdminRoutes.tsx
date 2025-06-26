@@ -9,6 +9,11 @@ import { ConfigProvider, theme } from "antd";
 import AProtectedRoute from "./AdminProtectedRoutes";
 import AdminComplaints from "@/pages/admin/AdminComplaints";
 import AdminOffers from "@/pages/admin/AdminOffers";
+import AdminEarnings from "@/pages/admin/AdminEarnings";
+import SubscribedUsers from "@/pages/admin/SubscribedUsers";
+import DriverDetails from "@/pages/admin/DriverDetails";
+import UserDetails from "@/pages/admin/UserDetails";
+import NotFoundPage from "@/pages/NotFound";
 
 const AdminRoutes = () => {
   return (
@@ -21,13 +26,18 @@ const AdminRoutes = () => {
         <Routes>
           <Route path="/login" element={<AdminLogin />} />
           <Route element={<AProtectedRoute />}>
-          <Route path="/dashboard" element={<AdminDashBoard />} />
-          <Route path="/users" element={<AdminUsers />} />
-          <Route path="/drivers" element={<AdminDrivers />} />
-          <Route path="/pending-drivers" element={<AdminPendingDriver />} />
-          <Route path="/ride-complaints" element={<AdminComplaints />} />
-          <Route path="/offers" element={<AdminOffers />} />
+            <Route path="/dashboard" element={<AdminDashBoard />} />
+            <Route path="/users" element={<AdminUsers />} />
+            <Route path="/drivers" element={<AdminDrivers />} />
+            <Route path="/pending-drivers" element={<AdminPendingDriver />} />
+            <Route path="/ride-complaints" element={<AdminComplaints />} />
+            <Route path="/offers" element={<AdminOffers />} />
+            <Route path="/earnings" element={<AdminEarnings />} />
+            <Route path="/subscribed-users" element={<SubscribedUsers />} />
+            <Route path="/driver-info" element={<DriverDetails />} />
+            <Route path="/user-info" element={<UserDetails />} />
           </Route>
+          <Route path="/*" element={<NotFoundPage isAdmin={true} />} />
         </Routes>
       </SidebarProvider>
     </ConfigProvider>

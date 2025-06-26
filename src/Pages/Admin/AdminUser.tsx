@@ -16,6 +16,7 @@ import {
 // import { RiUserSearchFill } from "react-icons/ri";
 import AdminTable from "@/components/admin/AdminTable";
 import SearchSort from "@/components/SearchSort";
+import { useNavigate } from "react-router-dom";
 
 interface IUser {
   _id: string;
@@ -35,7 +36,7 @@ const AdminUsers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const key = "updatable";
-
+  const navigate = useNavigate()
   const fetchUsers = async (page = 1, searchTerm = "", sortOrder = "A-Z") => {
     try {
       const res = await getUsers(page, searchTerm, sortOrder);
@@ -114,6 +115,9 @@ const AdminUsers = () => {
     setSort(e.target.value as "A-Z" | "Z-A");
   };
 
+   const handleNavigation = (id: string) => {
+    navigate("/admin/user-info", { state: id });
+  };
   return (
     <div className="bg-[#0E1220] min-h-screen flex flex-col items-center px-4 py-6">
       <AdminNavBar />
@@ -152,7 +156,7 @@ const AdminUsers = () => {
         <SearchSort sort={sort} search={search} handleSearchChange={handleSearchChange} setSort={changeSort}  />
 
         {/* Table */}
-        <AdminTable users={users} onBlockToggle={updateUserStatus} />
+        <AdminTable users={users} onBlockToggle={updateUserStatus} onView={handleNavigation} />
 
        
         <div className="flex justify-center mt-6">

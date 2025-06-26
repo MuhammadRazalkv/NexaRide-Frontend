@@ -14,6 +14,8 @@ import RideInfo from "@/pages/users/ride/RideInfo";
 import { RideProvider } from "@/context/SocketContext";
 import Subscription from "@/pages/users/Subscription";
 import DashBoard from "@/pages/users/DashBoard";
+import SubscriptionHistory from "@/pages/users/SubscriptionHistory";
+import NotFoundPage from "@/pages/NotFound";
 const UserRoutes = () => {
   return (
     <Routes>
@@ -41,8 +43,11 @@ const UserRoutes = () => {
         <Route path="/rideInfo" element={<RideInfo />} />
         <Route path="/subscription" element={<Subscription />} />
         <Route path="/dashboard" element={<DashBoard />} />
+        <Route path="/subscription-history" element={<SubscriptionHistory />} />
 
       </Route>
+        <Route path="/*"  element={<NotFoundPage  />} />
+
     </Routes>
   );
 };

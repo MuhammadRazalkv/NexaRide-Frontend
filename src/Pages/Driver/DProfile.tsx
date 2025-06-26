@@ -20,19 +20,7 @@ import { Label } from "@/components/ui/label";
 import { message } from "antd";
 import { useNavigate } from "react-router-dom";
 
-interface IDriver {
-  name: string;
-  email: string;
-  phone: string;
-  street: string;
-  city: string;
-  state: string;
-  pin_code: string;
-  dob: string;
-  license_exp: string;
-  profilePic: string;
-  licenseNumber: string;
-}
+import IDriver from "@/interfaces/driver.interface";
 
 const DProfile = () => {
   const [driver, setDriver] = useState<IDriver | null>(null);
@@ -78,7 +66,7 @@ const DProfile = () => {
         error: "Invalid pin code!",
       },
 
-      licenseNumber: {
+      license_number: {
         regex: /^[A-Z0-9]{5,15}$/,
         error: "Invalid license format!",
       },
@@ -110,6 +98,8 @@ const DProfile = () => {
     async function fetchDriver() {
       const res = await getDriverInfo();
       if (res && res.driver) {
+        
+        
         setDriver({
           ...res.driver,
           ...res.driver.address,
@@ -316,10 +306,10 @@ const DProfile = () => {
 
                 <div
                   className="flex justify-between items-center hover:bg-gray-100 p-1.5"
-                  onClick={() => updateCall("licenseNumber")}
+                  onClick={() => updateCall("license_number")}
                 >
                   <p className="text-gray-600">
-                    {driver?.licenseNumber || "License number"}
+                    {driver?.license_number || "License number"}
                   </p>
                   <MdEditSquare opacity={0.5} />
                 </div>

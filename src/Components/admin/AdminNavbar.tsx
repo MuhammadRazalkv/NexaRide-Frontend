@@ -5,7 +5,9 @@ import {
   FaUser,
   FaSignOutAlt,
   FaCar,
-  FaExclamationTriangle 
+  FaExclamationTriangle,
+  FaMoneyBillWaveAlt,
+  FaCrown,
 } from "react-icons/fa";
 import { RiDiscountPercentFill } from "react-icons/ri";
 import { useSidebar } from "../../hooks/useSidebar";
@@ -58,11 +60,19 @@ const AdminNavBar = () => {
           </Link>
           <Link to={"/admin/ride-complaints"}>
             {" "}
-            <NavItem icon={<FaExclamationTriangle  />} text="Complaints" />
+            <NavItem icon={<FaExclamationTriangle />} text="Complaints" />
           </Link>
           <Link to={"/admin/offers"}>
             {" "}
-            <NavItem icon={<RiDiscountPercentFill  />} text="Offers" />
+            <NavItem icon={<RiDiscountPercentFill />} text="Offers" />
+          </Link>
+          <Link to={"/admin/earnings"}>
+            {" "}
+            <NavItem icon={<FaMoneyBillWaveAlt />} text="Earnings" />
+          </Link>
+          <Link to={"/admin/subscribed-users"}>
+            {" "}
+            <NavItem icon={<FaCrown />} text="Premium users" />
           </Link>
           {/* <NavItem icon={<FaCog />} text="Settings" /> */}
         </nav>
@@ -84,7 +94,7 @@ const AdminNavBar = () => {
   );
 };
 
-/** Reusable NavItem Component */
+
 const NavItem = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
   <button className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#202936] transition-all">
     {icon}

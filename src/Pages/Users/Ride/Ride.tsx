@@ -9,22 +9,11 @@ import {
   payUsingStripe,
   payUsingWallet,
 } from "@/api/auth/user";
-import { Car3D } from "@/Assets";
 import { socket, RideInfo } from "@/utils/socket";
 import { RootState } from "@/redux/store";
 import WaitingModal from "@/components/user/WaitingModal";
 import { fetchRoute } from "@/utils/geoApify";
-import { TbMessage } from "react-icons/tb";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+
 import PaymentOptions from "@/components/user/PaymentOptions";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -48,12 +37,13 @@ import { IMessage } from "@/interfaces/chat.interface";
 import {
   CheckCabs,
   DriverRoute,
-  // Drivers,
   IAvailableCabs,
 } from "@/interfaces/ride.interface";
 import RideLocationsInput from "@/components/user/RideLocationsInput";
 import { useRide } from "@/hooks/useRide";
 import { sliceRouteFromLocation } from "@/utils/sliceRouteFromLocation";
+import RideCancelModal from "@/components/RideCancelModal";
+import RideInfoCard from "@/components/user/RideInfoCard";
 
 const Ride = () => {
   const {
@@ -74,6 +64,7 @@ const Ride = () => {
     setChatOn,
     setMessages,
     clearAllStateDataInContext,
+    setRideId
   } = useRide();
 
   //  Ant Design message API
@@ -161,7 +152,7 @@ const Ride = () => {
   const inPaymentSlice = useSelector(
     (state: RootState) => state.ride.inPayment
   );
-
+  const rideIdInSlice = useSelector((state:RootState)=> state.ride.rideId) 
   const isToDropOff = useSelector((state: RootState) => state.ride.isToDropOff);
 
   const clearAllStateData = () => {
@@ -311,11 +302,10 @@ const Ride = () => {
     //* Handle driver ride acceptance
     const handleRideAccepted = async (data: RideInfo) => {
       try {
-        console.log('Inside the handleAccept');
-        
+
         sendRideReqRef.current = false;
         stopSendingRequest();
-        setMarkDrivers(undefined);    
+        setMarkDrivers(undefined);
 
         setRideInfo(data);
         dispatch(setRideInfoInSlice(data));
@@ -378,6 +368,8 @@ const Ride = () => {
         });
       } else if (data.type == "toDropOff") {
         toDropOff.current = true;
+        setDriverArrived(false);
+
         dispatch(setIsToDropOffInSlice(true));
         setRemainingDropOffRoute((prevRoute) => {
           if (!prevRoute || prevRoute.length === 0) return [];
@@ -404,6 +396,7 @@ const Ride = () => {
     setIsRideStarted,
     dispatch,
     setRideInfo,
+    setDriverArrived,
   ]);
 
   const handleSuggestionClick = (
@@ -460,30 +453,6 @@ const Ride = () => {
     }
   };
 
-  // const fetchTimeAndDistance = async (
-  //   driverCoords: [number, number],
-  //   pickupCoords: [number, number]
-  // ): Promise<
-  //   { distanceInKm: string; timeInMinutes: number | string } | undefined
-  // > => {
-  //   try {
-  // const response = await getRouteDetails(
-  //       [driverCoords[1], driverCoords[0]],
-  //       pickupCoords
-  //     );
-
-  //     if (response) {
-  //       const distanceInKm = (response.distance / 1000).toFixed(1);
-  //       const timeInMinutes = Math.round(response.time / 60);
-  //       return { distanceInKm, timeInMinutes };
-  //     }
-  //     return { distanceInKm: "N/A", timeInMinutes: "N/A" };
-  //   } catch (error) {
-  //     console.error("Error fetching route:", error);
-  //     return undefined;
-  //   }
-  // };
-
   const bookTheCab = (
     category: string,
     fare: number,
@@ -527,7 +496,9 @@ const Ride = () => {
 
   const handlePaymentSelection = async (method: "wallet" | "stripe") => {
     console.log("Ride id ", rideId);
-
+    if (!rideId && rideIdInSlice) {
+      setRideId(rideIdInSlice)
+    }
     if (method === "wallet") {
       try {
         if (!rideId) {
@@ -666,28 +637,15 @@ const Ride = () => {
         changeOpen={closeChat}
         submit={sendChatMsg}
       />
-      <AlertDialog open={isCancelOpen} onOpenChange={setIsCancelOpen}>
-        {rideInfo && (
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Cancel Ride Confirmation</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to cancel this ride? This action cannot be
-                undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Keep Ride</AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-red-500 text-white hover:bg-red-600 transition"
-                onClick={cancelTheRide}
-              >
-                Yes, Cancel Ride
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        )}
-      </AlertDialog>
+
+      {isCancelOpen && (
+        <RideCancelModal
+          cancelTheRide={cancelTheRide}
+          isCancelOpen={isCancelOpen}
+          rideInfo={rideInfo}
+          setIsCancelOpen={setIsCancelOpen}
+        />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] mt-5 mr-5 ml-5 gap-3 md:min-h-[calc(80vh-90px)] lg:min-h-[calc(100vh-90px)] overflow-x-auto">
         {/* Left Section -*/}
@@ -707,122 +665,14 @@ const Ride = () => {
 
             {/* To show the ride info when the drive starts */}
             {rideInfo && (
-              <>
-                {/* Driver Info */}
-                <div className="flex items-center gap-5 mb-5">
-                  <img
-                    src={Car3D}
-                    alt="Car"
-                    className="w-24 h-24 rounded-xl object-cover"
-                  />
-                  <div>
-                    <h2 className="text-lg font-semibold text-black">
-                      {rideInfo.driver.name}
-                    </h2>
-                    <p className="text-sm text-gray-600">
-                      {rideInfo.driver.vehicleDetails.vehicleModel
-                        .charAt(0)
-                        .toUpperCase() +
-                        rideInfo.driver.vehicleDetails.vehicleModel.slice(1)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* RIDE STARTED */}
-                {toDropOff.current ? (
-                  <div className="mt-6 border-t border-gray-200 pt-6">
-                    <h3 className="text-xl font-semibold text-black mb-2">
-                      Your ride is in progress
-                    </h3>
-                    <ul className="text-sm text-gray-700 space-y-1 mb-4">
-                      <li>
-                        <span className="font-medium text-black">
-                          Ride Started At:
-                        </span>{" "}
-                        {new Date(rideInfo.startedTime).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </li>
-                      <li>
-                        <span className="font-medium text-black">
-                          Total Distance:
-                        </span>{" "}
-                        {(rideInfo.distance / 1000).toFixed(2)} km
-                      </li>
-                      <li>
-                        <span className="font-medium text-black">
-                          Estimated Duration:
-                        </span>{" "}
-                        {(rideInfo.estTime / 60).toFixed(0)} mins
-                      </li>
-                      <li>
-                        <span className="font-medium text-black">
-                          Estimated Fare:
-                        </span>{" "}
-                        ₹ {rideInfo.totalFare}
-                      </li>
-                    </ul>
-                  </div>
-                ) : (
-                  // RIDE NOT STARTED
-                  <div className="mt-6 border-t border-gray-200 pt-6">
-                    <h3 className="text-lg font-bold text-black flex items-center mb-4">
-                      {driverArrived
-                        ? "Your driver has arrived at the pickup point"
-                        : "Your driver is on the way"}
-                    </h3>
-
-                    {driverRoute ? (
-                      <ul className="space-y-3 text-base text-gray-700">
-                        {!driverArrived && (
-                          <>
-                            <li>
-                              <span className="font-medium text-black">
-                                Estimated Arrival:
-                              </span>{" "}
-                              {(driverRoute.time / 60).toFixed(0)} mins
-                            </li>
-                            <li>
-                              <span className="font-medium text-black">
-                                Distance to Pickup:
-                              </span>{" "}
-                              {(driverRoute.distance / 1000).toFixed(2)} km
-                            </li>
-                          </>
-                        )}
-
-                        <li>
-                          <span className="font-medium text-black">
-                            OTP for Verification:
-                          </span>{" "}
-                          <span className="bg-gray-100 text-black font-semibold px-3 py-1 rounded shadow-sm tracking-wider inline-block">
-                            {rideInfo.OTP}
-                          </span>
-                        </li>
-                      </ul>
-                    ) : (
-                      <p className="text-gray-500">Loading driver route...</p>
-                    )}
-
-                    <div className="flex flex-col sm:flex-row mt-6 gap-3">
-                      <button
-                        className="bg-black text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 transition duration-200 w-full sm:w-auto flex items-center justify-center gap-2"
-                        onClick={() => setChatOn(true)}
-                      >
-                        <TbMessage className="text-white text-sm" />
-                        <span>Message Driver</span>
-                      </button>
-                      <button
-                        className="bg-red-500 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-red-600 transition duration-200 w-full sm:w-auto"
-                        onClick={() => setIsCancelOpen(true)}
-                      >
-                        Cancel Ride
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
+              <RideInfoCard
+                driverArrived={driverArrived}
+                driverRoute={driverRoute}
+                rideInfo={rideInfo}
+                setChatOn={setChatOn}
+                setIsCancelOpen={setIsCancelOpen}
+                toDropOff={toDropOff}
+              />
             )}
           </div>
 

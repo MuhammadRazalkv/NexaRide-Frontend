@@ -60,7 +60,9 @@ const Profile = () => {
     if (!value.trim()) {
       setNameErr("Name is required");
     } else if (!/^[A-Za-z\s]{3,}$/.test(value)) {
-      setNameErr("Name must be at least 3 characters and contain only alphabets & spaces");
+      setNameErr(
+        "Name must be at least 3 characters and contain only alphabets & spaces"
+      );
     } else {
       setNameErr(null);
     }
@@ -94,31 +96,52 @@ const Profile = () => {
   };
 
   const handleSubmit = async (field: string) => {
-    if ((field === "name" && nameErr) || (field === "phone" && phoneErr)) return;
+    if ((field === "name" && nameErr) || (field === "phone" && phoneErr))
+      return;
 
     try {
-      messageApi.open({ key, type: "loading", content: "Updating user info..." });
+      messageApi.open({
+        key,
+        type: "loading",
+        content: "Updating user info...",
+      });
 
       if (field === "name" && name.trim() !== user?.name.trim()) {
         const res = await updateUserName(name.trim());
         if (res?.success) {
-          messageApi.open({ key, type: "success", content: "Name updated successfully!", duration: 2 });
-          setUser(prev => prev ? { ...prev, name: res.name } : prev);
+          messageApi.open({
+            key,
+            type: "success",
+            content: "Name updated successfully!",
+            duration: 2,
+          });
+          setUser((prev) => (prev ? { ...prev, name: res.name } : prev));
           setIsDialogOpen(false);
         }
       } else if (field === "phone" && phone !== user?.phone.toString()) {
         const res = await updateUserPhone(Number(phone));
         if (res?.success) {
-          messageApi.open({ key, type: "success", content: "Phone updated successfully!", duration: 2 });
-          setUser(prev => prev ? { ...prev, phone: res.phone } : prev);
+          messageApi.open({
+            key,
+            type: "success",
+            content: "Phone updated successfully!",
+            duration: 2,
+          });
+          setUser((prev) => (prev ? { ...prev, phone: res.phone } : prev));
           setIsDialogOpen(false);
         }
       } else {
-        messageApi.open({ key, type: "info", content: "No changes detected", duration: 2 });
+        messageApi.open({
+          key,
+          type: "info",
+          content: "No changes detected",
+          duration: 2,
+        });
       }
     } catch (error) {
       console.error(error);
-      const errMsg = error instanceof Error ? error.message : "Failed to update user info.";
+      const errMsg =
+        error instanceof Error ? error.message : "Failed to update user info.";
       messageApi.open({ key, type: "error", content: errMsg, duration: 2 });
     }
   };
@@ -155,10 +178,13 @@ const Profile = () => {
       const res = await updateUserProfilePic(image);
       if (res.success) {
         messageApi.success("Profile picture updated successfully!");
-        setUser(prev => prev ? { ...prev, profilePic: res.image } : prev);
+        setUser((prev) => (prev ? { ...prev, profilePic: res.image } : prev));
       }
     } catch (error) {
-      const errMsg = error instanceof Error ? error.message : "Failed to update profile picture.";
+      const errMsg =
+        error instanceof Error
+          ? error.message
+          : "Failed to update profile picture.";
       messageApi.error(errMsg);
     }
   };
@@ -177,12 +203,14 @@ const Profile = () => {
             </DialogDescription>
           </DialogHeader>
           {(nameErr || phoneErr) && (
-              <p className="text-red-500 text-xs">{nameErr || phoneErr}</p>
-            )}
+            <p className="text-red-500 text-xs">{nameErr || phoneErr}</p>
+          )}
           <div className="grid gap-4 py-4">
             {toUpdate === "name" && (
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">Name</Label>
+                <Label htmlFor="name" className="text-right">
+                  Name
+                </Label>
                 <Input
                   id="name"
                   value={name}
@@ -193,7 +221,9 @@ const Profile = () => {
             )}
             {toUpdate === "phone" && (
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="phone" className="text-right">Phone</Label>
+                <Label htmlFor="phone" className="text-right">
+                  Phone
+                </Label>
                 <Input
                   id="phone"
                   value={phone}
@@ -203,7 +233,6 @@ const Profile = () => {
                 />
               </div>
             )}
-           
           </div>
 
           <DialogFooter>

@@ -5,8 +5,8 @@ import {
   getPendingDriverCount,
   toggleBlockUnblockDriver,
 } from "../../api/auth/admin";
-import { Link } from "react-router-dom";
-import { message , Pagination } from "antd";
+import { Link, useNavigate } from "react-router-dom";
+import { message, Pagination } from "antd";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,7 +39,7 @@ const AdminDrivers = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const key = "updatable";
   const [debouncedSearch, setDebouncedSearch] = useState("");
-
+  const navigate = useNavigate()
   const updateUserStatus = (driver: IUser) => {
     setIsDialogOpen(true);
     setDriverInfo(driver);
@@ -126,6 +126,9 @@ const AdminDrivers = () => {
   const changeSort = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSort(e.target.value as "A-Z" | "Z-A");
   };
+   const handleNavigation = (id: string) => {
+    navigate("/admin/driver-info", { state: id });
+  };
 
   return (
     <div className="bg-[#0E1220] min-h-screen flex flex-col lg:flex-row">
@@ -182,14 +185,13 @@ const AdminDrivers = () => {
             handleSearchChange={handleSearchChange}
             setSort={changeSort}
           />
-          <AdminTable users={drivers} onBlockToggle={updateUserStatus} />
+          <AdminTable users={drivers} onBlockToggle={updateUserStatus} onView={handleNavigation} />
           <Pagination
             current={currentPage}
             total={total}
             pageSize={5}
             align="center"
             onChange={(page) => setCurrentPage(page)}
-           
           />
         </div>
       </div>

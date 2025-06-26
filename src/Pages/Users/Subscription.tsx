@@ -12,6 +12,7 @@ import { checkSubscriptionStatus, subscribeToPlus } from "@/api/auth/user";
 import WaitingModal from "@/components/user/WaitingModal";
 import { useEffect, useState } from "react";
 import { formatDate } from "@/utils/DateAndTimeFormatter";
+import { Link } from "react-router-dom";
 
 const Subscription = () => {
   const [messageApi, contextHolder] = message.useMessage();
@@ -59,13 +60,22 @@ const Subscription = () => {
       <WaitingModal open={loading} message="Redirecting" />
 
       <div className="container mx-auto py-3 px-4">
-        <h2 className="text-center text-3xl font-bold text-gray-800 mb-2">
-          Nexa Plus Subscription
-        </h2>
-        <p className="text-center text-gray-600 mb-10 max-w-xl mx-auto">
-          Join Nexa Plus and enjoy priority rides, discounts, and premium
-          support every month.
-        </p>
+        <div className="flex justify-evenly items-start">
+          <div className="ml-">
+            <h2 className="text-center text-3xl font-bold text-gray-800 mb-2">
+              Nexa Plus Subscription
+            </h2>
+            <p className="text-center text-gray-600 mb-10 max-w-xl mx-auto">
+              Join Nexa Plus and enjoy priority rides, discounts, and premium
+              support every month.
+            </p>
+          </div>
+          <div className="flex justify-end p-2">
+            <button className="bg-black text-white hover:shadow-2xl p-2 text-sm px-5 rounded-xl ">
+              <Link to={"/user/subscription-history"}>History</Link>
+            </button>
+          </div>
+        </div>
         <div className="container flex items-center justify-center  px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8  max-w-4xl">
             {/* Monthly Plan */}
@@ -177,7 +187,7 @@ const Subscription = () => {
                     }`}
                     onClick={() => handleClick("yearly")}
                   >
-                    {isSubscribed && subscribedInfo?.type == 'yearly'
+                    {isSubscribed && subscribedInfo?.type == "yearly"
                       ? `Expires at ${formatDate(subscribedInfo.expiresAt)}`
                       : "Subscribe Yearly"}
                   </button>

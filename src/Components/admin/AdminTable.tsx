@@ -12,10 +12,10 @@ interface User {
 interface UserTableProps {
   users: User[] | null;
   onBlockToggle: (user: User) => void;
-  //   onView?: (user: User) => void;
+  onView: (id:string) => void;
 }
 
-const AdminTable: React.FC<UserTableProps> = ({ users, onBlockToggle }) => {
+const AdminTable: React.FC<UserTableProps> = ({ users, onBlockToggle , onView }) => {
   return (
     <div className="flex-1 flex items-center justify-center p-4 md:p-6 lg:p-8">
       <div className="w-full max-w-6xl mx-auto">
@@ -69,7 +69,7 @@ const AdminTable: React.FC<UserTableProps> = ({ users, onBlockToggle }) => {
                       <td className="px-4 py-4 text-center">
                         <button
                           className="p-2 rounded hover:bg-[#5a63a1] transition-colors"
-                          //   onClick={() => onView(user)}
+                            onClick={() => onView(user._id)}
                         >
                           <FaEye className="text-white" />
                         </button>
