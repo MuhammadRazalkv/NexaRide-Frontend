@@ -17,7 +17,6 @@ function App() {
         <Route path="/driver/*" element={<DriverRoutes />} />
         <Route path="/admin/*" element={<AdminRoutes />} />
         <Route path="/*" element={<NotFoundPage />} />
-
       </Routes>
     </>
   );

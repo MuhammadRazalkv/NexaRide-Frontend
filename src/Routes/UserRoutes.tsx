@@ -44,10 +44,8 @@ const UserRoutes = () => {
         <Route path="/subscription" element={<Subscription />} />
         <Route path="/dashboard" element={<DashBoard />} />
         <Route path="/subscription-history" element={<SubscriptionHistory />} />
-
       </Route>
-        <Route path="/*"  element={<NotFoundPage  />} />
-
+      <Route path="/*" element={<NotFoundPage />} />
     </Routes>
   );
 };

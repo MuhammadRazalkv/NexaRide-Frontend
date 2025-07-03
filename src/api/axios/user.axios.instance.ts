@@ -1,6 +1,7 @@
 import axios, { AxiosError } from "axios";
 import { logout, sLogin } from "@/redux/slices/authSlice";
 import { store } from "@/redux/store";
+import { userLogout } from "../auth/user";
 
 const isTokenError = (error: AxiosError): boolean => {
   const status = error.response?.status;
@@ -69,12 +70,15 @@ axiosUserInstance.interceptors.response.use(
       }
     }
 
+
     if (error.response?.status === 403) {
       const dispatch = store.dispatch;
+      await userLogout()
       dispatch(logout());
       alert("Your account has been blocked. Please contact support.");
       window.location.href = "/user/login";
     }
+ 
 
     // Pass non-token-related errors to the original request
     return Promise.reject(error);

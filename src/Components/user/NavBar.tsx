@@ -17,6 +17,8 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { RootState } from "@/redux/store";
+import { message } from "antd";
+import { userLogout } from "@/api/auth/user";
 
 const NavBar = () => {
   const [open, setOpen] = useState(false);
@@ -28,6 +30,18 @@ const NavBar = () => {
   ];
   const dispatch = useDispatch();
   const name = useSelector((state: RootState) => state.auth.user?.name);
+
+  const handleLogout = async ()=>{
+    try {
+      const res = await userLogout()
+      if (res.success) {
+        dispatch(logout())
+      }
+    } catch (error) {
+      if(error instanceof Error) message.error(error.message)
+    }
+    dispatch(logout())
+  }
 
   return (
     <div className="h-[70px] flex items-center justify-between px-9 shadow-md w-full bg-white">
@@ -69,7 +83,7 @@ const NavBar = () => {
           </div>
 
           <div className="font-primary cursor-pointer text-red-600 hover:text-red-800">
-            <Link to={"/user/login"} onClick={() => dispatch(logout())}>
+            <Link to={"/user/login"} onClick={handleLogout}>
               {" "}
               Logout
             </Link>
@@ -119,7 +133,7 @@ const NavBar = () => {
                 Subscription
               </div>
             </Link>
-            <Link to={"/user/login"} onClick={() => dispatch(logout())}>
+            <Link to={"/user/login"} onClick={handleLogout}>
               <div className=" rounded-lg p-2 font-semibold bg-gray-100   flex  items-center justify-start gap-2 cursor-pointer text-red-600 hover:bg-red-100 hover:text-red-800 m-1">
                 <MdLogout />
                 Logout

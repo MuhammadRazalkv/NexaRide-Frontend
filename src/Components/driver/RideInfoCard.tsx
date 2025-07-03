@@ -6,7 +6,7 @@ import { message } from "antd";
 import { IRideReqInfo, IDriverRoute } from "@/pages/driver/ride/DRide";
 
 type RideInfoCardProps = {
-  rideReqInfo?: IRideReqInfo ;
+  rideReqInfo?: IRideReqInfo;
   driverRoute?: IDriverRoute;
   ridePhase: "idle" | "toPickup" | "otpVerified" | "toDropOff";
   //   isAvailable: boolean;
@@ -82,7 +82,7 @@ const RideInfoCard: React.FC<RideInfoCardProps> = ({
               <>
                 <p className="text-sm text-gray-500 mt-2">
                   <span className="font-medium text-black">Reach by:</span>{" "}
-                  {driverRoute.reachBy.toLocaleTimeString([], {
+                  {new Date(driverRoute.reachBy).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}

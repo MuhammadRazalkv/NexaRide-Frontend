@@ -22,7 +22,7 @@ import DRideHistory from "@/pages/driver/ride/DRideHistory";
 import DRideInfo from "@/pages/driver/ride/DRideInfo";
 import DDashboard from "@/pages/driver/ride/DDashboard";
 import NotFoundPage from "@/pages/NotFound";
-import { DRideProvider } from "@/context/driverSocketContext";
+// import { DRideProvider } from "@/context/driverSocketContext";
 const DriverRoutes = () => {
   return (
     <SignupProvider>
@@ -67,9 +67,9 @@ const DriverRoutes = () => {
 
         <Route
           element={
-            <DRideProvider>
+            // <DRideProvider>
               <DriverProtectedRoute />
-            </DRideProvider>
+            // </DRideProvider>
           }
         >
           <Route path="/ride" element={<DRide />} />

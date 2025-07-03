@@ -5,6 +5,7 @@ import authReducer from "./slices/authSlice";
 import { combineReducers } from "redux";
 import driverAuthReducer from "./slices/driverAuthSlice";
 import rideReducer from "./slices/rideSlice";
+import driverRideSlice from './slices/driverRideSlice'
 import adminAuthReducer from "@/redux/slices/adminAuthSlice";
 const rootReducer = combineReducers({
   auth: persistReducer(
@@ -35,9 +36,32 @@ const rootReducer = combineReducers({
         "driverArrived",
         "rideId",
         "inPayment",
+        'stripePayment'
       ],
     },
     rideReducer
+  ),
+  DRide: persistReducer(
+    {
+      key: "dRide",
+      storage,
+      whitelist: [
+        "isRideStarted",
+        "rideReqInfo",
+        "pickupCoords",
+        "dropOffCoords",
+        "routeCoords",
+        "driverRoute",
+        "remainingRoute",
+        "remainingDropOffRoute",
+        "ridePhase",
+        "rideId",
+        "inPayment",
+        "currentLoc",
+        'OTPModal'
+      ],
+    },
+    driverRideSlice
   ),
 });
 

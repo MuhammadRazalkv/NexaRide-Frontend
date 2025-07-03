@@ -1,5 +1,4 @@
-// src/hooks/useDriverSocketEvents.ts
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { socket, connectSocket, ServerToClientEvents } from "@/utils/socket";
 import { IMessage } from "@/interfaces/chat.interface";
 import { AppDispatch } from "@/redux/store";
@@ -7,30 +6,38 @@ import { setRideIdInSlice } from "@/redux/slices/rideSlice";
 import { message } from "antd";
 import { IRideReqInfo } from "@/pages/driver/ride/DRide";
 import { getLocationFromCoords, getRouteDetails } from "@/utils/geoApify";
+import { openPaymentModal } from "@/redux/slices/driverRideSlice";
 
 type NewRideReqData = Parameters<ServerToClientEvents["new-ride-req"]>[0];
 
 interface Props {
   token?: string | null;
-  setRideReqInfo: (info: IRideReqInfo) => void;
+  setRideReqData: (info: IRideReqInfo | undefined) => void;
   setIsDialogOpen: (b: boolean) => void;
   setIsRateModalOpen: (b: boolean) => void;
-  setWaitPayment: (b: boolean) => void;
+  // setWaitPayment: (b: boolean) => void;
   setMessages: React.Dispatch<React.SetStateAction<IMessage[]>>;
   dispatch: AppDispatch;
+  rideRejected: boolean;
+  isRideStarted: boolean;
   messageApi: ReturnType<typeof message.useMessage>[0];
+  clearAllStateData: () => void;
 }
 
 export const useDriverSocketEvents = ({
   token,
-  setRideReqInfo,
+  setRideReqData,
   setIsDialogOpen,
   setIsRateModalOpen,
-  setWaitPayment,
+  // setWaitPayment,
   setMessages,
   dispatch,
+  rideRejected,
+  isRideStarted,
   messageApi,
+  clearAllStateData,
 }: Props) => {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     if (!token) return;
     connectSocket(token, "driver");
@@ -53,8 +60,17 @@ export const useDriverSocketEvents = ({
           ...timeAndDistance,
         };
 
-        setRideReqInfo(updatedRideReqInfo);
+        setRideReqData(updatedRideReqInfo);
         setIsDialogOpen(true);
+
+        timeoutRef.current = setTimeout(() => {
+          if (!rideRejected && !isRideStarted) {
+            console.log("Driver did not respond within timeout.");
+            setRideReqData(undefined);
+            setIsDialogOpen(false);
+            //  socket.emit("no-response", rideReqUserIdRef.current);
+          }
+        }, 15000);
       } catch (err) {
         console.error("Error during ride req:", err);
         messageApi.error("Failed to fetch ride details.");
@@ -64,7 +80,9 @@ export const useDriverSocketEvents = ({
     const handlePaymentReceived = () => {
       messageApi.success("Payment received");
       setIsRateModalOpen(true);
-      setWaitPayment(false);
+      // setWaitPayment(false);
+      dispatch(openPaymentModal(false))
+      // clearAllStateData();
     };
 
     const handleChat = (data: IMessage) => {
@@ -75,6 +93,7 @@ export const useDriverSocketEvents = ({
     const handleRideCancelled = () => {
       messageApi.error("Ride cancelled by user");
       dispatch(setRideIdInSlice(""));
+      clearAllStateData();
       socket.off("driver-location-update");
     };
 
@@ -91,12 +110,24 @@ export const useDriverSocketEvents = ({
     };
   }, [
     token,
-    setRideReqInfo,
+    setRideReqData,
     setIsDialogOpen,
     setIsRateModalOpen,
-    setWaitPayment,
+    // setWaitPayment,
     setMessages,
     dispatch,
+    isRideStarted,
+    rideRejected,
     messageApi,
+    clearAllStateData,
   ]);
+
+  useEffect(() => {
+    if (rideRejected || isRideStarted) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    }
+  }, [rideRejected, isRideStarted]);
 };

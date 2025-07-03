@@ -14,6 +14,7 @@ const initialState = {
   isToDropOff: false,
   rideId: undefined,
   inPayment: false,
+  stripePayment: false,
 };
 
 const rideSlice = createSlice({
@@ -62,6 +63,9 @@ const rideSlice = createSlice({
     setInPaymentInSlice: (state, action) => {
       state.inPayment = action.payload;
     },
+    setStripePaymentInSlice: (state, action) => {
+      state.stripePayment = action.payload;
+    },
     resetRide: () => {
       return initialState;
     },
@@ -83,6 +87,7 @@ export const {
   resetRide,
   setInPaymentInSlice,
   setRideIdInSlice,
+  setStripePaymentInSlice
 } = rideSlice.actions;
 
 export default rideSlice.reducer;

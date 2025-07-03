@@ -5,7 +5,7 @@ import {
   MdMenu,
   MdClose,
   MdLogout,
-  MdDashboard
+  MdDashboard,
 } from "react-icons/md";
 import { useState } from "react";
 import { logoutDriver } from "@/redux/slices/driverAuthSlice";
@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/hover-card";
 import { FaUser } from "react-icons/fa";
 import { RootState } from "@/redux/store";
+import { message } from "antd";
+import { driverLogout } from "@/api/auth/driver";
 const DNavBar = () => {
   const [open, setOpen] = useState(false);
   const links = [
@@ -26,6 +28,17 @@ const DNavBar = () => {
   ];
   const dispatch = useDispatch();
   const name = useSelector((state: RootState) => state.driverAuth.driver?.name);
+
+  const handleLogout = async()=>{
+    try {
+      const res = await driverLogout()
+      if(res.success){
+        dispatch(logoutDriver())
+      }
+    } catch (error) {
+      if(error instanceof Error) message.error(error.message)
+    }
+  }
   return (
     <div className="z-50 h-[70px] flex items-center justify-between px-9 shadow-md w-full bg-white">
       {/* Logo */}
@@ -61,7 +74,7 @@ const DNavBar = () => {
             <hr className="h-px mt-2 mb-2 bg-gray-300 border-0" />
           </div>
           <div className="font-primary cursor-pointer text-red-600 hover:text-red-800">
-            <Link to={"/driver/login"} onClick={() => dispatch(logoutDriver())}>
+            <Link to={"/driver/login"} onClick={handleLogout}>
               {" "}
               Logout
             </Link>
@@ -87,7 +100,6 @@ const DNavBar = () => {
 
       {/* Profile Button */}
       <div className="hidden md:flex items-center text-white">
-        
         <HoverCard>
           <HoverCardTrigger className="bg-black hover:bg-gray-800 rounded-2xl w-fit py-2 px-4 text-sm flex items-center justify-center gap-2 font-semibold">
             {name || "Others"}
@@ -107,7 +119,7 @@ const DNavBar = () => {
               </div>
             </Link>
 
-            <Link to={"/driver/login"} onClick={() => dispatch(logoutDriver())}>
+            <Link to={"/driver/login"} onClick={handleLogout}>
               <div className=" rounded-lg p-2 font-semibold bg-gray-100   flex  items-center justify-start gap-2 cursor-pointer text-red-600 hover:bg-red-100 hover:text-red-800 m-1">
                 <MdLogout />
                 Logout
@@ -115,8 +127,6 @@ const DNavBar = () => {
             </Link>
           </HoverCardContent>
         </HoverCard>
-
-       
       </div>
     </div>
   );

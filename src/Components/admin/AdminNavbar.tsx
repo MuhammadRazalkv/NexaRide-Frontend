@@ -14,10 +14,24 @@ import { useSidebar } from "../../hooks/useSidebar";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { adminLogout } from "@/redux/slices/adminAuthSlice";
+import { message } from "antd";
+import { logoutAdmin } from "@/api/auth/admin";
 
 const AdminNavBar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
   const dispatch = useDispatch();
+  const handleLogout = async () => {
+    try {
+      const res = await logoutAdmin();
+      if (res.success) {
+        dispatch(adminLogout());
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        message.error(error.message);
+      }
+    }
+  };
   return (
     <>
       {!isOpen && (
@@ -80,10 +94,7 @@ const AdminNavBar = () => {
         <div className=" p-4 ">
           <button
             className="flex items-center gap-3 text-red-500 hover:text-red-400 transition-all"
-            onClick={() => {
-              dispatch(adminLogout());
-              window.location.href = "/admin/login";
-            }}
+            onClick={handleLogout}
           >
             <FaSignOutAlt />
             <span>Logout</span>
@@ -93,7 +104,6 @@ const AdminNavBar = () => {
     </>
   );
 };
-
 
 const NavItem = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
   <button className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#202936] transition-all">

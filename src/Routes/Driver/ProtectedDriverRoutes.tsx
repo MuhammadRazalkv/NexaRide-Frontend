@@ -1,9 +1,9 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";;
+import { RootState } from "@/redux/store";
 import { useEffect, useState } from "react";
-
-const   DriverProtectedRoute = () => {
+import { DRideProvider } from "@/context/driverSocketContext";
+const DriverProtectedRoute = () => {
   const { token } = useSelector((state: RootState) => state.driverAuth);
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -15,11 +15,13 @@ const   DriverProtectedRoute = () => {
 
   if (!isHydrated) return null; // Prevents unnecessary re-renders
 
-  return token ? <Outlet /> : <Navigate to="/driver/login" replace />;
+  return token ? (
+    <DRideProvider>
+      <Outlet />
+    </DRideProvider>
+  ) : (
+    <Navigate to="/driver/login" replace />
+  );
 };
 
 export default DriverProtectedRoute;
-
-
-
-

@@ -5,22 +5,22 @@ import axios from "axios";
 import { message } from "antd";
 import {
   checkCabs,
-  giveFeedback,
-  payUsingStripe,
-  payUsingWallet,
+  // giveFeedback,
+  // payUsingStripe,
+  // payUsingWallet,
 } from "@/api/auth/user";
 import { socket, RideInfo } from "@/utils/socket";
 import { RootState } from "@/redux/store";
 import WaitingModal from "@/components/user/WaitingModal";
 import { fetchRoute } from "@/utils/geoApify";
 
-import PaymentOptions from "@/components/user/PaymentOptions";
+// import PaymentOptions from "@/components/user/PaymentOptions";
 import { useDispatch, useSelector } from "react-redux";
 import {
   resetRide,
   setDriverRouteInSlice,
   setDropOffCoordsInSlice,
-  setInPaymentInSlice,
+  // setInPaymentInSlice,
   setIsToDropOffInSlice,
   setPickupCoordsInSlice,
   setRemainingDropOffRouteInSlice,
@@ -28,8 +28,9 @@ import {
   setRideActive,
   setRideIdInSlice,
   setRideInfoInSlice,
+  // setStripePaymentInSlice,
 } from "@/redux/slices/rideSlice";
-import RatingModal from "@/components/RatingModal";
+// import RatingModal from "@/components/RatingModal";
 
 import AvailableDriverList from "@/components/user/AvailableDriverList";
 import ChatModal from "@/components/ChatModal";
@@ -49,22 +50,22 @@ const Ride = () => {
   const {
     chatOn,
     driverArrived,
-    isRateModalOpen,
+    // isRateModalOpen,
     isRideStarted,
     messages,
-    paymentModalOpen,
-    rideId,
+    // paymentModalOpen,
+    // rideId,
     rideInfo,
     rideGotCancelled,
     setRideInfo,
     setDriverArrived,
     setIsRideStarted,
-    setIsRateModalOpen,
+    // setIsRateModalOpen,
     setPaymentModalOpen,
     setChatOn,
     setMessages,
     clearAllStateDataInContext,
-    setRideId
+    // setRideId,
   } = useRide();
 
   //  Ant Design message API
@@ -95,16 +96,17 @@ const Ride = () => {
   const [distance, setDistance] = useState<number>();
   const [time, setTime] = useState<number>();
 
-  const [markDrivers, setMarkDrivers] = useState<
-    | { driverId: string; name: string; coordinates: [number, number] }[]
-    | undefined
-  >(undefined);
+  // const [markDrivers, setMarkDrivers] = useState<
+  //   | { driverId: string; name: string; coordinates: [number, number] }[]
+  //   | undefined
+  // >(undefined);
 
   const [driverRoute, setDriverRoute] = useState<DriverRoute | undefined>(
     undefined
   );
   const [driverLiveLocation, setDriverLiveLocation] =
     useState<[number, number]>();
+    
   const [noDriversFound, setNoDriversFound] = useState<boolean>(false);
 
   //  Ride
@@ -115,9 +117,9 @@ const Ride = () => {
   const toDropOff = useRef(false);
 
   //  Rating & Review
-  const [rating, setRating] = useState(0);
-  const [reviewComments, setReviewComments] = useState("");
-  const [ratingErr, setRatingError] = useState("");
+  // const [rating, setRating] = useState(0);
+  // const [reviewComments, setReviewComments] = useState("");
+  // const [ratingErr, setRatingError] = useState("");
 
   //  Redux - Ride Slice
   const existingRideInfo = useSelector(
@@ -152,7 +154,7 @@ const Ride = () => {
   const inPaymentSlice = useSelector(
     (state: RootState) => state.ride.inPayment
   );
-  const rideIdInSlice = useSelector((state:RootState)=> state.ride.rideId) 
+  // const rideIdInSlice = useSelector((state: RootState) => state.ride.rideId);
   const isToDropOff = useSelector((state: RootState) => state.ride.isToDropOff);
 
   const clearAllStateData = () => {
@@ -246,7 +248,7 @@ const Ride = () => {
         return;
       }
       setCabsInfo(undefined);
-      setMarkDrivers(undefined);
+      // setMarkDrivers(undefined);
 
       const api = `https://api.geoapify.com/v1/routing?waypoints=${pickupCoords[0]},${pickupCoords[1]}|${dropOffCoords[0]},${dropOffCoords[1]}&mode=drive&apiKey=5f91c9c458154879844c3d0447834abf&type=short`;
 
@@ -302,10 +304,9 @@ const Ride = () => {
     //* Handle driver ride acceptance
     const handleRideAccepted = async (data: RideInfo) => {
       try {
-
         sendRideReqRef.current = false;
         stopSendingRequest();
-        setMarkDrivers(undefined);
+        // setMarkDrivers(undefined);
 
         setRideInfo(data);
         dispatch(setRideInfoInSlice(data));
@@ -494,101 +495,102 @@ const Ride = () => {
     socket.off("driver-location-update");
   };
 
-  const handlePaymentSelection = async (method: "wallet" | "stripe") => {
-    console.log("Ride id ", rideId);
-    if (!rideId && rideIdInSlice) {
-      setRideId(rideIdInSlice)
-    }
-    if (method === "wallet") {
-      try {
-        if (!rideId) {
-          console.log("Ride id not found ");
-          return;
-        }
-        const response = await payUsingWallet(rideId);
-        if (response.success) {
-          messageApi.success("Payment successful");
-          setPaymentModalOpen(false);
-          setIsRateModalOpen(true);
-          clearAllStateData();
-          // dispatch(setRideIdInSlice(""));
-          dispatch(setInPaymentInSlice(false));
-          // setRideId(undefined);
-        }
-      } catch (error) {
-        console.log(error);
-        if (error instanceof Error) {
-          messageApi.error(error.message);
-        } else {
-          messageApi.error("Failed to pay using wallet");
-        }
-      }
-    } else if (method === "stripe") {
-      try {
-        if (!rideId) {
-          console.log("Ride id not found ");
-          return;
-        }
-        const res = await payUsingStripe(rideId);
-        if (res.success && res.url) {
-          // window.location.href = res.url;
-          window.open(res.url, "_blank");
-        }
-      } catch (error) {
-        console.log(error);
-        if (error instanceof Error) {
-          messageApi.error(error.message);
-        } else {
-          messageApi.error("Failed to pay using wallet");
-        }
-      }
-    }
-  };
+  // const handlePaymentSelection = async (method: "wallet" | "stripe") => {
+  //   console.log("Ride id ", rideId);
+  //   if (!rideId && rideIdInSlice) {
+  //     setRideId(rideIdInSlice);
+  //   }
+  //   if (method === "wallet") {
+  //     try {
+  //       if (!rideId) {
+  //         console.log("Ride id not found ");
+  //         return;
+  //       }
+  //       const response = await payUsingWallet(rideId);
+  //       if (response.success) {
+  //         messageApi.success("Payment successful");
+  //         setPaymentModalOpen(false);
+  //         setIsRateModalOpen(true);
+  //         clearAllStateData();
+  //         // dispatch(setRideIdInSlice(""));
+  //         dispatch(setInPaymentInSlice(false));
+  //         // setRideId(undefined);
+  //       }
+  //     } catch (error) {
+  //       console.log(error);
+  //       if (error instanceof Error) {
+  //         messageApi.error(error.message);
+  //       } else {
+  //         messageApi.error("Failed to pay using wallet");
+  //       }
+  //     }
+  //   } else if (method === "stripe") {
+  //     try {
+  //       if (!rideId) {
+  //         console.log("Ride id not found ");
+  //         return;
+  //       }
+  //       dispatch(setStripePaymentInSlice(true));
+  //       const res = await payUsingStripe(rideId);
+  //       if (res.success && res.url) {
+  //         window.location.href = res.url;
+  //         // window.open(res.url, "_blank");
+  //       }
+  //     } catch (error) {
+  //       console.log(error);
+  //       if (error instanceof Error) {
+  //         messageApi.error(error.message);
+  //       } else {
+  //         messageApi.error("Failed to pay using wallet");
+  //       }
+  //     }
+  //   }
+  // };
 
-  const handleRating = (rating: number) => {
-    setRating(rating);
-  };
-  const handleReviewComments = (value: string) => {
-    setReviewComments(value.trim());
-  };
-  const closeReviewModal = () => {
-    clearAllStateDataInContext();
-    setIsRateModalOpen(false);
-    dispatch(resetRide());
-  };
+  // const handleRating = (rating: number) => {
+  //   setRating(rating);
+  // };
+  // const handleReviewComments = (value: string) => {
+  //   setReviewComments(value.trim());
+  // };
+  // const closeReviewModal = () => {
+  //   clearAllStateDataInContext();
+  //   setIsRateModalOpen(false);
+  //   dispatch(resetRide());
+  // };
 
-  const submitReview = async () => {
-    setRatingError("");
-    if (!rating) {
-      setRatingError("Please give a rating");
-      return;
-    }
-    if (reviewComments.length > 0 && reviewComments.length < 5) {
-      setRatingError("Please enter minimum five characters");
-      return;
-    }
-    if (/[^a-zA-Z0-9\s]/g.test(reviewComments)) {
-      setRatingError("No special characters allowed");
-      return;
-    }
-    if (!rideId) {
-      messageApi.error("Ride id not found");
-      return;
-    }
+  // const submitReview = async () => {
+  //   setRatingError("");
+  //   if (!rating) {
+  //     setRatingError("Please give a rating");
+  //     return;
+  //   }
+  //   if (reviewComments.length > 0 && reviewComments.length < 5) {
+  //     setRatingError("Please enter minimum five characters");
+  //     return;
+  //   }
+  //   if (/[^a-zA-Z0-9\s]/g.test(reviewComments)) {
+  //     setRatingError("No special characters allowed");
+  //     return;
+  //   }
+  //   if (!rideId) {
+  //     messageApi.error("Ride id not found");
+  //     return;
+  //   }
 
-    try {
-      const res = await giveFeedback(rideId, rating, reviewComments);
-      if (res.success) {
-        messageApi.success("Your feedback has been saved ");
-        setIsRateModalOpen(false);
-        clearAllStateDataInContext();
-        dispatch(resetRide());
-      }
-    } catch (error) {
-      if (error instanceof Error) messageApi.error(error.message);
-      else messageApi.error("Failed to submit feedback");
-    }
-  };
+  //   try {
+  //     const res = await giveFeedback(rideId, rating, reviewComments);
+  //     if (res.success) {
+  //       messageApi.success("Your feedback has been saved ");
+  //       setIsRateModalOpen(false);
+  //       clearAllStateDataInContext();
+  //       dispatch(resetRide());
+  //     }
+  //   } catch (error) {
+  //     if (error instanceof Error) messageApi.error(error.message);
+  //     else messageApi.error("Failed to submit feedback");
+  //   }
+  // };
 
   const closeChat = () => {
     setChatOn(false);
@@ -612,7 +614,7 @@ const Ride = () => {
     <>
       <NavBar />
       {contextHolder}
-      {isRateModalOpen && (
+      {/* {isRateModalOpen && (
         <RatingModal
           handleChange={handleRating}
           handleComments={handleReviewComments}
@@ -620,15 +622,15 @@ const Ride = () => {
           error={ratingErr}
           submitReview={submitReview}
         />
-      )}
+      )} */}
       <WaitingModal
         open={sendRideReq}
         message="Waiting for driver response..."
       />
-      <PaymentOptions
+      {/* <PaymentOptions
         isOpen={paymentModalOpen}
         onSelect={handlePaymentSelection}
-      />
+      /> */}
 
       <ChatModal
         messages={messages}
@@ -696,7 +698,7 @@ const Ride = () => {
             pickupCoords={pickupCoords || null}
             dropOffCoords={dropOffCoords || null}
             // drivers location markers
-            availableDrivers={markDrivers}
+            // availableDrivers={markDrivers}
             // routes
             routeCoords={isRideStarted ? remainingDropOffRoute : routeCoords}
             driverRoute={
