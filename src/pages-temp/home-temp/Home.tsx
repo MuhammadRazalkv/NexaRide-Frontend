@@ -1,4 +1,4 @@
-import { Landing1, Landing2, Landing3 } from "../../Assets";
+import { Landing1, Landing2, Landing3 } from "../../assets";
 import { motion } from "framer-motion";
 import Footer from "../../components/user/Footer";
 import { useNavigate } from "react-router-dom";
