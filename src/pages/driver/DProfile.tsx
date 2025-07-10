@@ -1,6 +1,6 @@
 import { getDriverInfo, updateProfilePic } from "@/api/auth/driver";
 import DNavBar from "@/components/driver/DNavBar";
-import { Default_Pfp } from "@/Assets";
+import { Default_Pfp } from "@/assets";
 import { useEffect, useState } from "react";
 import { MdEdit, MdEditSquare } from "react-icons/md";
 

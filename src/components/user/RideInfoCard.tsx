@@ -1,5 +1,5 @@
 import { TbMessage } from "react-icons/tb";
-import { Car3D } from "@/Assets";
+import { Car3D } from "@/assets";
 import { RideInfo } from "@/utils/socket";
 import { DriverRoute } from "@/interfaces/ride.interface";
 type RideInfoCardProps = {

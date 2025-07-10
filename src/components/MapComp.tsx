@@ -6,7 +6,7 @@ import {
   Popup,
 } from "react-leaflet";
 import { Icon } from "leaflet";
-import { PopUpDriver } from "@/Assets";
+import { PopUpDriver } from "@/assets";
 
 interface MapComponentProps {
   pickupCoords?: [number, number] | null;

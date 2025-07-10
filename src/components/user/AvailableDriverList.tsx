@@ -1,5 +1,5 @@
 import { IAvailableCabs } from "@/interfaces/ride.interface";
-import { Car3D } from "@/Assets";
+import { Car3D } from "@/assets";
 import { Car, Tag, Users } from "lucide-react";
 import { useState } from "react";
 import { FaCrown } from "react-icons/fa";

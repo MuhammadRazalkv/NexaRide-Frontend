@@ -1,4 +1,4 @@
-import { Default_Pfp } from "@/Assets";
+import { Default_Pfp } from "@/assets";
 
 const ProfileHead = ({
   profilePic,

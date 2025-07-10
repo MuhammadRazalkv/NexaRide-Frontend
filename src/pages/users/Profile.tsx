@@ -1,7 +1,7 @@
 import NavBar from "@/components/user/NavBar";
 import { useEffect, useState } from "react";
 import { getUserInfo } from "@/api/auth/user";
-import { Default_Pfp } from "@/Assets";
+import { Default_Pfp } from "@/assets";
 import { MdKeyboardArrowRight, MdEdit } from "react-icons/md";
 import {
   updateUserName,
