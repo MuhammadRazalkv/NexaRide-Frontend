@@ -196,7 +196,10 @@ const AdminComplaints = () => {
                         </>
                       )}
                       <p>
-                        <strong>Fare:</strong> ₹{rideInfo.totalFare}
+                        <strong>Original Fare:</strong> ₹{rideInfo.baseFare}
+                      </p>
+                      <p>
+                        <strong>Total Fare:</strong> ₹{rideInfo.totalFare}
                       </p>
                       <p>
                         <strong>Driver Earnings:</strong> ₹

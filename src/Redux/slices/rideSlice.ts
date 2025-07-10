@@ -1,14 +1,33 @@
+import { DriverRoute } from "@/interfaces/ride.interface";
+import { RideInfo } from "@/utils/socket";
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = {
+interface UserRideState {
+  isRideActive: boolean;
+  rideInfo?:  RideInfo;
+  pickupCoords: null | [number, number];
+  dropOffCoords: null | [number, number];
+  routeCoords?: [number, number][] ;
+  driverRoute?: DriverRoute;
+  remainingRoute?: [number, number][] ;
+  remainingDropOffRoute?:[number, number][]  ;
+  driverLiveLocation?: [number,number];
+  driverArrived: boolean;
+  isToDropOff: boolean;
+  rideId?:string ;
+  inPayment: boolean;
+  stripePayment: boolean;
+}
+
+const initialState : UserRideState= {
   isRideActive: false,
-  rideInfo: null,
+  rideInfo: undefined,
   pickupCoords: null,
   dropOffCoords: null,
-  routeCoords: [],
+  routeCoords: undefined,
   driverRoute: undefined,
-  remainingRoute: [],
-  remainingDropOffRoute: [],
+  remainingRoute: undefined,
+  remainingDropOffRoute: undefined,
   driverLiveLocation: undefined,
   driverArrived: false,
   isToDropOff: false,
@@ -87,7 +106,7 @@ export const {
   resetRide,
   setInPaymentInSlice,
   setRideIdInSlice,
-  setStripePaymentInSlice
+  setStripePaymentInSlice,
 } = rideSlice.actions;
 
 export default rideSlice.reducer;

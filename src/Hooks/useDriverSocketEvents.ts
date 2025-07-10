@@ -22,6 +22,7 @@ interface Props {
   isRideStarted: boolean;
   messageApi: ReturnType<typeof message.useMessage>[0];
   clearAllStateData: () => void;
+  trackingToPickupRef: React.MutableRefObject<NodeJS.Timeout | null>;
 }
 
 export const useDriverSocketEvents = ({
@@ -36,6 +37,7 @@ export const useDriverSocketEvents = ({
   isRideStarted,
   messageApi,
   clearAllStateData,
+  trackingToPickupRef,
 }: Props) => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
@@ -81,7 +83,7 @@ export const useDriverSocketEvents = ({
       messageApi.success("Payment received");
       setIsRateModalOpen(true);
       // setWaitPayment(false);
-      dispatch(openPaymentModal(false))
+      dispatch(openPaymentModal(false));
       // clearAllStateData();
     };
 
@@ -95,6 +97,11 @@ export const useDriverSocketEvents = ({
       dispatch(setRideIdInSlice(""));
       clearAllStateData();
       socket.off("driver-location-update");
+      if (trackingToPickupRef.current) {
+        console.log("the interval has been cleared");
+        clearInterval(trackingToPickupRef.current);
+        trackingToPickupRef.current = null;
+      }
     };
 
     socket.on("new-ride-req", handleNewRideReq);
@@ -120,6 +127,7 @@ export const useDriverSocketEvents = ({
     rideRejected,
     messageApi,
     clearAllStateData,
+    trackingToPickupRef
   ]);
 
   useEffect(() => {

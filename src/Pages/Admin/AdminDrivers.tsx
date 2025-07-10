@@ -20,13 +20,7 @@ import {
 import AdminTable from "@/components/admin/AdminTable";
 
 import SearchSort from "@/components/SearchSort";
-export interface IUser {
-  _id: string;
-  name: string;
-  email: string;
-  isBlocked: boolean;
-}
-
+import { IUser } from "@/interfaces/user.interface";
 const AdminDrivers = () => {
   const [drivers, setDrivers] = useState<IUser[] | null>(null);
   const [driverInfo, setDriverInfo] = useState<IUser | null>(null);
@@ -39,7 +33,7 @@ const AdminDrivers = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const key = "updatable";
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const updateUserStatus = (driver: IUser) => {
     setIsDialogOpen(true);
     setDriverInfo(driver);
@@ -94,25 +88,19 @@ const AdminDrivers = () => {
         content: "Changing status...",
       });
       const res = await toggleBlockUnblockDriver(id);
-      if (res.success) {
-        setTimeout(() => {
-          setDrivers((prevUsers) =>
-            prevUsers
-              ? prevUsers.map((driver) =>
-                  driver._id === id
-                    ? { ...driver, isBlocked: !driver.isBlocked }
-                    : driver
-                )
-              : null
-          );
+      if (res.success && res.driver) {
+        setDrivers((prevUsers) =>
+          prevUsers
+            ? prevUsers.map((u) => (u._id === id ? { ...u, ...res.driver } : u))
+            : null
+        );
 
-          messageApi.open({
-            key,
-            type: "success",
-            content: res.message || "Driver status updated successfully!",
-            duration: 2,
-          });
-        }, 1500);
+        messageApi.open({
+          key,
+          type: "success",
+          content: res.message || "Driver status updated successfully!",
+          duration: 2,
+        });
       }
     } catch (error) {
       console.log(error);
@@ -126,7 +114,7 @@ const AdminDrivers = () => {
   const changeSort = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSort(e.target.value as "A-Z" | "Z-A");
   };
-   const handleNavigation = (id: string) => {
+  const handleNavigation = (id: string) => {
     navigate("/admin/driver-info", { state: id });
   };
 
@@ -185,7 +173,11 @@ const AdminDrivers = () => {
             handleSearchChange={handleSearchChange}
             setSort={changeSort}
           />
-          <AdminTable users={drivers} onBlockToggle={updateUserStatus} onView={handleNavigation} />
+          <AdminTable
+            users={drivers}
+            onBlockToggle={updateUserStatus}
+            onView={handleNavigation}
+          />
           <Pagination
             current={currentPage}
             total={total}

@@ -1,7 +1,14 @@
-import axios, { AxiosError } from "axios";
+import axios , { AxiosError , AxiosRequestConfig}  from "axios";
 import { logout, sLogin } from "@/redux/slices/authSlice";
 import { store } from "@/redux/store";
 import { userLogout } from "../auth/user";
+import { resetRide } from "@/redux/slices/rideSlice";
+
+
+interface CustomAxiosRequestConfig extends AxiosRequestConfig {
+  _retry?: boolean;
+}
+let isBlockedRedirecting = false;
 
 const isTokenError = (error: AxiosError): boolean => {
   const status = error.response?.status;
@@ -36,7 +43,7 @@ axiosUserInstance.interceptors.response.use(
   async (error) => {
     console.error("Error Details:", error);
 
-    const originalRequest = error.config;
+    const originalRequest = error.config as CustomAxiosRequestConfig;
 
     if (isTokenError(error) && !originalRequest._retry) {
       console.log("Token expiry detected. Attempting token refresh...");
@@ -64,21 +71,21 @@ axiosUserInstance.interceptors.response.use(
 
         const dispatch = store.dispatch;
         dispatch(logout());
+         await userLogout();
 
         alert("Session expired. Logging out...");
         window.location.href = "/user/login";
       }
     }
 
-
-    if (error.response?.status === 403) {
-      const dispatch = store.dispatch;
-      await userLogout()
+    if (error.response?.status === 403 && !isBlockedRedirecting) {
+      isBlockedRedirecting = true;
+      const dispatch = store.dispatch;      
       dispatch(logout());
+      dispatch(resetRide())
       alert("Your account has been blocked. Please contact support.");
       window.location.href = "/user/login";
     }
- 
 
     // Pass non-token-related errors to the original request
     return Promise.reject(error);

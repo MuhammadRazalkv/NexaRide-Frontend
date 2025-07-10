@@ -5,7 +5,7 @@ import { DriverRoute } from "@/interfaces/ride.interface";
 type RideInfoCardProps = {
   rideInfo: RideInfo;
   driverRoute?: DriverRoute;
-  toDropOff: React.MutableRefObject<boolean>;
+  toDropOff: boolean;
   driverArrived: boolean;
   setChatOn: (val: boolean) => void;
   setIsCancelOpen: (val: boolean) => void;
@@ -41,7 +41,7 @@ const RideInfoCard: React.FC<RideInfoCardProps> = ({
         </div>
       </div>
 
-      {toDropOff.current ? (
+      {toDropOff ? (
         <div className="mt-6 border-t border-gray-200 pt-6">
           <h3 className="text-xl font-semibold text-black mb-2">
             Your ride is in progress

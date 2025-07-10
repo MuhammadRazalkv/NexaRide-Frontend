@@ -567,9 +567,9 @@ export async function verifyRideOTP(otp: string) {
   }
 }
 
-export async function getDriverWalletInfo() {
+export async function getDriverWalletInfo(page = 1) {
   try {
-    const response = await axiosDriverInstance.get("/getWalletInfo");
+    const response = await axiosDriverInstance.get(`/getWalletInfo?page=${page}`);
 
     return response.data;
   } catch (err) {

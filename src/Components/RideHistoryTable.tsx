@@ -22,7 +22,7 @@ import { formatDate } from "@/utils/DateAndTimeFormatter";
 
 interface RideHistoryTableProps {
   rideHistory: IRideHistoryItem[];
-  variant: "user" | "driver";
+  variant: "user" | "driver" | "admin";
   handleNavigation: (id: string) => void;
 }
 
@@ -32,18 +32,34 @@ const RideHistoryTable: React.FC<RideHistoryTableProps> = ({
   handleNavigation,
 }) => {
   return (
-    <div className="overflow-x-auto bg-white shadow-md rounded-xl">
-      <table className="min-w-full table-auto text-sm text-left text-gray-700">
-        <thead className="bg-gray-100 text-gray-900 uppercase text-xs">
+    <div
+      className={`overflow-x-auto ${
+        variant === "admin"
+          ? "bg-[#1A2036] rounded-xl shadow-lg text-gray-200"
+          : "bg-white text-gray-700"
+      } shadow-md rounded-xl`}
+    >
+      <table
+        className={`min-w-full table-auto text-sm text-left ${
+          variant === "admin" ? "text-gray-200" : "text-gray-700"
+        }`}
+      >
+        <thead
+          className={`uppercase text-xs ${
+            variant === "admin"
+              ? "bg-[#2B2F44] text-gray-300"
+              : "bg-gray-100 text-gray-900"
+          }`}
+        >
           <tr>
             <th className="py-3 px-4">Date</th>
             <th className="py-3 px-4">Pickup</th>
             <th className="py-3 px-4">Drop-off</th>
             <th className="py-3 px-4">Total Fare (₹)</th>
-            {variant === "driver" && (
+            {variant !== "user" && (
               <>
                 <th className="py-3 px-4">App Fee (₹)</th>
-                <th className="py-3 px-4">Your Fare (₹)</th>
+                <th className="py-3 px-4">{variant == 'admin'? 'Driver' : 'Your' } Fare (₹)</th>
               </>
             )}
             <th className="py-3 px-4">Distance (km)</th>
@@ -56,11 +72,15 @@ const RideHistoryTable: React.FC<RideHistoryTableProps> = ({
             rideHistory.map((ride) => (
               <tr
                 key={ride._id}
-                className="border-b hover:bg-gray-50"
+                className={`border-b transition-colors duration-150 ${
+                  variant === "admin"
+                    ? "hover:bg-[#2B2F44] border-gray-700"
+                    : "hover:bg-gray-50 border-gray-200"
+                } cursor-pointer`}
                 onClick={() => handleNavigation(ride._id)}
               >
                 <td className="py-3 px-4">
-                  {ride.startedAt ? formatDate(ride.startedAt) : 'N/A'}
+                  {ride.startedAt ? formatDate(ride.startedAt) : "N/A"}
                 </td>
                 <td className="py-3 px-4">
                   {ride.pickupLocation.split(" ").slice(0, 3).join(" ")}
@@ -70,7 +90,7 @@ const RideHistoryTable: React.FC<RideHistoryTableProps> = ({
                 </td>
                 <td className="py-3 px-4">{ride.totalFare.toFixed(2)}</td>
 
-                {variant === "driver" && (
+                {variant !== "user" && (
                   <>
                     <td className="py-3 px-4">
                       {ride.commission?.toFixed(2) ?? "-"}
@@ -91,9 +111,15 @@ const RideHistoryTable: React.FC<RideHistoryTableProps> = ({
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-semibold ${
                       ride.status === "completed"
-                        ? "bg-green-100 text-green-700"
+                        ? variant === "admin"
+                          ? "bg-green-900 text-green-300"
+                          : "bg-green-100 text-green-700"
                         : ride.status === "cancelled"
-                        ? "bg-red-100 text-red-700"
+                        ? variant === "admin"
+                          ? "bg-red-900 text-red-300"
+                          : "bg-red-100 text-red-700"
+                        : variant === "admin"
+                        ? "bg-yellow-900 text-yellow-300"
                         : "bg-yellow-100 text-yellow-700"
                     }`}
                   >
@@ -105,8 +131,10 @@ const RideHistoryTable: React.FC<RideHistoryTableProps> = ({
           ) : (
             <tr>
               <td
-                colSpan={variant === "driver" ? 8 : 6}
-                className="text-center py-6 text-gray-500"
+                colSpan={variant !== "user" ? 8 : 6}
+                className={`text-center py-6 ${
+                  variant === "admin" ? "text-gray-400" : "text-gray-500"
+                }`}
               >
                 No rides found.
               </td>

@@ -14,6 +14,8 @@ import SubscribedUsers from "@/pages/admin/SubscribedUsers";
 import DriverDetails from "@/pages/admin/DriverDetails";
 import UserDetails from "@/pages/admin/UserDetails";
 import NotFoundPage from "@/pages/NotFound";
+import AdminRides from "@/pages/admin/AdminRides";
+import AdminRideInfo from "@/pages/admin/AdminRideInfo";
 
 const AdminRoutes = () => {
   return (
@@ -36,6 +38,8 @@ const AdminRoutes = () => {
             <Route path="/subscribed-users" element={<SubscribedUsers />} />
             <Route path="/driver-info" element={<DriverDetails />} />
             <Route path="/user-info" element={<UserDetails />} />
+            <Route path="/rides" element={<AdminRides />} />
+            <Route path="/ride-info" element={<AdminRideInfo />} />
           </Route>
           <Route path="/*" element={<NotFoundPage isAdmin={true} />} />
         </Routes>

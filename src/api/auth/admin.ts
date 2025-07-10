@@ -461,11 +461,11 @@ export async function sendWarningEmail(complaintId: string) {
   }
 }
 
-export async function addOffers(data:IOffer) {
+export async function addOffers(data: IOffer) {
   try {
     const response = await axiosAdminInstance.post(`/addOffer`, data);
-    return response.data
-  } catch (err:unknown) {
+    return response.data;
+  } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
@@ -478,11 +478,13 @@ export async function addOffers(data:IOffer) {
   }
 }
 
-export async function changeOfferStatus(offerId:string) {
+export async function changeOfferStatus(offerId: string) {
   try {
-    const response = await axiosAdminInstance.patch(`/changeOfferStatus`,{offerId});
-    return response.data
-  } catch (err:unknown) {
+    const response = await axiosAdminInstance.patch(`/changeOfferStatus`, {
+      offerId,
+    });
+    return response.data;
+  } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
@@ -497,8 +499,8 @@ export async function changeOfferStatus(offerId:string) {
 export async function fetchOffers() {
   try {
     const response = await axiosAdminInstance.get(`/getOffers`);
-    return response.data
-  } catch (err:unknown) {
+    return response.data;
+  } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
@@ -513,8 +515,8 @@ export async function fetchOffers() {
 export async function getDashBoardInfo() {
   try {
     const response = await axiosAdminInstance.get(`/dashboard`);
-    return response.data
-  } catch (err:unknown) {
+    return response.data;
+  } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
@@ -527,11 +529,11 @@ export async function getDashBoardInfo() {
   }
 }
 
-export async function getRideEarnings(page:number) {
+export async function getRideEarnings(page: number) {
   try {
     const response = await axiosAdminInstance.get(`/rideEarnings?page=${page}`);
-    return response.data
-  } catch (err:unknown) {
+    return response.data;
+  } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
@@ -543,60 +545,16 @@ export async function getRideEarnings(page:number) {
     }
   }
 }
-export async function getPremiumUsers(page:number,filter:'All'|'Active'|'InActive') {
+export async function getPremiumUsers(
+  page: number,
+  filter: "All" | "Active" | "InActive"
+) {
   try {
-    const response = await axiosAdminInstance.get(`/premiumUsers?page=${page}&filter=${filter}`);
-    return response.data
-  } catch (err:unknown) {
-    if (axios.isAxiosError(err) && err.response) {
-      throw new Error(err.response.data.message);
-    } else if (err instanceof Error) {
-      console.log(err.message);
-      throw new Error(err.message);
-    } else {
-      console.log("Unknown error:", err);
-      throw new Error("An unexpected error occurred");
-    }
-  }
-}
-
-export async function getDriverInfo(driverId:string) {
-  try {
-    const response = await axiosAdminInstance.get(`/driver-info?driverId=${driverId}`);
-    return response.data
-  } catch (err:unknown) {
-    if (axios.isAxiosError(err) && err.response) {
-      throw new Error(err.response.data.message);
-    } else if (err instanceof Error) {
-      console.log(err.message);
-      throw new Error(err.message);
-    } else {
-      console.log("Unknown error:", err);
-      throw new Error("An unexpected error occurred");
-    }
-  }
-}
-export async function getDriverRideAndRating(driverId:string) {
-  try {
-    const response = await axiosAdminInstance.get(`/driver-ride-rating?driverId=${driverId}`);
-    return response.data
-  } catch (err:unknown) {
-    if (axios.isAxiosError(err) && err.response) {
-      throw new Error(err.response.data.message);
-    } else if (err instanceof Error) {
-      console.log(err.message);
-      throw new Error(err.message);
-    } else {
-      console.log("Unknown error:", err);
-      throw new Error("An unexpected error occurred");
-    }
-  }
-}
-export async function getVehicleInfoForDriver(driverId:string) {
-  try {
-    const response = await axiosAdminInstance.get(`/vehicle-info?driverId=${driverId}`);
-    return response.data
-  } catch (err:unknown) {
+    const response = await axiosAdminInstance.get(
+      `/premiumUsers?page=${page}&filter=${filter}`
+    );
+    return response.data;
+  } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
@@ -609,12 +567,49 @@ export async function getVehicleInfoForDriver(driverId:string) {
   }
 }
 
-
-export async function getUserInfoAdmin(userId:string) {
+export async function getDriverInfo(driverId: string) {
   try {
-    const response = await axiosAdminInstance.get(`/user-info?userId=${userId}`);
-    return response.data
-  } catch (err:unknown) {
+    const response = await axiosAdminInstance.get(
+      `/driver-info?driverId=${driverId}`
+    );
+    return response.data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+export async function getDriverRideAndRating(driverId: string) {
+  try {
+    const response = await axiosAdminInstance.get(
+      `/driver-ride-rating?driverId=${driverId}`
+    );
+    return response.data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+export async function getVehicleInfoForDriver(driverId: string) {
+  try {
+    const response = await axiosAdminInstance.get(
+      `/vehicle-info?driverId=${driverId}`
+    );
+    return response.data;
+  } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
@@ -627,11 +622,32 @@ export async function getUserInfoAdmin(userId:string) {
   }
 }
 
-export async function getUserRideAndRating(userId:string) {
+export async function getUserInfoAdmin(userId: string) {
   try {
-    const response = await axiosAdminInstance.get(`/user-ride-rating?userId=${userId}`);
-    return response.data
-  } catch (err:unknown) {
+    const response = await axiosAdminInstance.get(
+      `/user-info?userId=${userId}`
+    );
+    return response.data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+
+export async function getUserRideAndRating(userId: string) {
+  try {
+    const response = await axiosAdminInstance.get(
+      `/user-ride-rating?userId=${userId}`
+    );
+    return response.data;
+  } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
@@ -646,8 +662,46 @@ export async function getUserRideAndRating(userId:string) {
 export async function logoutAdmin() {
   try {
     const response = await axiosAdminInstance.get(`/logout`);
-    return response.data
-  } catch (err:unknown) {
+    return response.data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+export async function adminRideHistory(
+  sort: string,
+  filter: "all" | "ongoing" | "canceled" | "completed",
+  page: number = 1
+) {
+  try {
+    const response = await axiosAdminInstance.get(
+      `/rides?page=${page}&sort=${sort}&filter=${filter}`
+    );
+    return response.data;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response) {
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+export async function adminRideInfo(rideId: string) {
+  try {
+    const response = await axiosAdminInstance.get(`/ride?rideId=${rideId}`);
+    return response.data;
+  } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {

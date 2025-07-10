@@ -3,10 +3,10 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 // Define types
 interface User {
   _id: string;
-  name:string,
+  name: string;
   email: string;
-  profilePic:string;
-  role:string;
+  profilePic: string;
+  role: string;
 }
 
 interface AuthState {

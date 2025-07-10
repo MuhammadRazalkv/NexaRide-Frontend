@@ -68,7 +68,7 @@ const DriverRoutes = () => {
         <Route
           element={
             // <DRideProvider>
-              <DriverProtectedRoute />
+            <DriverProtectedRoute />
             // </DRideProvider>
           }
         >

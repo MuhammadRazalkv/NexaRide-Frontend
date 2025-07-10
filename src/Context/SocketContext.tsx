@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { RideContext } from "@/hooks/useRide";
-import { socket, connectSocket, RideInfo } from "@/utils/socket";
+import { socket, connectSocket } from "@/utils/socket";
 import {
   resetRide,
   setDriverArrivedInSlice,
@@ -26,78 +26,51 @@ import PaymentOptions from "@/components/user/PaymentOptions";
 import RatingModal from "@/components/RatingModal";
 export interface SocketContextTypes {
   isRideStarted: boolean;
-  setIsRideStarted: React.Dispatch<React.SetStateAction<boolean>>;
-  setPaymentModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   messages: IMessage[];
   chatOn: boolean;
   setChatOn: React.Dispatch<React.SetStateAction<boolean>>;
-  driverArrived: boolean;
-  setDriverArrived: React.Dispatch<React.SetStateAction<boolean>>;
-  paymentModalOpen: boolean;
   isRateModalOpen: boolean;
   setIsRateModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setMessages: React.Dispatch<React.SetStateAction<IMessage[]>>;
-  rideId: string;
-  setRideId: React.Dispatch<React.SetStateAction<string>>;
-  rideInfo?: RideInfo;
-  setRideInfo: React.Dispatch<React.SetStateAction<RideInfo | undefined>>;
   clearAllStateDataInContext: () => void;
   rideGotCancelled: boolean;
+  removeAllRideListeners: () => void;
+  // rideFinished:boolean
 }
 
 export const RideProvider = ({ children }: { children: React.ReactNode }) => {
-  const [isRideStarted, setIsRideStarted] = useState(false);
-  const [rideInfo, setRideInfo] = useState<RideInfo>();
+  const {
+    isRideActive: isRideStarted,
+    inPayment,
+    stripePayment,
+    rideId,
+  } = useSelector((state: RootState) => state.ride);
 
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [chatOn, setChatOn] = useState(false);
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-  const [rideId, setRideId] = useState("");
   const token = useSelector((state: RootState) => state.auth.token);
-  const [driverArrived, setDriverArrived] = useState(false);
   const [isRateModalOpen, setIsRateModalOpen] = useState(false);
   const [rideGotCancelled, setRideGotCancelled] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
-  const { stripePayment } = useSelector((state: RootState) => state.ride);
   const dispatch = useDispatch();
-  const rideIdInSlice = useSelector((state: RootState) => state.ride.rideId);
-
+  // const [rideFinished,setRideFinished] = useState(false)
   const [rating, setRating] = useState(0);
   const [reviewComments, setReviewComments] = useState("");
   const [ratingErr, setRatingError] = useState("");
 
-  //! this is for temp use remove it when changing the rideId state to use  redux
-  const tempRideId = useSelector((state: RootState) => state.ride.rideId);
-
-  const clearAllStateDataInContext = () => {
-    setIsRideStarted(false);
-    setRideInfo(undefined);
-    setMessages([]);
-    setChatOn(false);
-    setPaymentModalOpen(false);
-    setRideId("");
-    setDriverArrived(false);
-    setIsRateModalOpen(false);
-    setRideGotCancelled(false);
-  };
-
   useEffect(() => {
-    console.log("Inside the useEffect");
-    console.log(stripePayment, tempRideId);
-
-    if (stripePayment && tempRideId) {
-      //! change this as well
-      setRideId(tempRideId);
+    if (stripePayment && rideId) {
       console.log("the payment checking useEffect worked well ");
       const checkRidePaymentStatus = async () => {
         try {
-          const res = await checkPaymentStatus(tempRideId);
+          const res = await checkPaymentStatus(rideId);
           if (res.success && res.paymentStatus == "completed") {
             setIsRateModalOpen(true);
+            // setRideFinished(true)
             console.log("payment status completed ");
 
             dispatch(setInPaymentInSlice(false));
-            setPaymentModalOpen(false);
+            // setPaymentModalOpen(false);
             setIsRateModalOpen(true);
             dispatch(setStripePaymentInSlice(false));
             setChatOn(false);
@@ -108,84 +81,123 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
       };
       checkRidePaymentStatus();
     }
-  }, [stripePayment, tempRideId, dispatch]);
+  }, [stripePayment, rideId, dispatch]);
 
-  // socket listeners
-  useEffect(() => {
-    if (!token) return;
-    connectSocket(token, "user");
+  const clearAllStateDataInContext = useCallback(() => {
+    setMessages([]);
+    setChatOn(false);
+    setIsRateModalOpen(false);
+    setRideGotCancelled(false);
+    setRating(0);
+    setReviewComments("");
+    setRatingError("");
+    dispatch(resetRide());
+  }, [dispatch]);
 
-    const handleChat = (data: IMessage) => {
+  const handleChat = useCallback(
+    (data: IMessage) => {
       messageApi.info("You have a new message ");
       setMessages((prev) => [...prev, data]);
-    };
+    },
+    [messageApi]
+  );
 
-    const handleRideCancelled = async () => {
-      clearAllStateDataInContext();
-      dispatch(resetRide());
-      setRideGotCancelled(true);
-      socket.off("driver-location-update");
-      setTimeout(() => {
-        messageApi.error("The ride was cancelled by the driver");
-      }, 0);
-    };
+  const handleDriverReached = useCallback(() => {
+    dispatch(setDriverArrivedInSlice(true));
+    dispatch(setRemainingRouteInSlice([]));
+    setTimeout(() => {
+      messageApi.success(
+        "Driver reached your location, please share your OTP."
+      );
+    }, 0);
+  }, [dispatch, messageApi]);
 
-    const handleDriverReached = async () => {
-      setDriverArrived(true);
-      dispatch(setDriverArrivedInSlice(true));
-      dispatch(setRemainingRouteInSlice([]));
-      setTimeout(() => {
-        messageApi.success(
-          "Driver reached your location please share your otp to start the ride"
-        );
-      }, 0);
-    };
-
-    const handleDropOffReached = async (data: {
-      rideId: string;
-      fare: number;
-    }) => {
-      setPaymentModalOpen(true);
-
-      setRideId(data.rideId);
+  const handleDropOffReached = useCallback(
+    (data: { rideId: string; fare: number }) => {
       dispatch(setRideIdInSlice(data.rideId));
       dispatch(setInPaymentInSlice(true));
       dispatch(setRemainingDropOffRouteInSlice([]));
-    };
+    },
+    [dispatch]
+  );
 
-    const handlePaymentSuccess = async () => {
-      setIsRateModalOpen(true);
-      // dispatch(setRideIdInSlice(""));
-      dispatch(setInPaymentInSlice(false));
-      setPaymentModalOpen(false);
+  const handlePaymentSuccess = useCallback(() => {
+    setIsRateModalOpen(true);
+    dispatch(setInPaymentInSlice(false));
+    setChatOn(false);
+    // setRideFinished(true)
+    setTimeout(() => {
+      messageApi.success("Payment success");
+    }, 0);
+  }, [dispatch, messageApi]);
 
-      // setRideId(undefined);
-      setChatOn(false);
-      // clearAllStateData();
-      setTimeout(() => {
-        messageApi.success("Payment success");
-      }, 0);
-    };
-    const handleError = async ({ message }: { message: string }) => {
+  const handleError = useCallback(
+    ({ message }: { message: string }) => {
       console.log(message);
-
       messageApi.error(message);
-    };
-    socket.on("ride-error", handleError);
-    socket.on("driver-reached", handleDriverReached);
-    socket.on("ride-cancelled", handleRideCancelled);
-    socket.on("dropOff-reached", handleDropOffReached);
-    socket.on("payment-success", handlePaymentSuccess);
-    socket.on("chat-msg", handleChat);
+    },
+    [messageApi]
+  );
+
+  const removeAllRideListeners = () => {
+    // socket.off("ride-error");
+    socket.off("driver-reached");
+    socket.off("ride-cancelled");
+    socket.off("dropOff-reached");
+    socket.off("payment-success");
+    socket.off("chat-msg");
+    socket.off("driver-location-update");
+    socket.off("ride-accepted");
+    socket.off("no-driver-response");
+  };
+
+  const handleRideCancelled = useCallback(() => {
+    clearAllStateDataInContext();
+    removeAllRideListeners();
+    setRideGotCancelled(true);
+    socket.off("driver-location-update");
+    setTimeout(() => {
+      messageApi.error("The ride was cancelled by the driver");
+    }, 0);
+  }, [messageApi, clearAllStateDataInContext]);
+
+  useEffect(() => {
+    if (!token) return;
+
+    connectSocket(token, "user");
+    if (isRideStarted) {
+      socket.on("ride-error", handleError);
+      socket.on("driver-reached", handleDriverReached);
+      socket.on("ride-cancelled", handleRideCancelled);
+      socket.on("dropOff-reached", handleDropOffReached);
+      socket.on("payment-success", handlePaymentSuccess);
+      socket.on("chat-msg", handleChat);
+    }
+
     return () => {
+      socket.off("ride-error", handleError);
+      socket.off("driver-reached", handleDriverReached);
+      socket.off("ride-cancelled", handleRideCancelled);
+      socket.off("dropOff-reached", handleDropOffReached);
+      socket.off("payment-success", handlePaymentSuccess);
       socket.off("chat-msg", handleChat);
     };
-  }, [token, messageApi, dispatch]);
+  }, [
+    token,
+    isRideStarted,
+    handleError,
+    handleRideCancelled,
+    handleDriverReached,
+    handleDropOffReached,
+    handlePaymentSuccess,
+    handleChat,
+  ]);
 
   const handlePaymentSelection = async (method: "wallet" | "stripe") => {
     console.log("Ride id ", rideId);
-    if (!rideId && rideIdInSlice) {
-      setRideId(rideIdInSlice);
+    if (!rideId) {
+      message.error("Ride id not found");
+      return;
     }
 
     if (method === "wallet") {
@@ -197,7 +209,7 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
         const response = await payUsingWallet(rideId);
         if (response.success) {
           messageApi.success("Payment successful");
-          setPaymentModalOpen(false);
+          // setPaymentModalOpen(false);
           setIsRateModalOpen(true);
           // clearAllStateData();
           // dispatch(setRideIdInSlice(""));
@@ -244,7 +256,7 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
   const closeReviewModal = () => {
     clearAllStateDataInContext();
     setIsRateModalOpen(false);
-    dispatch(resetRide());
+    removeAllRideListeners();
   };
 
   const submitReview = async () => {
@@ -272,7 +284,8 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
         messageApi.success("Your feedback has been saved ");
         setIsRateModalOpen(false);
         clearAllStateDataInContext();
-        dispatch(resetRide());
+        // dispatch(resetRide());
+        removeAllRideListeners();
       }
     } catch (error) {
       if (error instanceof Error) messageApi.error(error.message);
@@ -282,30 +295,19 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <RideContext.Provider
       value={{
-        setRideInfo,
-        setRideId,
         setMessages,
         setIsRateModalOpen,
-        setPaymentModalOpen,
         setChatOn,
-        setIsRideStarted,
         clearAllStateDataInContext,
-        setDriverArrived,
         rideGotCancelled,
-        rideInfo,
-        rideId,
         isRideStarted,
-        driverArrived,
         isRateModalOpen,
-        paymentModalOpen,
         messages,
         chatOn,
+        removeAllRideListeners,
       }}
     >
-      <PaymentOptions
-        isOpen={paymentModalOpen}
-        onSelect={handlePaymentSelection}
-      />
+      <PaymentOptions isOpen={inPayment} onSelect={handlePaymentSelection} />
       {isRateModalOpen && (
         <RatingModal
           handleChange={handleRating}

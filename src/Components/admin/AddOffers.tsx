@@ -120,7 +120,7 @@ const AddOffers = ({
 
       case "usageLimitPerUser": {
         if ((value as number) < 1) {
-         return 'Limit per user must be positive number.';
+          return "Limit per user must be positive number.";
         }
       }
     }

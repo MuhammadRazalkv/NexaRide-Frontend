@@ -371,9 +371,9 @@ export async function addMoneyToWallet(amount: number) {
   }
 }
 
-export async function getWalletInfo() {
+export async function getWalletInfo(page:number = 1) {
   try {
-    const res = await axiosUserInstance.get("/getWalletInfo");
+    const res = await axiosUserInstance.get(`/getWalletInfo?page=${page}`);
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {

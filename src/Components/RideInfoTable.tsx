@@ -4,12 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { IRideHistoryItem } from "@/interfaces/fullRideInfo.interface";
 import { IComplaintInfo } from "@/interfaces/complaint.interface";
 
+
 interface RideInfoTableProps {
   rideInfo: IRideHistoryItem | null;
-  variant: "user" | "driver";
+  variant: "user" | "driver" | "admin";
   complaintInfo?: IComplaintInfo;
   loading: boolean;
-  openDialogue: () => void;
+  openDialogue?: () => void;
 }
 
 const RideInfoTable: React.FC<RideInfoTableProps> = ({
@@ -61,7 +62,11 @@ const RideInfoTable: React.FC<RideInfoTableProps> = ({
           </div>
         ) : !rideInfo ? (
           <div className="text-center py-12 ">
-            <h2 className="text-xl font-medium text-gray-900">
+            <h2
+              className={`text-xl font-medium ${
+                variant !== "admin" ? "text-gray-900" : "text-white"
+              }`}
+            >
               No ride information found
             </h2>
             <p className="mt-2 text-gray-600">
@@ -69,16 +74,26 @@ const RideInfoTable: React.FC<RideInfoTableProps> = ({
             </p>
             <button
               className="bg-black text-white text-sm p-3 rounded-lg mt-3"
-              onClick={() => navigate(`/${variant.trim()}/history`)}
+              onClick={() =>
+                variant !== "admin"
+                  ? navigate(`/${variant.trim()}/history`)
+                  : navigate("/admin/rides")
+              }
             >
               Go back to Ride history
             </button>
           </div>
         ) : (
-          <div className="bg-white shadow-lg rounded-xl overflow-hidden">
-            <div className="px-4 py-5 sm:px-6 bg-black text-white">
+          <div
+            className={`${
+              variant == "admin" ? "bg-[#1A2036] text-gray-200" : "bg-white "
+            } shadow-lg rounded-xl overflow-hidden`}
+          >
+            <div className={`px-4 py-5 sm:px-6 bg-black text-white`}>
               <h1 className="text-2xl font-bold">Ride Information</h1>
-              <p className="mt-1 text-sm">Details about your trip</p>
+              <p className="mt-1 text-sm">
+                Details about {variant !== "admin" ? "your" : "the"} trip
+              </p>
             </div>
 
             <div className="px-4 py-5 sm:p-6">
@@ -86,7 +101,7 @@ const RideInfoTable: React.FC<RideInfoTableProps> = ({
                 {/* Driver | User , pickup , dropPff , ride status  */}
                 <div className="space-y-6">
                   <div>
-                    {variant == "user" ? (
+                    {/* {variant == "user" ? (
                       <>
                         <h2 className="text-sm font-medium text-gray-500">
                           Driver
@@ -101,6 +116,48 @@ const RideInfoTable: React.FC<RideInfoTableProps> = ({
                           User
                         </h2>
                         <p className="mt-1 text-lg font-medium">
+                          {rideInfo?.userId?.name}
+                        </p>
+                      </>
+                    )} */}
+
+                    {(variant == "user" || variant == "admin") && (
+                      <>
+                        <h2 className="text-sm font-medium text-gray-500">
+                          Driver
+                        </h2>
+
+                        <p
+                          className={`mt-1 text-lg font-medium ${
+                            variant == "admin" && "hover:text-blue-500"
+                          }`}
+                          onClick={() =>
+                            variant === "admin" &&
+                            navigate("/admin/driver-info", {
+                              state: rideInfo?.driverId?._id,
+                            })
+                          }
+                        >
+                          {rideInfo?.driverId?.name}
+                        </p>
+                      </>
+                    )}
+                    {(variant == "driver" || variant == "admin") && (
+                      <>
+                        <h2 className="text-sm font-medium text-gray-500">
+                          User
+                        </h2>
+                        <p
+                          className={`mt-1 text-lg font-medium ${
+                            variant == "admin" && "hover:text-blue-500"
+                          }`}
+                          onClick={() =>
+                            variant === "admin" &&
+                            navigate("/admin/user-info", {
+                              state: rideInfo?.userId?._id,
+                            })
+                          }
+                        >
                           {rideInfo?.userId?.name}
                         </p>
                       </>
@@ -145,7 +202,7 @@ const RideInfoTable: React.FC<RideInfoTableProps> = ({
                         ₹ {rideInfo.baseFare.toFixed(2)}
                       </p>
                     </div>
-                    {variant == "user" && (
+                    {variant !== "driver" && (
                       <>
                         <div>
                           <h2 className="text-sm font-medium text-gray-500">
@@ -174,11 +231,11 @@ const RideInfoTable: React.FC<RideInfoTableProps> = ({
                       </>
                     )}
 
-                    {variant == "driver" && (
+                    {variant !== "user" && (
                       <>
                         <div>
                           <h2 className="text-sm font-medium text-gray-500">
-                            Your earnings
+                            {variant == "driver" ? "Your" : "Driver"} earnings
                           </h2>
                           <p className="mt-1 text-lg font-semibold">
                             ₹ {rideInfo?.driverEarnings?.toFixed(2)}
@@ -189,10 +246,12 @@ const RideInfoTable: React.FC<RideInfoTableProps> = ({
                             App fee
                           </h2>
                           {rideInfo.driverEarnings && (
-
-                          <p className="mt-1 text-lg font-semibold">
-                            ₹ {( rideInfo?.baseFare - rideInfo?.driverEarnings).toFixed(2)}
-                          </p>
+                            <p className="mt-1 text-lg font-semibold">
+                              ₹{" "}
+                              {(
+                                rideInfo?.baseFare - rideInfo?.driverEarnings
+                              ).toFixed(2)}
+                            </p>
                           )}
                         </div>
                       </>
@@ -284,50 +343,52 @@ const RideInfoTable: React.FC<RideInfoTableProps> = ({
                         </div>
                       )}
                     </div>
-                    <div className="w-full mt-6">
-                      {complaintInfo ? (
-                        <div className="bg-white border border-neutral-200 p-4 rounded-xl shadow-sm">
-                          <h4 className="text-lg font-semibold mb-2 text-neutral-800">
-                            Complaint Information
-                          </h4>
-                          <p className="text-sm text-neutral-600 mb-1">
-                            <span className="font-medium text-black">
-                              Reason:
-                            </span>{" "}
-                            {complaintInfo.complaintReason}
-                          </p>
-                          {complaintInfo.description && (
+                    {variant !== "admin" && (
+                      <div className="w-full mt-6">
+                        {complaintInfo ? (
+                          <div className="bg-white border border-neutral-200 p-4 rounded-xl shadow-sm">
+                            <h4 className="text-lg font-semibold mb-2 text-neutral-800">
+                              Complaint Information
+                            </h4>
                             <p className="text-sm text-neutral-600 mb-1">
                               <span className="font-medium text-black">
-                                Description:
+                                Reason:
                               </span>{" "}
-                              {complaintInfo.description}
+                              {complaintInfo.complaintReason}
                             </p>
-                          )}
-                          <p
-                            className={`text-sm ${
-                              complaintInfo.status === "resolved"
-                                ? "text-green-500"
-                                : complaintInfo.status === "rejected"
-                                ? "text-red-500"
-                                : "text-neutral-600"
-                            }`}
+                            {complaintInfo.description && (
+                              <p className="text-sm text-neutral-600 mb-1">
+                                <span className="font-medium text-black">
+                                  Description:
+                                </span>{" "}
+                                {complaintInfo.description}
+                              </p>
+                            )}
+                            <p
+                              className={`text-sm ${
+                                complaintInfo.status === "resolved"
+                                  ? "text-green-500"
+                                  : complaintInfo.status === "rejected"
+                                  ? "text-red-500"
+                                  : "text-neutral-600"
+                              }`}
+                            >
+                              <span className="font-medium text-black">
+                                Status:
+                              </span>{" "}
+                              {complaintInfo.status}
+                            </p>
+                          </div>
+                        ) : (
+                          <button
+                            className="bg-black text-white px-5 py-3 rounded-lg transition-transform hover:scale-105 duration-200"
+                            onClick={openDialogue}
                           >
-                            <span className="font-medium text-black">
-                              Status:
-                            </span>{" "}
-                            {complaintInfo.status}
-                          </p>
-                        </div>
-                      ) : (
-                        <button
-                          className="bg-black text-white px-5 py-3 rounded-lg transition-transform hover:scale-105 duration-200"
-                          onClick={openDialogue}
-                        >
-                          File a Complaint
-                        </button>
-                      )}
-                    </div>
+                            File a Complaint
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

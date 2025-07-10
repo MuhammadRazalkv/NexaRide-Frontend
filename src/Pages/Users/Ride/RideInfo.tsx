@@ -25,7 +25,7 @@ const RideInfo = () => {
   const [complaintInfo, setComplaintInfo] = useState<
     IComplaintInfo | undefined
   >(undefined);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isDialogueOpen, setIsDialogueOpen] = useState(false);
   const [description, setDescription] = useState("");
   const [reason, setReason] = useState("");

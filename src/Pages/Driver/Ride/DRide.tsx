@@ -33,16 +33,7 @@ export interface IDriverRoute {
 }
 const DRide = () => {
   const {
-    // dropOffCoords,
-    // isRideStarted,
     messages,
-    // pickupCoords,
-    // ridePhase,
-    // currentLoc,
-    // driverRoute,
-    // remainingRoute,
-    // rideReqInfo,
-    // routeCoords,
     setMessages,
     setCurrentLoc,
     clearAllStateData,
@@ -51,14 +42,11 @@ const DRide = () => {
 
   const navigate = useNavigate();
   const [messageApi, contextHolder] = message.useMessage();
-
-  // const trackingToPickupRef = useRef<NodeJS.Timeout | null>(null);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
-
   const driverId = useSelector(
     (state: RootState) => state.driverAuth.driver?._id
   );
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const [chatOn, setChatOn] = useState(false);
   const {
     driverRoute,
@@ -107,7 +95,9 @@ const DRide = () => {
       if (res.success && res.coordinates) {
         messageApi.success("Updated a random location");
         console.log("current loc ", res.coordinates);
-        dispatch(setDCurrentLocInSlice([res.coordinates[1], res.coordinates[0]]))
+        dispatch(
+          setDCurrentLocInSlice([res.coordinates[1], res.coordinates[0]])
+        );
         setCurrentLoc([res.coordinates[1], res.coordinates[0]]);
       } else {
         messageApi.error("Failed to update a location");
@@ -128,13 +118,11 @@ const DRide = () => {
     clearAllStateData();
     socket.off("driver-location-update");
     if (trackingToPickupRef.current) {
-      console.log('the interval has been cleared');
-      
+      console.log("the interval has been cleared");
       clearInterval(trackingToPickupRef.current);
       trackingToPickupRef.current = null;
     }
   };
-
   const closeChat = () => {
     setChatOn(false);
   };

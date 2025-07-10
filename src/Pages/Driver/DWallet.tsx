@@ -1,6 +1,6 @@
 import DNavBar from "@/components/driver/DNavBar";
 import { useEffect, useState } from "react";
-import { message } from "antd";
+import { message, Pagination } from "antd";
 import { getDriverWalletInfo } from "@/api/auth/driver";
 import { formatDate } from "@/utils/DateAndTimeFormatter";
 interface IWallet {
@@ -18,13 +18,21 @@ interface IWallet {
 const DWallet = () => {
   const [wallet, setWallet] = useState<IWallet | null>();
   const [messageApi, contextHolder] = message.useMessage();
+  const [total, setTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const fetchWalletInfo = async () => {
       try {
-        const res = await getDriverWalletInfo();
-        if (res.success && res.wallet) {
+        const res = await getDriverWalletInfo(currentPage);
+        if (res.success && res.wallet && res.total) {
+          console.log('Setting the updated data ');
+          console.log(res.wallet);
+          console.log(res.total);
+          
+          
           setWallet(res.wallet);
+          setTotal(res.total);
         }
       } catch (error) {
         console.log(error);
@@ -36,7 +44,7 @@ const DWallet = () => {
       }
     };
     fetchWalletInfo();
-  }, [messageApi]);
+  }, [messageApi,currentPage]);
   return (
     <>
       {contextHolder}
@@ -59,30 +67,40 @@ const DWallet = () => {
           </h2>
 
           {wallet && wallet.transactions?.length ? (
-            <div className="overflow-y-auto max-h-[160px]  pr-2">
-              <ul className="space-y-3 text-sm text-gray-700 max-h-[160px]  pr-1">
-                {[...wallet.transactions].reverse().map((item, index) => {
-                  const isCredit = item.type === "credit";
-                  const formattedDate = formatDate(item.date)
+            <>
+              <div className="overflow-y-auto max-h-[160px]  pr-2">
+                <ul className="space-y-3 text-sm text-gray-700 max-h-[160px]  pr-1">
+                  {[...wallet.transactions].reverse().map((item, index) => {
+                    const isCredit = item.type === "credit";
+                    const formattedDate = formatDate(item.date);
 
-                  return (
-                    <li key={index} className="flex justify-between">
-                      <span>{formattedDate}</span>
-                      <span>
-                        {isCredit ? "Money Added" : "Payment to Driver"}
-                      </span>
-                      <span
-                        className={isCredit ? "text-green-500" : "text-red-500"}
-                      >
-                        {isCredit
-                          ? `+ ₹${item.amount.toFixed(2)}`
-                          : `- ₹${item.amount.toFixed(2)}`}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+                    return (
+                      <li key={index} className="flex justify-between">
+                        <span>{formattedDate}</span>
+                        <span>
+                          {isCredit ? "Money Added" : "Payment to Driver"}
+                        </span>
+                        <span
+                          className={
+                            isCredit ? "text-green-500" : "text-red-500"
+                          }
+                        >
+                          {isCredit
+                            ? `+ ₹${item.amount.toFixed(2)}`
+                            : `- ₹${item.amount.toFixed(2)}`}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+              <Pagination
+                current={currentPage}
+                total={total}
+                pageSize={8}
+                onChange={(page) => setCurrentPage(page)}
+              />
+            </>
           ) : (
             <p className="text-gray-500">No transactions found</p>
           )}

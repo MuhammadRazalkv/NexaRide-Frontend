@@ -8,10 +8,11 @@ import {
   FaExclamationTriangle,
   FaMoneyBillWaveAlt,
   FaCrown,
+  FaHistory,
 } from "react-icons/fa";
 import { RiDiscountPercentFill } from "react-icons/ri";
 import { useSidebar } from "../../hooks/useSidebar";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { adminLogout } from "@/redux/slices/adminAuthSlice";
 import { message } from "antd";
@@ -20,6 +21,8 @@ import { logoutAdmin } from "@/api/auth/admin";
 const AdminNavBar = () => {
   const { isOpen, toggleSidebar } = useSidebar();
   const dispatch = useDispatch();
+  const location = useLocation();
+  const currentPath = location.pathname;
   const handleLogout = async () => {
     try {
       const res = await logoutAdmin();
@@ -62,31 +65,67 @@ const AdminNavBar = () => {
           {/* <NavItem icon={<FaHome />} text="Dashboard" /> */}
           <Link to={"/admin/dashboard"}>
             {" "}
-            <NavItem icon={<FaHome />} text="Dashboard" />
+            <NavItem
+              icon={<FaHome />}
+              text="Dashboard"
+              active={currentPath == "/admin/dashboard"}
+            />
           </Link>
           <Link to={"/admin/users"}>
             {" "}
-            <NavItem icon={<FaUser />} text="Users" />
+            <NavItem
+              icon={<FaUser />}
+              text="Users"
+              active={currentPath == "/admin/users"}
+            />
           </Link>
           <Link to={"/admin/drivers"}>
             {" "}
-            <NavItem icon={<FaCar />} text="Drivers" />
+            <NavItem
+              icon={<FaCar />}
+              text="Drivers"
+              active={currentPath == "/admin/drivers"}
+            />
+          </Link>
+          <Link to={"/admin/rides"}>
+            {" "}
+            <NavItem
+              icon={<FaHistory />}
+              text="Ride History"
+              active={currentPath == "/admin/rides"}
+            />
           </Link>
           <Link to={"/admin/ride-complaints"}>
             {" "}
-            <NavItem icon={<FaExclamationTriangle />} text="Complaints" />
+            <NavItem
+              icon={<FaExclamationTriangle />}
+              text="Complaints"
+              active={currentPath == "/admin/ride-complaints"}
+            />
           </Link>
           <Link to={"/admin/offers"}>
             {" "}
-            <NavItem icon={<RiDiscountPercentFill />} text="Offers" />
+            <NavItem
+              icon={<RiDiscountPercentFill />}
+              text="Offers"
+              active={currentPath == "/admin/offers"}
+            />
           </Link>
           <Link to={"/admin/earnings"}>
             {" "}
-            <NavItem icon={<FaMoneyBillWaveAlt />} text="Earnings" />
+            <NavItem
+              icon={<FaMoneyBillWaveAlt />}
+              text="Earnings"
+              active={currentPath == "/admin/earnings"}
+            />
           </Link>
           <Link to={"/admin/subscribed-users"}>
             {" "}
-            <NavItem icon={<FaCrown />} text="Premium users" />
+            <NavItem
+              icon={<FaCrown />}
+              text="Premium users"
+              active={currentPath == "/admin/subscribed-users"}
+            />
           </Link>
           {/* <NavItem icon={<FaCog />} text="Settings" /> */}
         </nav>
@@ -105,8 +144,20 @@ const AdminNavBar = () => {
   );
 };
 
-const NavItem = ({ icon, text }: { icon: React.ReactNode; text: string }) => (
-  <button className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#202936] transition-all">
+const NavItem = ({
+  icon,
+  text,
+  active = false,
+}: {
+  icon: React.ReactNode;
+  text: string;
+  active: boolean;
+}) => (
+  <button
+    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
+      active ? "bg-[#202936] text-white" : "text-gray-300 hover:bg-[#202936]"
+    }`}
+  >
     {icon}
     <span>{text}</span>
   </button>

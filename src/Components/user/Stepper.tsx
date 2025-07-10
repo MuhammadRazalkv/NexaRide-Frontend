@@ -2,7 +2,7 @@ import Box from "@mui/material/Box";
 import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
-import { FC, useMemo } from "react";
+import { FC, useMemo, memo } from "react";
 
 interface StepCount {
   count: number;
@@ -17,16 +17,15 @@ const LabelStepper: FC<StepCount> = ({ count, step, className, cWidth }) => {
     [step]
   );
   const width = cWidth ? cWidth : "70%";
-  console.log("sete", steps);
 
   return (
-    <div className={`${className} mt-4 ml-18`}>
+    <div className={` ${className || ""} mt-4 ml-18 `}>
       <Box sx={{ width: width }}>
         <Stepper activeStep={count} alternativeLabel>
           {steps.map((label) => (
             <Step key={label}>
-              <StepLabel>{""}</StepLabel> 
-              </Step>
+              <StepLabel>{""}</StepLabel>
+            </Step>
           ))}
         </Stepper>
       </Box>
@@ -34,4 +33,4 @@ const LabelStepper: FC<StepCount> = ({ count, step, className, cWidth }) => {
   );
 };
 
-export default LabelStepper;
+export default memo(LabelStepper);

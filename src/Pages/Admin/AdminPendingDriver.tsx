@@ -5,8 +5,10 @@ import AdminNavBar from "../../components/admin/AdminNavbar";
 import { approveVehicleById, rejectVehicleById } from "../../api/auth/admin";
 import { Car, User } from "lucide-react";
 import { message } from "antd";
+import PendingDriverInfo from "@/components/admin/PendingDriverInfo";
+import AdminPendingVehicleInfo from "./AdminPendingVehicleInfo";
 
-interface IPendingDriver {
+export interface IPendingDriver {
   _id: string;
   name: string;
   email: string;
@@ -44,7 +46,7 @@ interface IPendingDriver {
   };
 }
 
-interface IPendingVehicle {
+export interface IPendingVehicle {
   _id: string;
   nameOfOwner: string;
   addressOfOwner: string;
@@ -84,7 +86,7 @@ const AdminPendingDriver = () => {
     null
   );
   const [showVehicleModal, setShowVehicleModal] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  // const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const [messageApi, contextHolder] = message.useMessage();
   const key = "updatable";
@@ -95,7 +97,6 @@ const AdminPendingDriver = () => {
         const res = await getPendingDrivers();
         if (res.success) {
           setDrivers(res.drivers);
-          console.log("Drivers ", res.drivers);
         }
       } catch (error) {
         console.error("Error fetching drivers", error);
@@ -103,11 +104,6 @@ const AdminPendingDriver = () => {
     };
     fetchDrivers();
   }, []);
-
-  // useEffect(() => {
-  //     setDrivers((prevDrivers) => prevDrivers?.filter(driver => driver.status == 'pending' || driver.vehicleDetails?.status == 'pending') || []);
-
-  // }, [drivers])
 
   const handleRejectClick = (driverId: string) => {
     setSelectedDriverId(driverId);
@@ -120,8 +116,6 @@ const AdminPendingDriver = () => {
   };
 
   const submitRejection = async () => {
-    console.log("driver id ", selectedDriverId);
-
     if (!rejectionReason.trim()) {
       messageApi.warning("Please enter a rejection reason.");
       return;
@@ -155,7 +149,6 @@ const AdminPendingDriver = () => {
               )
             : null
         );
-        // setDrivers((prevDrivers) => prevDrivers?.filter(driver => driver.status == 'pending' || driver.vehicleDetails?.status == 'pending') || []);
         setDrivers((prevDrivers) =>
           prevDrivers
             ? prevDrivers.filter(
@@ -198,7 +191,6 @@ const AdminPendingDriver = () => {
           content: "Driver approval successful!",
           duration: 2,
         });
-        // setDrivers((prevDrivers) => prevDrivers?.filter(driver => driver._id !== driverId) || []);
         setDrivers((prevDrivers) =>
           prevDrivers
             ? prevDrivers.map((driver) =>
@@ -228,21 +220,6 @@ const AdminPendingDriver = () => {
     }
   };
 
-  // const fetchVehicleInfo = async (vehicleId: string) => {
-  //     if (!vehicleId) return;
-
-  //     try {
-
-  //         const res = await getVehicleById(vehicleId);
-  //         if (res.success) {
-  //             setSelectedVehicle(res.vehicle);
-  //             setShowVehicleModal(true);
-  //         }
-  //     } catch (error) {
-  //         console.log("Error fetching vehicle data", error);
-  //     }
-  // };
-
   const approveVehicle = async (vehicleId: string, category: string) => {
     try {
       if (!category) {
@@ -261,46 +238,44 @@ const AdminPendingDriver = () => {
 
       const res = await approveVehicleById(vehicleId, category);
       if (res.success) {
-        setTimeout(() => {
-          messageApi.open({
-            key,
-            type: "success",
-            content: "Vehicle approval successful!",
-            duration: 2,
-          });
-          setDrivers((prevDrivers) =>
-            prevDrivers
-              ? prevDrivers.map((driver) =>
-                  driver.vehicleDetails?._id === vehicleId
-                    ? {
-                        ...driver,
-                        vehicleDetails: {
-                          ...driver.vehicleDetails,
-                          status: "approved",
-                          category: category,
-                        },
-                      }
-                    : driver
-                )
-              : null
-          );
+        messageApi.open({
+          key,
+          type: "success",
+          content: "Vehicle approval successful!",
+          duration: 2,
+        });
+        setDrivers((prevDrivers) =>
+          prevDrivers
+            ? prevDrivers.map((driver) =>
+                driver.vehicleDetails?._id === vehicleId
+                  ? {
+                      ...driver,
+                      vehicleDetails: {
+                        ...driver.vehicleDetails,
+                        status: "approved",
+                        category: category,
+                      },
+                    }
+                  : driver
+              )
+            : null
+        );
 
-          setDrivers((prevDrivers) =>
-            prevDrivers
-              ? prevDrivers.filter(
-                  (driver) =>
-                    driver.status == "pending" ||
-                    driver.vehicleDetails?.status == "pending"
-                )
-              : []
-          );
+        setDrivers((prevDrivers) =>
+          prevDrivers
+            ? prevDrivers.filter(
+                (driver) =>
+                  driver.status == "pending" ||
+                  driver.vehicleDetails?.status == "pending"
+              )
+            : []
+        );
 
-          setShowVehicleModal(false);
+        setShowVehicleModal(false);
 
-          setSelectedVehicle(null);
-          setSelectedDriver(null);
-          setVehicleCategory("");
-        }, 1000);
+        setSelectedVehicle(null);
+        setSelectedDriver(null);
+        setVehicleCategory("");
       }
     } catch (error) {
       console.log("Error approving vehicle", error);
@@ -419,76 +394,14 @@ const AdminPendingDriver = () => {
       {/* Individual Driver Details */}
 
       {selectedDriver && (
-        <div className="w-full max-w-md bg-[#1A2036] p-6 rounded-lg shadow-lg border border-[#2C3347]/50 mt-6 md:mt-0 md:ml-6 relative">
-          {/* Close Button (Top Right) */}
-          <button
-            onClick={() => setSelectedDriver(null)}
-            className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full transition-all"
-          >
-            ✕
-          </button>
-
-          <h3 className="text-white text-xl font-semibold mb-4">
-            Driver Details
-          </h3>
-          <div className="space-y-2">
-            <p className="text-gray-400">
-              <strong>Name:</strong> {selectedDriver.name}
-            </p>
-            <p className="text-gray-400">
-              <strong>Email:</strong> {selectedDriver.email}
-            </p>
-            <p className="text-gray-400">
-              <strong>License:</strong> {selectedDriver.license_number}
-            </p>
-            <p className="text-gray-400">
-              <strong>Address:</strong> {selectedDriver.address.street},{" "}
-              {selectedDriver.address.city}, {selectedDriver.address.state},{" "}
-              {selectedDriver.address.pin_code}
-            </p>
-            <p className="text-gray-400">
-              <strong>Date of Birth:</strong>{" "}
-              {new Date(selectedDriver.dob).toLocaleDateString()}
-            </p>
-            <p className="text-gray-400">
-              <strong>License Expiry:</strong>{" "}
-              {new Date(selectedDriver.license_exp).toLocaleDateString()}
-            </p>
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-3 mt-4">
-            {selectedDriver.status == "pending" ? (
-              <>
-                <button
-                  onClick={() => submitApproval(selectedDriver._id)}
-                  className="h-12 px-4 bg-green-500 hover:bg-green-600 text-white rounded transition-all"
-                >
-                  Accept
-                </button>
-
-                <button
-                  onClick={() => handleRejectClick(selectedDriver._id)}
-                  className="h-12 px-4 bg-red-500 hover:bg-red-600 text-white rounded transition-all"
-                >
-                  Reject
-                </button>
-              </>
-            ) : (
-              <p className="text-white font-bold px-4 text-center ">
-                Driver info verified
-              </p>
-            )}
-            <button
-              onClick={() => {
-                setSelectedVehicle(selectedDriver.vehicleDetails);
-                setShowVehicleModal(true);
-              }}
-              className="h-12 px-4 bg-yellow-500 hover:bg-yellow-600 text-white rounded transition-all"
-            >
-              Vehicle Info
-            </button>
-          </div>
-        </div>
+        <PendingDriverInfo
+          handleRejectClick={handleRejectClick}
+          selectedDriver={selectedDriver}
+          setSelectedDriver={setSelectedDriver}
+          setSelectedVehicle={setSelectedVehicle}
+          setShowVehicleModal={setShowVehicleModal}
+          submitApproval={submitApproval}
+        />
       )}
 
       {showRejectModal && (
@@ -526,148 +439,7 @@ const AdminPendingDriver = () => {
       )}
 
       {showVehicleModal && selectedVehicle && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-60 z-50">
-          <div className="bg-[#1A2036] p-6 rounded-lg shadow-xl border border-[#2C3347]/50 max-w-md w-full mx-4 relative">
-            {/* Close Button */}
-            <button
-              onClick={() => setShowVehicleModal(false)}
-              className="absolute top-3 right-3 px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded-full text-lg"
-            >
-              &times;
-            </button>
-
-            {/* Modal Title */}
-            <h3 className="text-white text-2xl font-bold text-center mb-4">
-              Vehicle Details
-            </h3>
-
-            {/* Vehicle Information */}
-            <div className="text-gray-400 space-y-2">
-              <p>
-                <strong>Owner:</strong> {selectedVehicle.nameOfOwner}
-              </p>
-              <p>
-                <strong>Address:</strong> {selectedVehicle.addressOfOwner}
-              </p>
-              <p>
-                <strong>Brand:</strong> {selectedVehicle.brand}
-              </p>
-              <p>
-                <strong>Model:</strong> {selectedVehicle.vehicleModel}
-              </p>
-              <p>
-                <strong>Color:</strong> {selectedVehicle.color}
-              </p>
-              <p>
-                <strong>License Plate:</strong> {selectedVehicle.numberPlate}
-              </p>
-              <p>
-                <strong>Reg Date:</strong>{" "}
-                {new Date(selectedVehicle.regDate).toLocaleDateString("en-GB")}
-              </p>
-              <p>
-                <strong>Exp Date:</strong>{" "}
-                {new Date(selectedVehicle.expDate).toLocaleDateString("en-GB")}
-              </p>
-              <p>
-                <strong>Insurance Provider:</strong>{" "}
-                {selectedVehicle.insuranceProvider}
-              </p>
-              <p>
-                <strong>Policy Number:</strong> {selectedVehicle.policyNumber}
-              </p>
-              {selectedVehicle.category ? (
-                <p>
-                  <strong>Category :</strong> {selectedVehicle.category}
-                </p>
-              ) : (
-                <div className="w-full h-4 mt-2 mb-6 ">
-                  <label htmlFor="">
-                    <strong>Choose a vehicle category :</strong>{" "}
-                  </label>
-                  <select
-                    onChange={(e) => setVehicleCategory(e.target.value)}
-                    name="Category"
-                    className="rounded-sm px-2 p-1 border text-sm"
-                  >
-                    <option disabled selected>
-                      Choose{" "}
-                    </option>
-                    <option value="basic">Basic</option>
-                    <option value="premium">Premium</option>
-                    <option value="luxury">Luxury</option>
-                  </select>
-                </div>
-              )}
-            </div>
-
-            {/* Vehicle Images with Click Event */}
-            <div className="flex justify-center gap-3 mt-4">
-              {["frontView", "rearView", "interiorView"].map((view) => (
-                <img
-                  key={view}
-                  src={
-                    (selectedVehicle.vehicleImages as Record<string, string>)[
-                      view
-                    ]
-                  }
-                  alt={`${view} view`}
-                  className="w-24 h-24 rounded-lg object-cover border border-[#2C3347] cursor-pointer"
-                  onClick={() =>
-                    setSelectedImage(
-                      (selectedVehicle.vehicleImages as Record<string, string>)[
-                        view
-                      ]
-                    )
-                  }
-                />
-              ))}
-            </div>
-
-            {/* Full-Size Image Modal */}
-            {selectedImage && (
-              <div
-                className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50"
-                onClick={() => setSelectedImage(null)}
-              >
-                <img
-                  src={selectedImage}
-                  alt="Full-size view"
-                  className="max-w-full max-h-full rounded-lg shadow-lg"
-                />
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            {selectedVehicle.status == "pending" ? (
-              <div className="flex gap-3 mt-6 justify-center">
-                <button
-                  onClick={() =>
-                    approveVehicle(selectedVehicle._id, vehicleCategory)
-                  }
-                  className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-all"
-                >
-                  Approve
-                </button>
-
-                <button
-                  onClick={() => handleRejectClickVehicle(selectedVehicle._id)}
-                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-all"
-                >
-                  Reject
-                </button>
-              </div>
-            ) : (
-              <p className="text-white font-bold mt-3">
-                Vehicle has been{" "}
-                {selectedVehicle.status == "approved"
-                  ? "approved"
-                  : "rejected "}{" "}
-                successfully
-              </p>
-            )}
-          </div>
-        </div>
+        <AdminPendingVehicleInfo approveVehicle={approveVehicle} handleRejectClickVehicle={handleRejectClickVehicle} selectedVehicle={selectedVehicle} setShowVehicleModal={setShowVehicleModal} setVehicleCategory={setVehicleCategory} vehicleCategory={vehicleCategory}/> 
       )}
 
       {showRejectModalVehicle && (

@@ -1,98 +1,42 @@
+import { useForm } from "react-hook-form";
 
-import { useForm } from "react-hook-form"
-import * as yup from "yup";
-import { Upload } from "lucide-react"
-import { useState , useEffect } from "react"
-import { RootState } from "@/redux/store";
-import BinButton from "../../../components/Icons/BinBtn"
+import { Upload } from "lucide-react";
+import { useState, useEffect } from "react";
+import BinButton from "../../../components/Icons/BinBtn";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate } from "react-router-dom";
 import { FormData } from "./DAddVehicle";
-import { useSelector } from "react-redux";
 import { vehicleRejectReason } from "../../../api/auth/driver";
 import { reApplyVehicle } from "../../../api/auth/driver";
-
-function validateLicensePlate(numberPlate: string): boolean {
-  if (!numberPlate) return false;
-  const regex = /^[A-Z]{2}[ -]?[0-9]{1,2}[ -]?[A-Z]{1,2}[ -]?[0-9]{1,4}$/;
-  return regex.test(numberPlate);
-}
-
-const schema = yup.object().shape({
-  firstName: yup.string().required("First name is required"),
-  lastName: yup.string().default('').optional(),
-  address: yup.string().required("Street address is required"),
-  brand: yup.string().required('Vehicle brand is required'),
-  model: yup.string().required('Vehicle model is required'),
-  color: yup.string().required('Vehicle color is required'),
-  registrationDate: yup
-    .date()
-    .transform((value, originalValue) => {
-      return originalValue === "" ? undefined : value;
-    })
-    .required("Registration Date is required")
-    .max(new Date(), "Date of Birth cannot be in the future"),
-
-  licenseNumber: yup
-    .string()
-    .required("Number plate is required")
-    .test(
-      "valid-number-plate",
-      "Invalid Number Plate Format",
-      (value) => !!value && validateLicensePlate(value)
-    ),
-
-  expirationDate: yup
-    .date()
-    .transform((value, originalValue) => {
-      return originalValue === "" ? undefined : value;
-    })
-    .required("Expiration Date is required")
-    .min(new Date(), "Expiration date must not be in the past"),
-  insuranceProvider: yup.string().required('Insurance provider is required'),
-  policyNumber: yup.string()
-    .required('Policy number is required')
-    .matches(/^\d{10}$/, 'Policy number must be exactly 10 digits')
-});
+import { message } from "antd";
+import { vehicleSchema } from "@/utils/validations/vehicleSchema";
 
 const VehicleRejected = () => {
-
   const [frontView, setFrontView] = useState<string | null>(null);
   const [rearView, setRearView] = useState<string | null>(null);
   const [interiorView, setInteriorView] = useState<string | null>(null);
-  const [error, setError] = useState('')
+  const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [reason, setReason] = useState("");
-  const [imgError, setImgError] = useState('')
-  const navigate = useNavigate()
-
-  const token = useSelector((state: RootState) => state.driverAuth.token);
-
+  const [imgError, setImgError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (!token) {
-      localStorage.clear();
-      navigate("/driver/login");
-      return;
-    }
-
     const fetchReason = async () => {
       try {
         const res = await vehicleRejectReason();
         if (res) {
-          console.log('res ',res);
-          
-          setReason(res.reason || 'Because your some details are incorrect');
+          console.log("res ", res);
+
+          setReason(res.reason || "Because your some details are incorrect");
         }
       } catch (error) {
-        console.log(error);
-        navigate("/driver/login");
+        if (error instanceof Error) message.error(error.message);
       }
     };
 
     fetchReason();
-  }, [token, navigate]);
-
+  }, [navigate]);
 
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -143,31 +87,26 @@ const VehicleRejected = () => {
   const handleInteriorView = (e: React.ChangeEvent<HTMLInputElement>) =>
     handleImageUpload(e, setInteriorView, setImgError);
 
-
-
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(vehicleSchema),
   });
-
 
   const onSubmit = async (data: FormData) => {
     console.log("Inside the onsubmit");
-    
-    setError('')
+
+    setError("");
     if (!frontView || !rearView || !interiorView) {
-      setImgError('Vehicle images are required')
-      return
+      setImgError("Vehicle images are required");
+      return;
     }
-
-
-    
-    console.log('data ', data);
     const updatedData = {
-      nameOfOwner: `${data.firstName.trimStart()} ${data.lastName.trimEnd() || ''}`,
+      nameOfOwner: `${data.firstName.trimStart()} ${
+        data.lastName.trimEnd() || ""
+      }`,
       addressOfOwner: data.address,
       brand: data.brand,
       vehicleModel: data.model,
@@ -178,38 +117,33 @@ const VehicleRejected = () => {
       insuranceProvider: data.insuranceProvider,
       policyNumber: data.policyNumber,
       vehicleImages: {
-        frontView, rearView, interiorView
-      }
-    }
-    console.log('updatedData ', updatedData);
+        frontView,
+        rearView,
+        interiorView,
+      },
+    };
+    console.log("updatedData ", updatedData);
 
     // https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/toyota/modelyear/2020?format=json
 
     try {
-      if (!token) {
-        return
-      }
-      const response = await reApplyVehicle(updatedData)
+      const response = await reApplyVehicle(updatedData);
       if (response) {
-        console.log('Response   ', response);
-        const driver = response.driver
-        localStorage.clear()
-        console.log('driver data in the add vehicle page ', driver);
+        console.log("Response   ", response);
+        const driver = response.driver;
+        // localStorage.clear();
+        console.log("driver data in the add vehicle page ", driver);
 
-
-        navigate('/driver/verification-pending')
+        navigate("/driver/ride");
       }
-
     } catch (error) {
       if (error instanceof Error) {
-        setError(error.message)
+        setError(error.message);
       } else {
-        setError('Internal server error')
+        setError("Internal server error");
       }
     }
-
-  }
-
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen py-6">
@@ -240,11 +174,15 @@ const VehicleRejected = () => {
 
         {/* Reapply Form */}
         {showForm && (
-
-          <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-3 text-left">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="mt-4 space-y-3 text-left"
+          >
             {error && <p className="text-red-500 mt-3 text-xs">{error}</p>}
             {/* Full Name */}
-            <label className="block font-medium text-black text-sm">Name of owner</label>
+            <label className="block font-medium text-black text-sm">
+              Name of owner
+            </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <input
@@ -254,7 +192,9 @@ const VehicleRejected = () => {
                   className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
                 />
                 {errors.firstName && (
-                  <p className="text-red-500 text-xs">{errors.firstName.message}</p>
+                  <p className="text-red-500 text-xs">
+                    {errors.firstName.message}
+                  </p>
                 )}
               </div>
               <div>
@@ -265,13 +205,17 @@ const VehicleRejected = () => {
                   className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
                 />
                 {errors.lastName && (
-                  <p className="text-red-500 text-xs">{errors.lastName.message}</p>
+                  <p className="text-red-500 text-xs">
+                    {errors.lastName.message}
+                  </p>
                 )}
               </div>
             </div>
 
             {/* Permanent Address */}
-            <label className="block font-medium text-black text-sm">Address of owner</label>
+            <label className="block font-medium text-black text-sm">
+              Address of owner
+            </label>
             <div>
               <input
                 type="text"
@@ -284,10 +228,10 @@ const VehicleRejected = () => {
               )}
             </div>
 
-
-
             {/* Vehicle Details */}
-            <label className="block font-medium text-black text-sm">Vehicle info</label>
+            <label className="block font-medium text-black text-sm">
+              Vehicle info
+            </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <input
@@ -315,8 +259,6 @@ const VehicleRejected = () => {
               </div>
             </div>
 
-
-
             {/*  Color and Number plate  */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
@@ -341,12 +283,12 @@ const VehicleRejected = () => {
                   className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
                 />
                 {errors.licenseNumber && (
-                  <p className="text-red-500 text-xs">{errors.licenseNumber.message}</p>
+                  <p className="text-red-500 text-xs">
+                    {errors.licenseNumber.message}
+                  </p>
                 )}
               </div>
             </div>
-
-
 
             {/* Vehicle images  */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
@@ -360,16 +302,19 @@ const VehicleRejected = () => {
                       className="w-44 h-44 object-cover rounded-xl border border-gray-300 shadow-md transition-transform transform"
                     />
                     <div className="absolute top-2 right-6 ">
-                      <BinButton
-                        onClick={() => setFrontView(null)}
-                      />
+                      <BinButton onClick={() => setFrontView(null)} />
                     </div>
                   </div>
                 ) : (
                   <label className="flex flex-col items-center justify-center w-full h-44 p-4 border-2 border-dashed border-gray-400 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
                     <Upload size={28} className="text-gray-500 mb-2" />
                     <span className="text-gray-700 text-sm">Front View</span>
-                    <input type="file" className="hidden" onChange={handleFrontView} accept="image/*" />
+                    <input
+                      type="file"
+                      className="hidden"
+                      onChange={handleFrontView}
+                      accept="image/*"
+                    />
                   </label>
                 )}
               </div>
@@ -384,16 +329,19 @@ const VehicleRejected = () => {
                       className="w-44 h-44 object-cover rounded-xl border border-gray-300 shadow-md transition-transform transform"
                     />
                     <div className="absolute top-2 right-6 ">
-                      <BinButton
-                        onClick={() => setRearView(null)}
-                      />
+                      <BinButton onClick={() => setRearView(null)} />
                     </div>
                   </div>
                 ) : (
                   <label className="flex flex-col items-center justify-center w-full h-44 p-4 border-2 border-dashed border-gray-400 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
                     <Upload size={28} className="text-gray-500 mb-2" />
                     <span className="text-gray-700 text-sm">Rear View</span>
-                    <input type="file" className="hidden" onChange={handleRearView} accept="image/*" />
+                    <input
+                      type="file"
+                      className="hidden"
+                      onChange={handleRearView}
+                      accept="image/*"
+                    />
                   </label>
                 )}
               </div>
@@ -408,56 +356,69 @@ const VehicleRejected = () => {
                       className="w-44 h-44 object-cover rounded-xl border border-gray-300 shadow-md transition-transform transform "
                     />
                     <div className="absolute top-2 right-6 ">
-                      <BinButton
-                        onClick={() => setInteriorView(null)}
-                      />
+                      <BinButton onClick={() => setInteriorView(null)} />
                     </div>
                   </div>
                 ) : (
                   <label className="flex flex-col items-center justify-center w-full h-44 p-4 border-2 border-dashed border-gray-400 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
                     <Upload size={28} className="text-gray-500 mb-2" />
                     <span className="text-gray-700 text-sm">Interior</span>
-                    <input type="file" className="hidden" onChange={handleInteriorView} accept="image/*" />
+                    <input
+                      type="file"
+                      className="hidden"
+                      onChange={handleInteriorView}
+                      accept="image/*"
+                    />
                   </label>
                 )}
               </div>
             </div>
 
-            {imgError && <p className="text-red-500 mt-3 text-xs">{imgError}</p>}
-
+            {imgError && (
+              <p className="text-red-500 mt-3 text-xs">{imgError}</p>
+            )}
 
             {/* Registration Dates  */}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block font-medium text-black text-sm">Registration Date</label>
+                <label className="block font-medium text-black text-sm">
+                  Registration Date
+                </label>
                 <input
                   type="date"
                   {...register("registrationDate")}
                   className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
                 />
                 {errors.registrationDate && (
-                  <p className="text-red-500 text-xs">{errors.registrationDate.message}</p>
+                  <p className="text-red-500 text-xs">
+                    {errors.registrationDate.message}
+                  </p>
                 )}
               </div>
 
               <div>
-                <label className="block font-medium text-black text-sm">Date of Expiration</label>
+                <label className="block font-medium text-black text-sm">
+                  Date of Expiration
+                </label>
                 <input
                   type="date"
                   {...register("expirationDate")}
                   className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
                 />
                 {errors.expirationDate && (
-                  <p className="text-red-500 text-xs">{errors.expirationDate.message}</p>
+                  <p className="text-red-500 text-xs">
+                    {errors.expirationDate.message}
+                  </p>
                 )}
               </div>
             </div>
 
-
             {/* Insurance details  */}
 
-            <label className="block font-medium text-black text-sm">Insurance details </label>
+            <label className="block font-medium text-black text-sm">
+              Insurance details{" "}
+            </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <input
@@ -467,7 +428,9 @@ const VehicleRejected = () => {
                   className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
                 />
                 {errors.insuranceProvider && (
-                  <p className="text-red-500 text-xs">{errors.insuranceProvider.message}</p>
+                  <p className="text-red-500 text-xs">
+                    {errors.insuranceProvider.message}
+                  </p>
                 )}
               </div>
 
@@ -480,7 +443,9 @@ const VehicleRejected = () => {
                   className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
                 />
                 {errors.policyNumber && (
-                  <p className="text-red-500 text-xs">{errors.policyNumber.message}</p>
+                  <p className="text-red-500 text-xs">
+                    {errors.policyNumber.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -496,7 +461,7 @@ const VehicleRejected = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default VehicleRejected
+export default VehicleRejected;

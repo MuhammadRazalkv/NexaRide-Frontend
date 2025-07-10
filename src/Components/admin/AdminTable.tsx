@@ -1,21 +1,25 @@
 import React from "react";
 import { FaEye } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
-
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-  isBlocked: boolean;
-}
+import { IUser } from "@/interfaces/user.interface";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface UserTableProps {
-  users: User[] | null;
-  onBlockToggle: (user: User) => void;
-  onView: (id:string) => void;
+  users: IUser[] | null;
+  onBlockToggle: (user: IUser) => void;
+  onView: (id: string) => void;
 }
 
-const AdminTable: React.FC<UserTableProps> = ({ users, onBlockToggle , onView }) => {
+const AdminTable: React.FC<UserTableProps> = ({
+  users,
+  onBlockToggle,
+  onView,
+}) => {
+  
   return (
     <div className="flex-1 flex items-center justify-center p-4 md:p-6 lg:p-8">
       <div className="w-full max-w-6xl mx-auto">
@@ -58,18 +62,50 @@ const AdminTable: React.FC<UserTableProps> = ({ users, onBlockToggle , onView })
                         {user.email}
                       </td>
                       <td className="px-4 py-4 text-center text-sm">
-                        <Button
+                        {/* <Button
                           variant={user.isBlocked ? "success" : "destructive"}
                           onClick={() => onBlockToggle(user)}
                           className="px-3 py-1 text-xs font-medium"
                         >
                           {user.isBlocked ? "Unblock" : "Block"}
-                        </Button>
+                        </Button> */}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span>
+                              <Button
+                                variant={
+                                  user.softBlock
+                                    ? "secondary"
+                                    : user.isBlocked
+                                    ? "success"
+                                    : "destructive"
+                                }
+                                onClick={() =>
+                                  !user.softBlock && onBlockToggle(user)
+                                }
+                                disabled={user.softBlock}
+                                className="px-3 py-1 text-xs font-medium"
+                              >
+                                {user.softBlock
+                                  ? "Block Pending"
+                                  : user.isBlocked
+                                  ? "Unblock"
+                                  : "Block"}
+                              </Button>
+                            </span>
+                          </TooltipTrigger>
+                          {user.softBlock && (
+                            <TooltipContent>
+                              This user is currently on a ride. They’ll be
+                              blocked once the ride ends.
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
                       </td>
                       <td className="px-4 py-4 text-center">
                         <button
                           className="p-2 rounded hover:bg-[#5a63a1] transition-colors"
-                            onClick={() => onView(user._id)}
+                          onClick={() => onView(user._id)}
                         >
                           <FaEye className="text-white" />
                         </button>

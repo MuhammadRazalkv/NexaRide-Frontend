@@ -17,13 +17,7 @@ import {
 import AdminTable from "@/components/admin/AdminTable";
 import SearchSort from "@/components/SearchSort";
 import { useNavigate } from "react-router-dom";
-
-interface IUser {
-  _id: string;
-  name: string;
-  email: string;
-  isBlocked: boolean;
-}
+import { IUser } from "@/interfaces/user.interface";
 
 const AdminUsers = () => {
   const [users, setUsers] = useState<IUser[] | null>(null);
@@ -36,7 +30,7 @@ const AdminUsers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const key = "updatable";
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const fetchUsers = async (page = 1, searchTerm = "", sortOrder = "A-Z") => {
     try {
       const res = await getUsers(page, searchTerm, sortOrder);
@@ -48,7 +42,8 @@ const AdminUsers = () => {
         setTotal(0);
       }
     } catch (error) {
-      console.log(error);       
+      console.log(error);
+      if (error instanceof Error) message.error(error.message);
     }
   };
 
@@ -85,25 +80,20 @@ const AdminUsers = () => {
       });
 
       const res = await updateStatus(userId);
-      if (res.success) {
-        setTimeout(() => {
-          setUsers((prevUsers) =>
-            prevUsers
-              ? prevUsers.map((user) =>
-                  user._id === userId
-                    ? { ...user, isBlocked: !user.isBlocked }
-                    : user
-                )
-              : null
-          );
-
-          messageApi.open({
-            key,
-            type: "success",
-            content: res.message || "User status updated successfully!",
-            duration: 2,
-          });
-        }, 1000);
+      if (res.success && res.user) {
+        setUsers((prevUsers) =>
+          prevUsers
+            ? prevUsers.map((u) =>
+                u._id === userId ? { ...u, ...res.user } : u
+              )
+            : null
+        );
+        messageApi.open({
+          key,
+          type: "success",
+          content: res.message || "User status updated successfully!",
+          duration: 2,
+        });
       }
     } catch (error) {
       console.error(error);
@@ -115,7 +105,7 @@ const AdminUsers = () => {
     setSort(e.target.value as "A-Z" | "Z-A");
   };
 
-   const handleNavigation = (id: string) => {
+  const handleNavigation = (id: string) => {
     navigate("/admin/user-info", { state: id });
   };
   return (
@@ -152,13 +142,20 @@ const AdminUsers = () => {
       </AlertDialog>
 
       <div className="w-full max-w-5xl mt-10">
-
-        <SearchSort sort={sort} search={search} handleSearchChange={handleSearchChange} setSort={changeSort}  />
+        <SearchSort
+          sort={sort}
+          search={search}
+          handleSearchChange={handleSearchChange}
+          setSort={changeSort}
+        />
 
         {/* Table */}
-        <AdminTable users={users} onBlockToggle={updateUserStatus} onView={handleNavigation} />
+        <AdminTable
+          users={users}
+          onBlockToggle={updateUserStatus}
+          onView={handleNavigation}
+        />
 
-       
         <div className="flex justify-center mt-6">
           <Pagination
             current={currentPage}

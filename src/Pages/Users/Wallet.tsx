@@ -13,11 +13,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
 import { addMoneyToWallet, getWalletInfo } from "@/api/auth/user";
-import { message } from "antd";
+import { message, Pagination } from "antd";
 import WaitingModal from "@/components/user/WaitingModal";
 import { formatDate, formatTime } from "@/utils/DateAndTimeFormatter";
 import Loader from "@/components/Loader";
-// import {  useNavigate } from "react-router-dom";
 interface IWallet {
   balance: number;
   transactions?: [
@@ -34,9 +33,11 @@ const Wallet = () => {
   const [fetchingData, setFetchingData] = useState(false);
   const [amount, setAmount] = useState<number | null>(null);
   const [amountError, setAmountError] = useState<string | null>(null);
-  const [page, setPages] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
+  // const [page, setPages] = useState(0);
+  // const [hasMore, setHasMore] = useState(false);
   //   const navigate = useNavigate();
+  const [total, setTotal] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [messageApi, contextHolder] = message.useMessage();
   const [wallet, setWallet] = useState<IWallet | null>();
   const [loading, setLoading] = useState(false);
@@ -44,11 +45,12 @@ const Wallet = () => {
     const fetchWalletInfo = async () => {
       setFetchingData(true);
       try {
-        const res = await getWalletInfo();
-        if (res.success && res.wallet) {
+        const res = await getWalletInfo(currentPage);
+        if (res.success && res.wallet && res.total) {
           setWallet(res.wallet);
-          setFetchingData(false);
+          setTotal(res.total);
         }
+        setFetchingData(false);
       } catch (error) {
         setFetchingData(false);
         if (error instanceof Error) {
@@ -59,7 +61,7 @@ const Wallet = () => {
       }
     };
     fetchWalletInfo();
-  }, [messageApi]);
+  }, [messageApi,currentPage]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const amount = parseInt(e.target.value);
@@ -100,7 +102,7 @@ const Wallet = () => {
     <>
       {contextHolder}
       <NavBar />
-      <WaitingModal open={loading} message="Redirecting..." />
+      <WaitingModal open={loading} message="Redirecting..." />\
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -161,38 +163,47 @@ const Wallet = () => {
           </h2>
 
           {wallet && wallet.transactions?.length ? (
-            <div className="overflow-y-auto max-h-[160px]  pr-2">
-              <ul className="space-y-3 text-sm text-gray-700 max-h-[160px]  pr-1">
-                {[...wallet.transactions].reverse().map((item, index) => {
-                  const isCredit = item.type === "credit";
-                  const formattedDate = formatDate(item.date);
-                  const formattedTime = formatTime(item.date);
+            <>
+              <div className="overflow-y-auto max-h-[160px]  pr-2">
+                <ul className="space-y-3 text-sm text-gray-700 max-h-[160px]  pr-1">
+                  {[...wallet.transactions].reverse().map((item, index) => {
+                    const isCredit = item.type === "credit";
+                    const formattedDate = formatDate(item.date);
+                    const formattedTime = formatTime(item.date);
 
-                  return (
-                    <li key={index} className="flex justify-between ">
-                      <span>
-                        {formattedDate},{formattedTime}
-                      </span>
-                      <span>
-                        {isCredit ? "Money Added" : "Payment to Driver"}
-                      </span>
-                      <span
-                        className={isCredit ? "text-green-500" : "text-red-500"}
-                      >
-                        {isCredit
-                          ? `+ ₹${item.amount.toFixed(2)}`
-                          : `- ₹${item.amount.toFixed(2)}`}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+                    return (
+                      <li key={index} className="flex justify-between ">
+                        <span>
+                          {formattedDate},{formattedTime}
+                        </span>
+                        <span>
+                          {isCredit ? "Money Added" : "Payment to Driver"}
+                        </span>
+                        <span
+                          className={
+                            isCredit ? "text-green-500" : "text-red-500"
+                          }
+                        >
+                          {isCredit
+                            ? `+ ₹${item.amount.toFixed(2)}`
+                            : `- ₹${item.amount.toFixed(2)}`}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+              <Pagination
+                current={currentPage}
+                total={total}
+                pageSize={8}
+                onChange={(page) => setCurrentPage(page)}
+              />
+            </>
           ) : (
             <p className="text-gray-500">No transactions found</p>
           )}
           {fetchingData && <Loader />}
-
         </div>
       </div>
     </>

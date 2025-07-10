@@ -1,70 +1,28 @@
-import LabelStepper from "../../../components/user/Stepper"
-import { useForm } from "react-hook-form"
+import LabelStepper from "../../../components/user/Stepper";
+import { useForm } from "react-hook-form";
 import * as yup from "yup";
-import { Upload } from "lucide-react"
-import { useState } from "react"
-import Checkbox from "../../../components/Icons/CheckBox"
-import BinButton from "../../../components/Icons/BinBtn"
+import { Upload } from "lucide-react";
+import { useState } from "react";
+import Checkbox from "../../../components/Icons/CheckBox";
+import BinButton from "../../../components/Icons/BinBtn";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate } from "react-router-dom";
 import { addVehicle } from "../../../api/auth/driver";
 import { useDispatch } from "react-redux";
-import { signUpSuccess} from '@/redux/slices/driverAuthSlice'
+import { signUpSuccess } from "@/redux/slices/driverAuthSlice";
+import { vehicleSchema } from "@/utils/validations/vehicleSchema";
 
-function validateLicensePlate(numberPlate: string): boolean {
-  if (!numberPlate) return false;
-  const regex = /^[A-Z]{2}[ -]?[0-9]{1,2}[ -]?[A-Z]{1,2}[ -]?[0-9]{1,4}$/;
-  return regex.test(numberPlate);
-}
-
-export const schema = yup.object().shape({
-  firstName: yup.string().required("First name is required"),
-  lastName: yup.string().default('').optional(),
-  address: yup.string().required("Street address is required"),
-  brand: yup.string().required('Vehicle brand is required'),
-  model: yup.string().required('Vehicle model is required'),
-  color: yup.string().required('Vehicle color is required'),
-  registrationDate: yup
-    .date()
-    .transform((value, originalValue) => {
-      return originalValue === "" ? undefined : value;
-    })
-    .required("Registration Date is required")
-    .max(new Date(), "Registration date cannot be in the future"),
-
-  licenseNumber: yup
-    .string()
-    .required("Number plate is required")
-    .test(
-      "valid-number-plate",
-      "Invalid Number Plate Format",
-      (value) => !!value && validateLicensePlate(value)
-    ),
-
-  expirationDate: yup
-    .date()
-    .transform((value, originalValue) => {
-      return originalValue === "" ? undefined : value;
-    })
-    .required("Expiration Date is required")
-    .min(new Date(), "Expiration date must not be in the past"),
-  insuranceProvider: yup.string().required('Insurance provider is required'),
-  policyNumber: yup.string()
-    .required('Policy number is required')
-    .matches(/^\d{10}$/, 'Policy number must be exactly 10 digits')
-});
-
-export type FormData = yup.InferType<typeof schema>;
+export type FormData = yup.InferType<typeof vehicleSchema>;
 const DAddVehicle = () => {
   const [frontView, setFrontView] = useState<string | null>(null);
   const [rearView, setRearView] = useState<string | null>(null);
   const [interiorView, setInteriorView] = useState<string | null>(null);
-  const [error, setError] = useState('')
-  const [imgError,setImgError] = useState('')
-  const navigate = useNavigate()
-  const [isChecked, setIsChecked] = useState(false)
-  const dispatch = useDispatch()
-  const [loading,setLoading] = useState(false)
+  const [error, setError] = useState("");
+  const [imgError, setImgError] = useState("");
+  const navigate = useNavigate();
+  const [isChecked, setIsChecked] = useState(false);
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
 
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -73,25 +31,25 @@ const DAddVehicle = () => {
   ) => {
     const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
     const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"]; // Allowed image types
-  
+
     const file = e.target.files?.[0]; // Ensure a file is selected
     if (!file) return;
-  
+
     // Validate file type
     if (!ALLOWED_TYPES.includes(file.type)) {
       setError("Only JPG, PNG, and WEBP images are allowed.");
       return;
     }
-  
+
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       setError("File size must be less than 2MB.");
       return;
     }
-  
+
     // Reset error state
     setError("");
-  
+
     // Read the file and set the image preview
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -105,7 +63,6 @@ const DAddVehicle = () => {
     };
     reader.readAsDataURL(file);
   };
-  
 
   const handleFrontView = (e: React.ChangeEvent<HTMLInputElement>) =>
     handleImageUpload(e, setFrontView, setImgError);
@@ -120,83 +77,82 @@ const DAddVehicle = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(vehicleSchema),
   });
 
-  
-
   const onSubmit = async (data: FormData) => {
-    setError('')
+    setError("");
     if (!frontView || !rearView || !interiorView) {
-      setImgError('Vehicle images are required')
-      return 
+      setImgError("Vehicle images are required");
+      return;
     }
     if (!isChecked) {
-      setError('Please accept to the Terms ')
+      setError("Please accept to the Terms ");
       scrollTo({
         top: 120,
-        behavior: 'smooth',
-      })
-      return
+        behavior: "smooth",
+      });
+      return;
     }
-    
-    const driverId = localStorage.getItem('driverId')
+
+    const driverId = localStorage.getItem("driverId");
     if (!driverId) {
-      setError('Driver id is missing')
-      setTimeout(()=>{
-        navigate('/driver/signup')
-      },1000)
+      setError("Driver id is missing");
+      setTimeout(() => {
+        navigate("/driver/signup");
+      }, 1000);
     }
-    console.log('data ', data);
+    console.log("data ", data);
     const updatedData = {
-      driverId : driverId || '',
-      nameOfOwner : `${data.firstName.trimStart()} ${data.lastName.trimEnd() || ''}`,
-      addressOfOwner : data.address,
-      brand : data.brand,
-      vehicleModel : data.model,
-      color : data.color,
-      numberPlate : data.licenseNumber,
-      regDate : data.registrationDate,
-      expDate : data.expirationDate,
+      driverId: driverId || "",
+      nameOfOwner: `${data.firstName.trimStart()} ${
+        data.lastName.trimEnd() || ""
+      }`,
+      addressOfOwner: data.address,
+      brand: data.brand,
+      vehicleModel: data.model,
+      color: data.color,
+      numberPlate: data.licenseNumber,
+      regDate: data.registrationDate,
+      expDate: data.expirationDate,
       insuranceProvider: data.insuranceProvider,
-      policyNumber : data.policyNumber,
-      vehicleImages :{
-        frontView,rearView,interiorView
-      }
-    }
-    console.log('updatedData ',updatedData);
-    
+      policyNumber: data.policyNumber,
+      vehicleImages: {
+        frontView,
+        rearView,
+        interiorView,
+      },
+    };
+    console.log("updatedData ", updatedData);
+
     // https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/toyota/modelyear/2020?format=json
 
-      try {
-        setLoading(true)
-        const response = await addVehicle(updatedData)
-        if (response) {
-          setLoading(false)
-          console.log('Response   ',response); 
-          const driver = response.driver
-          localStorage.clear()
-          console.log('driver data in the add vehicle page ',driver);
-          
-          dispatch(signUpSuccess({driverInfo:driver}))
-          navigate('/driver/verification-pending')
-        }
-        
-      } catch (error) {
-        setLoading(false)
-        if (error instanceof Error) {
-          setError(error.message)
-        }else{
-          setError('Internal server error')
-        }
+    try {
+      setLoading(true);
+      const response = await addVehicle(updatedData);
+      if (response) {
+        setLoading(false);
+        console.log("Response   ", response);
+        const driver = response.driver;
+        localStorage.clear();
+        console.log("driver data in the add vehicle page ", driver);
+
+        dispatch(signUpSuccess({ driverInfo: driver }));
+        navigate("/driver/verification-pending");
       }
-
-  }
-
+    } catch (error) {
+      setLoading(false);
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Internal server error");
+      }
+    }
+  };
 
   const changeCheckBox = () => {
-    setIsChecked(!isChecked)
-  }
+    setIsChecked(!isChecked);
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen py-6">
@@ -204,14 +160,18 @@ const DAddVehicle = () => {
         <h1 className="font-primary text-3xl text-black">NexaDrive</h1>
         <p className="text-sm text-black mt-0.5">Vehicle Information Form</p>
         <div className="md:w-md  md:ml-25">
-
           <LabelStepper count={3} step={4} />
         </div>
         {error && <p className="text-red-500 mt-3 text-xs">{error}</p>}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-3 text-left">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="mt-4 space-y-3 text-left"
+        >
           {/* Full Name */}
-          <label className="block font-medium text-black text-sm">Name of owner</label>
+          <label className="block font-medium text-black text-sm">
+            Name of owner
+          </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <input
@@ -221,7 +181,9 @@ const DAddVehicle = () => {
                 className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
               />
               {errors.firstName && (
-                <p className="text-red-500 text-xs">{errors.firstName.message}</p>
+                <p className="text-red-500 text-xs">
+                  {errors.firstName.message}
+                </p>
               )}
             </div>
             <div>
@@ -232,13 +194,17 @@ const DAddVehicle = () => {
                 className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
               />
               {errors.lastName && (
-                <p className="text-red-500 text-xs">{errors.lastName.message}</p>
+                <p className="text-red-500 text-xs">
+                  {errors.lastName.message}
+                </p>
               )}
             </div>
           </div>
 
           {/* Permanent Address */}
-          <label className="block font-medium text-black text-sm">Address of owner</label>
+          <label className="block font-medium text-black text-sm">
+            Address of owner
+          </label>
           <div>
             <input
               type="text"
@@ -251,10 +217,10 @@ const DAddVehicle = () => {
             )}
           </div>
 
-
-
           {/* Vehicle Details */}
-          <label className="block font-medium text-black text-sm">Vehicle info</label>
+          <label className="block font-medium text-black text-sm">
+            Vehicle info
+          </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <input
@@ -282,8 +248,6 @@ const DAddVehicle = () => {
             </div>
           </div>
 
-
-
           {/*  Color and Number plate  */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -308,12 +272,12 @@ const DAddVehicle = () => {
                 className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
               />
               {errors.licenseNumber && (
-                <p className="text-red-500 text-xs">{errors.licenseNumber.message}</p>
+                <p className="text-red-500 text-xs">
+                  {errors.licenseNumber.message}
+                </p>
               )}
             </div>
           </div>
-
-
 
           {/* Vehicle images  */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
@@ -327,16 +291,19 @@ const DAddVehicle = () => {
                     className="w-44 h-44 object-cover rounded-xl border border-gray-300 shadow-md transition-transform transform"
                   />
                   <div className="absolute top-2 right-6 ">
-                    <BinButton
-                      onClick={() => setFrontView(null)}
-                    />
+                    <BinButton onClick={() => setFrontView(null)} />
                   </div>
                 </div>
               ) : (
                 <label className="flex flex-col items-center justify-center w-full h-44 p-4 border-2 border-dashed border-gray-400 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
                   <Upload size={28} className="text-gray-500 mb-2" />
                   <span className="text-gray-700 text-sm">Front View</span>
-                  <input type="file" className="hidden" onChange={handleFrontView} accept="image/*" />
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={handleFrontView}
+                    accept="image/*"
+                  />
                 </label>
               )}
             </div>
@@ -351,16 +318,19 @@ const DAddVehicle = () => {
                     className="w-44 h-44 object-cover rounded-xl border border-gray-300 shadow-md transition-transform transform"
                   />
                   <div className="absolute top-2 right-6 ">
-                    <BinButton
-                      onClick={() => setRearView(null)}
-                    />
+                    <BinButton onClick={() => setRearView(null)} />
                   </div>
                 </div>
               ) : (
                 <label className="flex flex-col items-center justify-center w-full h-44 p-4 border-2 border-dashed border-gray-400 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
                   <Upload size={28} className="text-gray-500 mb-2" />
                   <span className="text-gray-700 text-sm">Rear View</span>
-                  <input type="file" className="hidden" onChange={handleRearView} accept="image/*" />
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={handleRearView}
+                    accept="image/*"
+                  />
                 </label>
               )}
             </div>
@@ -375,56 +345,67 @@ const DAddVehicle = () => {
                     className="w-44 h-44 object-cover rounded-xl border border-gray-300 shadow-md transition-transform transform "
                   />
                   <div className="absolute top-2 right-6 ">
-                    <BinButton
-                      onClick={() => setInteriorView(null)}
-                    />
+                    <BinButton onClick={() => setInteriorView(null)} />
                   </div>
                 </div>
               ) : (
                 <label className="flex flex-col items-center justify-center w-full h-44 p-4 border-2 border-dashed border-gray-400 rounded-xl cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
                   <Upload size={28} className="text-gray-500 mb-2" />
                   <span className="text-gray-700 text-sm">Interior</span>
-                  <input type="file" className="hidden" onChange={handleInteriorView} accept="image/*" />
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={handleInteriorView}
+                    accept="image/*"
+                  />
                 </label>
               )}
             </div>
           </div>
 
-         {imgError &&  <p className="text-red-500 mt-3 text-xs">{imgError}</p>}
-
+          {imgError && <p className="text-red-500 mt-3 text-xs">{imgError}</p>}
 
           {/* Registration Dates  */}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block font-medium text-black text-sm">Registration Date</label>
+              <label className="block font-medium text-black text-sm">
+                Registration Date
+              </label>
               <input
                 type="date"
                 {...register("registrationDate")}
                 className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
               />
               {errors.registrationDate && (
-                <p className="text-red-500 text-xs">{errors.registrationDate.message}</p>
+                <p className="text-red-500 text-xs">
+                  {errors.registrationDate.message}
+                </p>
               )}
             </div>
 
             <div>
-              <label className="block font-medium text-black text-sm">Date of Expiration</label>
+              <label className="block font-medium text-black text-sm">
+                Date of Expiration
+              </label>
               <input
                 type="date"
                 {...register("expirationDate")}
                 className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
               />
               {errors.expirationDate && (
-                <p className="text-red-500 text-xs">{errors.expirationDate.message}</p>
+                <p className="text-red-500 text-xs">
+                  {errors.expirationDate.message}
+                </p>
               )}
             </div>
           </div>
 
-
           {/* Insurance details  */}
 
-          <label className="block font-medium text-black text-sm">Insurance details </label>
+          <label className="block font-medium text-black text-sm">
+            Insurance details{" "}
+          </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <input
@@ -434,7 +415,9 @@ const DAddVehicle = () => {
                 className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
               />
               {errors.insuranceProvider && (
-                <p className="text-red-500 text-xs">{errors.insuranceProvider.message}</p>
+                <p className="text-red-500 text-xs">
+                  {errors.insuranceProvider.message}
+                </p>
               )}
             </div>
 
@@ -447,23 +430,26 @@ const DAddVehicle = () => {
                 className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
               />
               {errors.policyNumber && (
-                <p className="text-red-500 text-xs">{errors.policyNumber.message}</p>
+                <p className="text-red-500 text-xs">
+                  {errors.policyNumber.message}
+                </p>
               )}
             </div>
           </div>
 
-
           <div className="flex gap-3">
-            <div className="flex items-center justify-center w-6 h-6"
-            >
+            <div className="flex items-center justify-center w-6 h-6">
               <Checkbox isChecked={isChecked} onChange={changeCheckBox} />
             </div>
             <p className="text-xs text-gray-500 font-medium">
-              I certify that the information given on this form is true and correct to the best of my knowledge. I understand that as a volunteer driver, I must be 18 years of age or older, possess a valid driver’s license, have the proper and current license and vehicle registration, and have the required insurance coverage in effect on any vehicle used to transport participants of the event.
+              I certify that the information given on this form is true and
+              correct to the best of my knowledge. I understand that as a
+              volunteer driver, I must be 18 years of age or older, possess a
+              valid driver’s license, have the proper and current license and
+              vehicle registration, and have the required insurance coverage in
+              effect on any vehicle used to transport participants of the event.
             </p>
           </div>
-
-
 
           {/* Submit Button */}
           <button
@@ -471,12 +457,12 @@ const DAddVehicle = () => {
             className="w-full bg-black text-white py-2.5 rounded-xl hover:bg-gray-900 transition text-sm mt-4"
             disabled={loading}
           >
-            {loading ? 'Submitting...':"Submit"}
+            {loading ? "Submitting..." : "Submit"}
           </button>
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default DAddVehicle
+export default DAddVehicle;

@@ -2,6 +2,7 @@ import AdminNavBar from "@/components/admin/AdminNavbar";
 import { useEffect, useState } from "react";
 import { message, Pagination } from "antd";
 import { getRideEarnings } from "@/api/auth/admin";
+import { useNavigate } from "react-router-dom";
 interface ICommission {
   rideId: string;
   driverId: string;
@@ -21,12 +22,12 @@ const AdminEarnings = () => {
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [commissions, setCommissions] = useState<ICommission[]>();
   const [messageApi, contextHolder] = message.useMessage();
+  const navigate = useNavigate()
   useEffect(() => {
     const fetchInfo = async () => {
       try {
         const res = await getRideEarnings(currentPage);
         console.log(res);
-
         if (res.success && res.commissions && res.totalCount) {
           setCommissions(res.commissions);
           setTotal(res.totalCount);
@@ -52,7 +53,6 @@ const AdminEarnings = () => {
             <span className="text-green-400">{totalEarnings}</span>
           </h3>
 
-          {/* Desktop Table */}
           <div className=" overflow-x-auto">
             <table className="w-full table-auto border-collapse ">
               <thead>
@@ -86,6 +86,7 @@ const AdminEarnings = () => {
                     <tr
                       key={index}
                       className="hover:bg-[#242B3D] transition-colors duration-200"
+                      onClick={()=> navigate('/admin/ride-info',{state:item.rideId}) }
                     >
                       <td className="px-4 py-4 text-sm font-medium text-white">
                         #{item.rideId.slice(-3)}
