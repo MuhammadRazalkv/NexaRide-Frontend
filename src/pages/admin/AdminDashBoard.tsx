@@ -130,7 +130,7 @@ const AdminDashBoard = () => {
         <InfoCard
           icon={<FaCrown size={28} />}
           label="Premium Users"
-          value={data?.premiumUsers}
+          value={data?.premiumUsers || '0'}
         />
       </div>
 
