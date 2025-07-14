@@ -1,5 +1,5 @@
 import { IAvailableCabs } from "@/interfaces/ride.interface";
-import { Car3D } from "@/assets";
+import { carModel } from "@/assets";
 import { Car, Tag, Users } from "lucide-react";
 import { useState } from "react";
 import { FaCrown } from "react-icons/fa";
@@ -25,7 +25,7 @@ const AvailableDriverList: React.FC<DriverListProps> = ({
     //       }
     //     >
     //       <img
-    //         src={Car3D}
+    //         src={carModel}
     //         alt="car model"
     //         className="h-28 w-28 object-contain rounded-xl p-2 bg-gray-100"
     //       />
@@ -92,7 +92,7 @@ const AvailableDriverList: React.FC<DriverListProps> = ({
             <div className="relative p-3">
               <div className="flex items-center justify-center h-32 w-32 bg-gray-50 rounded-xl overflow-hidden">
                 <img
-                  src={Car3D}
+                  src={carModel}
                   alt={`${category.category} cab`}
                   className="h-28 w-28 object-contain"
                 />
@@ -106,12 +106,11 @@ const AvailableDriverList: React.FC<DriverListProps> = ({
 
             <div className="flex-1 p-4">
               <div className="flex items-center justify-between">
-                
-                  <h3 className="text-xl font-semibold text-gray-800">
-                    {category.category.charAt(0).toUpperCase() +
-                      category.category.slice(1)}
-                  </h3>
-         
+                <h3 className="text-xl font-semibold text-gray-800">
+                  {category.category.charAt(0).toUpperCase() +
+                    category.category.slice(1)}
+                </h3>
+
                 <div className="flex items-center text-gray-600">
                   <Users size={12} className="mr-1" />
                   <span className="text-xs">{category.count} available</span>

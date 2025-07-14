@@ -6,7 +6,7 @@ import {
   Popup,
 } from "react-leaflet";
 import { Icon } from "leaflet";
-import { PopUpDriver } from "@/assets";
+import { driverPopUp } from "@/assets";
 
 interface MapComponentProps {
   pickupCoords?: [number, number] | null;
@@ -32,7 +32,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
 }) => {
   const defaultPosition: [number, number] = [12.9716, 77.5946];
   const driverIcon = new Icon({
-    iconUrl: PopUpDriver,
+    iconUrl: driverPopUp,
     iconSize: [34, 34],
     iconAnchor: [16, 32],
     popupAnchor: [0, -30],
