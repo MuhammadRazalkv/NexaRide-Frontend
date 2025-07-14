@@ -4,11 +4,11 @@ import Footer from "../../components/user/Footer";
 import { useNavigate } from "react-router-dom";
 
 const Home = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <>
-    {/* Navbar  */}
+      {/* Navbar  */}
       <div className="h-[70px] flex items-center justify-between px-9 shadow-md w-full bg-white">
         <h1 className="font-primary text-4xl">NexaRide</h1>
 
@@ -17,7 +17,7 @@ const Home = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="bg-black text-white h-10 px-6 rounded-3xl text-sm drop-shadow-xl hover:bg-neutral-800 md:mr-5"
-            onClick={() => navigate('/user/login')}
+            onClick={() => navigate("/user/login")}
           >
             Login
           </motion.button>
@@ -25,7 +25,7 @@ const Home = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="bg-white text-black h-10 px-6 rounded-3xl text-sm drop-shadow-xl hover:bg-gray-100 hidden md:block"
-            onClick={() => navigate('/user/signup')}
+            onClick={() => navigate("/user/signup")}
           >
             Sign up
           </motion.button>
@@ -33,7 +33,10 @@ const Home = () => {
       </div>
 
       {/* Landing sec 1  */}
-      <div className="relative w-full bg-cover" style={{ height: "calc(100vh - 70px)" }}>
+      <div
+        className="relative w-full bg-cover"
+        style={{ height: "calc(100vh - 70px)" }}
+      >
         <motion.img
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -56,13 +59,12 @@ const Home = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="bg-black text-white h-10 px-20 rounded-3xl text-sm mt-4 hover:bg-neutral-800"
-            onClick={() => navigate('/user/signup')}
+            onClick={() => navigate("/user/signup")}
           >
             Get Started
           </motion.button>
         </motion.div>
       </div>
-
 
       {/* Landing sec 2 user   */}
       <div className="mt-5 mr-3 w-full bg-cover px-4">
@@ -81,18 +83,23 @@ const Home = () => {
           />
 
           <div className="md:w-1/2 font-secondary text-center md:text-left flex flex-col justify-center items-center md:items-start space-y-6">
-            <h1 className="text-4xl md:text-5xl text-black font-bold">Your Ride Awaits</h1>
+            <h1 className="text-4xl md:text-5xl text-black font-bold">
+              Your Ride Awaits
+            </h1>
             <p className="text-lg text-gray-700 max-w-lg">
-              View past trips, tailored suggestions, support resources, and more.
+              View past trips, tailored suggestions, support resources, and
+              more.
             </p>
-            <p className="text-lg text-gray-700 max-w-lg">Log in to see your recent activity</p>
+            <p className="text-lg text-gray-700 max-w-lg">
+              Log in to see your recent activity
+            </p>
 
             <div className="flex items-center space-x-4">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="bg-black text-white py-3 px-8 rounded-3xl text-sm drop-shadow-xl hover:bg-neutral-800"
-                onClick={() => navigate('/user/login')}
+                onClick={() => navigate("/user/login")}
               >
                 Login
               </motion.button>
@@ -100,7 +107,7 @@ const Home = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="bg-white text-black py-3 px-8 rounded-3xl text-sm drop-shadow-xl hover:bg-gray-100"
-                onClick={() => navigate('/user/signup')}
+                onClick={() => navigate("/user/signup")}
               >
                 Sign up
               </motion.button>
@@ -111,7 +118,7 @@ const Home = () => {
         {/* Landing sec 2 Driver    */}
 
         <motion.div
-          initial={{ opacity: 0 , x:15 }}
+          initial={{ opacity: 0, x: 15 }}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 1 }}
           viewport={{ once: true }}
@@ -125,9 +132,12 @@ const Home = () => {
           />
 
           <div className="md:w-1/2 font-secondary text-center md:text-left flex flex-col justify-center items-center md:items-start space-y-6 ml-4">
-            <h1 className="text-4xl md:text-5xl text-black font-bold">Hit the Road and Earn</h1>
+            <h1 className="text-4xl md:text-5xl text-black font-bold">
+              Hit the Road and Earn
+            </h1>
             <p className="text-lg text-gray-700 max-w-lg">
-              Make money on your schedule with every ride. Drive your own car and earn on your terms.
+              Make money on your schedule with every ride. Drive your own car
+              and earn on your terms.
             </p>
 
             <div className="flex items-center space-x-4">
@@ -135,7 +145,7 @@ const Home = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="bg-black text-white py-3 px-8 rounded-3xl text-sm drop-shadow-xl hover:bg-neutral-800"
-                onClick={() => navigate('/driver/login')}
+                onClick={() => navigate("/driver/login")}
               >
                 Login
               </motion.button>
@@ -143,7 +153,7 @@ const Home = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="bg-white text-black py-3 px-8  rounded-3xl text-sm drop-shadow-xl hover:bg-gray-100 "
-                onClick={() => navigate('/driver/signup')}
+                onClick={() => navigate("/driver/signup")}
               >
                 Get started as a Driver
               </motion.button>
