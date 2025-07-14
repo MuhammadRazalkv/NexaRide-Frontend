@@ -1,5 +1,5 @@
 import { TbMessage } from "react-icons/tb";
-import { Car3D } from "@/assets";
+import { carModel } from "@/assets";
 import { RideInfo } from "@/utils/socket";
 import { DriverRoute } from "@/interfaces/ride.interface";
 type RideInfoCardProps = {
@@ -26,7 +26,7 @@ const RideInfoCard: React.FC<RideInfoCardProps> = ({
       {/* Driver Info */}
       <div className="flex items-center gap-5 mb-5">
         <img
-          src={Car3D}
+          src={carModel}
           alt="Car"
           className="w-24 h-24 rounded-xl object-cover"
         />

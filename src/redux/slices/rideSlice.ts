@@ -17,6 +17,7 @@ interface UserRideState {
   rideId?:string ;
   inPayment: boolean;
   stripePayment: boolean;
+  rideCompleted:boolean
 }
 
 const initialState : UserRideState= {
@@ -34,6 +35,7 @@ const initialState : UserRideState= {
   rideId: undefined,
   inPayment: false,
   stripePayment: false,
+  rideCompleted:false
 };
 
 const rideSlice = createSlice({
@@ -85,6 +87,9 @@ const rideSlice = createSlice({
     setStripePaymentInSlice: (state, action) => {
       state.stripePayment = action.payload;
     },
+    setRideCompletedInSlice: (state, action) => {
+      state.rideCompleted = action.payload;
+    },
     resetRide: () => {
       return initialState;
     },
@@ -107,6 +112,7 @@ export const {
   setInPaymentInSlice,
   setRideIdInSlice,
   setStripePaymentInSlice,
+  setRideCompletedInSlice
 } = rideSlice.actions;
 
 export default rideSlice.reducer;

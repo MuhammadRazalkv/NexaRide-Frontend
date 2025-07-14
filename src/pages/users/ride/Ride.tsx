@@ -94,6 +94,7 @@ const Ride = () => {
     routeCoords: routeCoordsInSlice,
     remainingDropOffRoute: remainingDropOffRouteInSlice,
     remainingRoute: remainingRouteInSlice,
+    rideCompleted,
   } = useSelector((state: RootState) => state.ride);
 
   const clearAllStateData = () => {
@@ -121,27 +122,29 @@ const Ride = () => {
   }, [remainingDropOffRoute]);
 
   useEffect(() => {
-    if (Array.isArray(routeCoordsInSlice) && routeCoordsInSlice.length > 0)
-      setRouteCoords(routeCoordsInSlice);
+    if (!rideCompleted) {
+      if (Array.isArray(routeCoordsInSlice) && routeCoordsInSlice.length > 0)
+        setRouteCoords(routeCoordsInSlice);
 
-    if (
-      Array.isArray(remainingDropOffRouteInSlice) &&
-      remainingDropOffRouteInSlice.length > 0
-    ) {
-      setRemainingDropOffRoute(remainingDropOffRouteInSlice);
-    }
+      if (
+        Array.isArray(remainingDropOffRouteInSlice) &&
+        remainingDropOffRouteInSlice.length > 0
+      ) {
+        setRemainingDropOffRoute(remainingDropOffRouteInSlice);
+      }
 
-    if (
-      Array.isArray(remainingRouteInSlice) &&
-      remainingRouteInSlice.length > 0
-    )
-      setRemainingRoute(remainingRouteInSlice);
+      if (
+        Array.isArray(remainingRouteInSlice) &&
+        remainingRouteInSlice.length > 0
+      )
+        setRemainingRoute(remainingRouteInSlice);
 
-    if (pickupCoordsSlice) {
-      setPickupCoords(pickupCoordsSlice);
-    }
-    if (dropOffCoordsInSlice) {
-      setDropOffCoords(dropOffCoordsInSlice);
+      if (pickupCoordsSlice) {
+        setPickupCoords(pickupCoordsSlice);
+      }
+      if (dropOffCoordsInSlice) {
+        setDropOffCoords(dropOffCoordsInSlice);
+      }
     }
   }, [
     routeCoordsInSlice,
@@ -150,6 +153,7 @@ const Ride = () => {
     pickupCoordsSlice,
     dropOffCoordsInSlice,
     isToDropOff,
+    rideCompleted,
   ]);
 
   //* Used to fetch the route between pickup and dropOff when both coordinates given
@@ -198,10 +202,12 @@ const Ride = () => {
   }, [pickupCoords, dropOffCoords]);
 
   useEffect(() => {
-    if (rideGotCancelled) {
+    if (rideGotCancelled || rideCompleted) {
+      console.log("Cleared all state data in comp ");
+
       clearAllStateData();
     }
-  }, [rideGotCancelled]);
+  }, [rideGotCancelled, rideCompleted]);
   // Handle no response form driver
   const handleNoDriverResponse = useCallback(() => {
     messageApi.info(

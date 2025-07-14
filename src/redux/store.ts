@@ -36,7 +36,8 @@ const rootReducer = combineReducers({
         "driverArrived",
         "rideId",
         "inPayment",
-        'stripePayment'
+        'stripePayment',
+        'rideCompleted'
       ],
     },
     rideReducer

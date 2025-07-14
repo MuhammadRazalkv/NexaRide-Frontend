@@ -9,6 +9,7 @@ import {
   setRemainingRouteInSlice,
   setRemainingDropOffRouteInSlice,
   setStripePaymentInSlice,
+  setRideCompletedInSlice,
 } from "@/redux/slices/rideSlice";
 
 import { IMessage } from "@/interfaces/chat.interface";
@@ -35,7 +36,6 @@ export interface SocketContextTypes {
   clearAllStateDataInContext: () => void;
   rideGotCancelled: boolean;
   removeAllRideListeners: () => void;
-  // rideFinished:boolean
 }
 
 export const RideProvider = ({ children }: { children: React.ReactNode }) => {
@@ -70,6 +70,8 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
             console.log("payment status completed ");
 
             dispatch(setInPaymentInSlice(false));
+            dispatch(setRideCompletedInSlice(true));
+
             // setPaymentModalOpen(false);
             setIsRateModalOpen(true);
             dispatch(setStripePaymentInSlice(false));
@@ -88,6 +90,8 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
     setChatOn(false);
     setIsRateModalOpen(false);
     setRideGotCancelled(false);
+    dispatch(setRideCompletedInSlice(false));
+
     setRating(0);
     setReviewComments("");
     setRatingError("");
@@ -125,6 +129,7 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
     setIsRateModalOpen(true);
     dispatch(setInPaymentInSlice(false));
     setChatOn(false);
+    dispatch(setRideCompletedInSlice(true));
     // setRideFinished(true)
     setTimeout(() => {
       messageApi.success("Payment success");
