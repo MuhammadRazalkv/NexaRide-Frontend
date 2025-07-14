@@ -1,4 +1,5 @@
-import { Landing1, Landing2, Landing3 } from "../../assets";
+// import { Landing1, Landing2, Landing3 } from "../../assets";
+import { landing1, landing2, landing3 } from "@/assets";
 import { motion } from "framer-motion";
 import Footer from "../../components/user/Footer";
 import { useNavigate } from "react-router-dom";
@@ -41,7 +42,7 @@ const Home = () => {
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 1 }}
-          src={Landing1}
+          src={landing1}
           alt="Landing"
           className="h-full w-full object-cover object-bottom"
         />
@@ -77,7 +78,7 @@ const Home = () => {
         >
           <motion.img
             whileHover={{ scale: 1.05 }}
-            src={Landing2}
+            src={landing2}
             alt="Landing"
             className="w-full md:w-1/2 max-h-[500px] object-cover rounded-lg"
           />
@@ -126,7 +127,7 @@ const Home = () => {
         >
           <motion.img
             whileHover={{ scale: 1.05 }}
-            src={Landing3}
+            src={landing3}
             alt="Landing"
             className="w-full md:w-1/2 max-h-[500px] object-cover rounded-lg"
           />
