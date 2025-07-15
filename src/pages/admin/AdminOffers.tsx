@@ -67,67 +67,84 @@ const AdminOffers = () => {
 
       {offers && offers.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {offers.map((offer, index) => (
-            <div
-              key={index}
-              className="bg-[#1E253A] rounded-2xl shadow-lg p-6 text-white flex flex-col justify-between"
-            >
-              <div>
-                <h3 className="text-xl font-bold mb-1">{offer.title}</h3>
+          {offers.map((offer, index) => {
+            const isExpired = offer.validTill < Date.now(); // Step 1
 
-                <p className="text-sm text-gray-300 mb-1">
-                  <span className="font-medium">Type:</span>{" "}
-                  {offer.type === "percentage"
-                    ? `${offer.value}% off`
-                    : `Flat ₹${offer.value} off`}
-                </p>
-
-                {offer.type === "percentage" && (
-                  <p className="text-sm text-gray-300 mb-1">
-                    <span className="font-medium">Max Discount:</span> ₹
-                    {offer.maxDiscount}
-                  </p>
-                )}
-
-                <p className="text-sm text-gray-300 mb-1">
-                  <span className="font-medium">Minimum Fare Required:</span> ₹
-                  {offer.minFare}
-                </p>
-                <p className="text-sm text-gray-300 mb-1">
-                  <span className="font-medium">Limit per user:</span>{" "}
-                  {offer.usageLimitPerUser}
-                </p>
-
-                <p className="text-sm text-gray-300 mb-1">
-                  <span className="font-medium">Valid From:</span>{" "}
-                  {formatDate(offer.validFrom)}
-                </p>
-
-                <p className="text-sm text-gray-300 mb-3">
-                  <span className="font-medium">Valid Till:</span>{" "}
-                  {formatDate(offer.validTill)}
-                </p>
-
-                <p
-                  className={`text-sm font-semibold ${
-                    offer.isActive ? "text-green-400" : "text-red-400"
-                  }`}
-                >
-                  {offer.isActive
-                    ? "Auto-applied at checkout"
-                    : "Offer inactive"}
-                </p>
-              </div>
-
-              <Button
-                variant={offer.isActive ? "destructive" : "success"}
-                className="mt-4"
-                onClick={() => updateOfferStatus(offer._id as string)}
+            return (
+              <div
+                key={index}
+                className={`bg-[#1E253A] rounded-2xl shadow-lg p-6 text-white flex flex-col justify-between border ${
+                  isExpired ? "border-red-500" : "border-transparent"
+                }`}
               >
-                {offer.isActive ? "Deactivate" : "Activate"}
-              </Button>
-            </div>
-          ))}
+                <div>
+                  <h3 className="text-xl font-bold mb-1">{offer.title}</h3>
+
+                  {isExpired && (
+                    <p className="text-sm font-semibold text-red-400 mb-1">
+                      🔴 Expired Offer
+                    </p>
+                  )}
+
+                  <p className="text-sm text-gray-300 mb-1">
+                    <span className="font-medium">Type:</span>{" "}
+                    {offer.type === "percentage"
+                      ? `${offer.value}% off`
+                      : `Flat ₹${offer.value} off`}
+                  </p>
+
+                  {offer.type === "percentage" && (
+                    <p className="text-sm text-gray-300 mb-1">
+                      <span className="font-medium">Max Discount:</span> ₹
+                      {offer.maxDiscount}
+                    </p>
+                  )}
+
+                  <p className="text-sm text-gray-300 mb-1">
+                    <span className="font-medium">Minimum Fare Required:</span>{" "}
+                    ₹{offer.minFare}
+                  </p>
+
+                  <p className="text-sm text-gray-300 mb-1">
+                    <span className="font-medium">Limit per user:</span>{" "}
+                    {offer.usageLimitPerUser}
+                  </p>
+
+                  <p className="text-sm text-gray-300 mb-1">
+                    <span className="font-medium">Valid From:</span>{" "}
+                    {formatDate(offer.validFrom)}
+                  </p>
+
+                  <p className="text-sm text-gray-300 mb-3">
+                    <span className="font-medium">Valid Till:</span>{" "}
+                    {formatDate(offer.validTill)}
+                  </p>
+
+                  {!isExpired && (
+                    <p
+                      className={`text-sm font-semibold ${
+                        offer.isActive ? "text-green-400" : "text-red-400"
+                      }`}
+                    >
+                      {offer.isActive
+                        ? "Auto-applied at checkout"
+                        : "Offer inactive"}
+                    </p>
+                  )}
+                </div>
+
+                {!isExpired && (
+                  <Button
+                    variant={offer.isActive ? "destructive" : "success"}
+                    className="mt-4"
+                    onClick={() => updateOfferStatus(offer._id as string)}
+                  >
+                    {offer.isActive ? "Deactivate" : "Activate"}
+                  </Button>
+                )}
+              </div>
+            );
+          })}
         </div>
       ) : (
         <h3 className="text-white text-center text-lg mt-10">
