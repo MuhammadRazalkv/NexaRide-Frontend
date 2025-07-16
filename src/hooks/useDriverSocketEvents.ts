@@ -108,12 +108,17 @@ export const useDriverSocketEvents = ({
     socket.on("payment-received", handlePaymentReceived);
     socket.on("chat-msg", handleChat);
     socket.on("ride-cancelled", handleRideCancelled);
-
+    const interval = setInterval(() => {
+      if (socket.connected) {
+        socket.emit("keep-alive");
+      }
+    }, 60000);
     return () => {
       socket.off("new-ride-req", handleNewRideReq);
       socket.off("payment-received", handlePaymentReceived);
       socket.off("chat-msg", handleChat);
       socket.off("ride-cancelled", handleRideCancelled);
+      clearInterval(interval);
     };
   }, [
     token,
@@ -127,7 +132,7 @@ export const useDriverSocketEvents = ({
     rideRejected,
     messageApi,
     clearAllStateData,
-    trackingToPickupRef
+    trackingToPickupRef,
   ]);
 
   useEffect(() => {

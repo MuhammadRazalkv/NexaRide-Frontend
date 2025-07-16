@@ -178,6 +178,11 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
       socket.on("payment-success", handlePaymentSuccess);
       socket.on("chat-msg", handleChat);
     }
+    const interval = setInterval(() => {
+      if (socket.connected) {
+        socket.emit("keep-alive");
+      }
+    }, 60000);
 
     return () => {
       socket.off("ride-error", handleError);
@@ -186,6 +191,7 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
       socket.off("dropOff-reached", handleDropOffReached);
       socket.off("payment-success", handlePaymentSuccess);
       socket.off("chat-msg", handleChat);
+      clearInterval(interval);
     };
   }, [
     token,

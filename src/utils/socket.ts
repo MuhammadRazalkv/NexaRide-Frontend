@@ -48,6 +48,7 @@ export interface ServerToClientEvents {
   "payment-success": () => void;
   "chat-msg": (data: IMessage) => void;
   'ride-error':(data:{message:string})=> void
+  'keep-alive':()=>void
 }
 
 interface ClientToServerEvents {
@@ -82,6 +83,7 @@ interface ClientToServerEvents {
   "cancel-ride": (cancelledBy: "driver" | "user") => void;
   "dropOff-reached": () => void;
   "chat-msg": (data: { text: string; sendBy: "user" | "driver" }) => void;
+  'keep-alive':()=> void;
 }
 
 const SOCKET_URL = import.meta.env.VITE_BACKEND_URL;
