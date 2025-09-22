@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+// import { motion } from "framer-motion";
 import {
   MdOutlineKeyboardArrowDown,
   MdMenu,
@@ -29,16 +29,16 @@ const DNavBar = () => {
   const dispatch = useDispatch();
   const name = useSelector((state: RootState) => state.driverAuth.driver?.name);
 
-  const handleLogout = async()=>{
+  const handleLogout = async () => {
     try {
-      const res = await driverLogout()
-      if(res.success){
-        dispatch(logoutDriver())
+      const res = await driverLogout();
+      if (res.success) {
+        dispatch(logoutDriver());
       }
     } catch (error) {
-      if(error instanceof Error) message.error(error.message)
+      if (error instanceof Error) message.error(error.message);
     }
-  }
+  };
   return (
     <div className="z-50 h-[70px] flex items-center justify-between px-9 shadow-md w-full bg-white">
       {/* Logo */}
@@ -85,16 +85,22 @@ const DNavBar = () => {
 
       {/* Desktop Menu */}
       <div className="hidden md:flex flex-1 ml-12 justify-start space-x-10 text-gray-600">
-        {links.map((item, index) => (
-          <motion.p
+        {links.map((item) => (
+          <p
             key={item.name}
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 + index * 0.1, ease: "easeOut" }}
             className="font-primary cursor-pointer hover:text-black"
           >
             <Link to={item.link}>{item.name}</Link>
-          </motion.p>
+          </p>
+          // <motion.p
+          //   key={item.name}
+          //   initial={{ opacity: 0, y: 50 }}
+          //   animate={{ opacity: 1, y: 0 }}
+          //   transition={{ duration: 0.5 + index * 0.1, ease: "easeOut" }}
+          //   className="font-primary cursor-pointer hover:text-black"
+          // >
+          //   <Link to={item.link}>{item.name}</Link>
+          // </motion.p>
         ))}
       </div>
 

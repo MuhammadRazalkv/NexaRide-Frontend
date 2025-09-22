@@ -17,7 +17,8 @@ interface UserRideState {
   rideId?:string ;
   inPayment: boolean;
   stripePayment: boolean;
-  rideCompleted:boolean
+  rideCompleted:boolean;
+  // currentLocation:null|[number,number]
 }
 
 const initialState : UserRideState= {
@@ -35,7 +36,8 @@ const initialState : UserRideState= {
   rideId: undefined,
   inPayment: false,
   stripePayment: false,
-  rideCompleted:false
+  rideCompleted:false,
+  // currentLocation:null
 };
 
 const rideSlice = createSlice({
@@ -90,6 +92,7 @@ const rideSlice = createSlice({
     setRideCompletedInSlice: (state, action) => {
       state.rideCompleted = action.payload;
     },
+
     resetRide: () => {
       return initialState;
     },

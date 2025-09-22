@@ -182,7 +182,7 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
       if (socket.connected) {
         socket.emit("keep-alive");
       }
-    }, 60000);
+    }, 100000);
 
     return () => {
       socket.off("ride-error", handleError);

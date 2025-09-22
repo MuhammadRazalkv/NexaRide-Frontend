@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, Suspense, useCallback, lazy } from "react";
 import NavBar from "@/components/user/NavBar";
-import MapComponent from "@/components/MapComp";
+// import MapComponent from "@/components/MapComp";
+const MapComponent = lazy(() => import("@/components/MapComp"));
 import axios from "axios";
 import { message } from "antd";
 import { checkCabs } from "@/api/auth/user";
@@ -27,9 +28,10 @@ import { IMessage } from "@/interfaces/chat.interface";
 import { CheckCabs, IAvailableCabs } from "@/interfaces/ride.interface";
 import RideLocationsInput from "@/components/user/RideLocationsInput";
 import { useRide } from "@/hooks/useRide";
-import { sliceRouteFromLocation } from "@/utils/sliceRouteFromLocation";
+// import { sliceRouteFromLocation } from "@/utils/sliceRouteFromLocation";
 import RideCancelModal from "@/components/RideCancelModal";
 import RideInfoCard from "@/components/user/RideInfoCard";
+import { Loader } from "lucide-react";
 
 const Ride = () => {
   const {
@@ -60,21 +62,22 @@ const Ride = () => {
   >([]);
 
   // driver to pickup location route
-  const [remainingRoute, setRemainingRoute] = useState<
-    [number, number][] | undefined
-  >([]);
-  const remainingRouteRef = useRef<[number, number][] | undefined>([]);
+  // const [remainingRoute, setRemainingRoute] = useState<
+  //   [number, number][] | undefined
+  // >([]);
+
+  // const remainingRouteRef = useRef<[number, number][] | undefined>([]);
   // remaining drop off route
-  const [remainingDropOffRoute, setRemainingDropOffRoute] = useState<
-    [number, number][] | undefined
-  >([]);
-  const remainingDropOffRouteRef = useRef<[number, number][] | undefined>([]);
+  // const [remainingDropOffRoute, setRemainingDropOffRoute] = useState<
+  //   [number, number][] | undefined
+  // >([]);
+  // const remainingDropOffRouteRef = useRef<[number, number][] | undefined>([]);
 
   const [distance, setDistance] = useState<number>();
   const [time, setTime] = useState<number>();
 
-  const [driverLiveLocation, setDriverLiveLocation] =
-    useState<[number, number]>();
+  // const [driverLiveLocation, setDriverLiveLocation] =
+  //   useState<[number, number]>();
 
   const [noDriversFound, setNoDriversFound] = useState<boolean>(false);
 
@@ -82,6 +85,8 @@ const Ride = () => {
   const [cabsInfo, setCabsInfo] = useState<IAvailableCabs[]>();
   const [sendRideReq, setSendRideReq] = useState(false);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
+
+  const [currentLoc, setCurrentLoc] = useState<[number, number]>();
 
   const {
     isRideActive: isRideStarted,
@@ -92,7 +97,7 @@ const Ride = () => {
     dropOffCoords: dropOffCoordsInSlice,
     pickupCoords: pickupCoordsSlice,
     routeCoords: routeCoordsInSlice,
-    remainingDropOffRoute: remainingDropOffRouteInSlice,
+    // remainingDropOffRoute: remainingDropOffRouteInSlice,
     remainingRoute: remainingRouteInSlice,
     rideCompleted,
   } = useSelector((state: RootState) => state.ride);
@@ -101,43 +106,43 @@ const Ride = () => {
     setPickupCoords(undefined);
     setDropOffCoords(undefined);
     setRouteCoords([]);
-    setRemainingRoute([]);
-    setRemainingDropOffRoute([]);
-    remainingRouteRef.current = [];
-    remainingDropOffRouteRef.current = [];
+    // setRemainingRoute([]);
+    // // setRemainingDropOffRoute([]);
+    // remainingRouteRef.current = [];
+    // remainingDropOffRouteRef.current = [];
     setDistance(undefined);
     setTime(undefined);
-    setDriverLiveLocation(undefined);
+    // setDriverLiveLocation(undefined);
     setNoDriversFound(false);
     setCabsInfo(undefined);
     setSendRideReq(false);
     setIsCancelOpen(false);
   };
 
-  useEffect(() => {
-    remainingRouteRef.current = remainingRoute;
-  }, [remainingRoute]);
-  useEffect(() => {
-    remainingDropOffRouteRef.current = remainingDropOffRoute;
-  }, [remainingDropOffRoute]);
+  // useEffect(() => {
+  //   remainingRouteRef.current = remainingRoute;
+  // }, [remainingRoute]);
+  // useEffect(() => {
+  //   remainingDropOffRouteRef.current = remainingDropOffRoute;
+  // }, [remainingDropOffRoute]);
 
   useEffect(() => {
     if (!rideCompleted) {
       if (Array.isArray(routeCoordsInSlice) && routeCoordsInSlice.length > 0)
         setRouteCoords(routeCoordsInSlice);
 
-      if (
-        Array.isArray(remainingDropOffRouteInSlice) &&
-        remainingDropOffRouteInSlice.length > 0
-      ) {
-        setRemainingDropOffRoute(remainingDropOffRouteInSlice);
-      }
+      // if (
+      //   Array.isArray(remainingDropOffRouteInSlice) &&
+      //   remainingDropOffRouteInSlice.length > 0
+      // ) {
+      //   setRemainingDropOffRoute(remainingDropOffRouteInSlice);
+      // }
 
-      if (
-        Array.isArray(remainingRouteInSlice) &&
-        remainingRouteInSlice.length > 0
-      )
-        setRemainingRoute(remainingRouteInSlice);
+      // if (
+      //   Array.isArray(remainingRouteInSlice) &&
+      //   remainingRouteInSlice.length > 0
+      // )
+      //   setRemainingRoute(remainingRouteInSlice);
 
       if (pickupCoordsSlice) {
         setPickupCoords(pickupCoordsSlice);
@@ -149,7 +154,7 @@ const Ride = () => {
   }, [
     routeCoordsInSlice,
     remainingRouteInSlice,
-    remainingDropOffRouteInSlice,
+    // remainingDropOffRouteInSlice,
     pickupCoordsSlice,
     dropOffCoordsInSlice,
     isToDropOff,
@@ -236,9 +241,9 @@ const Ride = () => {
           throw new Error("Failed to calculate driver route");
         }
 
-        setDriverLiveLocation(data.driver.location.coordinates);
+        // setDriverLiveLocation(data.driver.location.coordinates);
         dispatch(setDriverRouteInSlice(routeDetails));
-        setRemainingRoute(routeDetails.formattedRoute);
+        // setRemainingRoute(routeDetails.formattedRoute);
         dispatch(setRemainingRouteInSlice(routeDetails.formattedRoute));
 
         // Use routeCoordsRef if routeCoords might be stale
@@ -255,17 +260,19 @@ const Ride = () => {
   const handleDriverLocationUpdate = useCallback(
     (data: { type: "toPickup" | "toDropOff"; location: [number, number] }) => {
       if (data.type === "toPickup") {
-        setDriverLiveLocation(undefined);
-        setRemainingRoute((prev) =>
-          prev && prev.length ? sliceRouteFromLocation(prev, data.location) : []
-        );
+        // setDriverLiveLocation(undefined);
+        // setRemainingRoute((prev) =>
+        //   prev && prev.length ? sliceRouteFromLocation(prev, data.location) : []
+        // );
+        setCurrentLoc(data.location);
       } else {
         // setDriverArrived(false);
         if (driverArrived) dispatch(setDriverArrivedInSlice(false));
         if (!isToDropOff) dispatch(setIsToDropOffInSlice(true));
-        setRemainingDropOffRoute((prev) =>
-          prev && prev.length ? sliceRouteFromLocation(prev, data.location) : []
-        );
+        // setRemainingDropOffRoute((prev) =>
+        //   prev && prev.length ? sliceRouteFromLocation(prev, data.location) : []
+        // );
+        setCurrentLoc(data.location);
       }
     },
     [dispatch, isToDropOff, driverArrived]
@@ -281,10 +288,10 @@ const Ride = () => {
       socket.off("ride-accepted", handleRideAccepted);
       socket.off("driver-location-update", handleDriverLocationUpdate);
 
-      dispatch(setRemainingRouteInSlice(remainingRouteRef.current));
-      dispatch(
-        setRemainingDropOffRouteInSlice(remainingDropOffRouteRef.current)
-      );
+      // dispatch(setRemainingRouteInSlice(remainingRouteRef.current));
+      // dispatch(
+      //   setRemainingDropOffRouteInSlice(remainingDropOffRouteRef.current)
+      // );
     };
   }, [
     handleRideAccepted,
@@ -474,22 +481,34 @@ const Ride = () => {
 
         {/* Right Section - Map */}
         <div className="w-full min-h-[400px] max-h-[80vh] z-0">
-          <MapComponent
-            // markers
-            pickupCoords={pickupCoords || null}
-            dropOffCoords={dropOffCoords || null}
-            // routes
-            routeCoords={isRideStarted ? remainingDropOffRoute : routeCoords}
-            driverRoute={
-              isRideStarted ? remainingRoute : driverRoute?.formattedRoute
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center">
+                <Loader className="animate-spin" />
+              </div>
             }
-            driverLoc={
-              isRideStarted
-                ? driverLiveLocation
-                : rideInfo?.driver.location.coordinates
-            }
-            isRideStarted={isRideStarted}
-          />
+          >
+            <MapComponent
+              // markers
+              pickupCoords={pickupCoords}
+              dropOffCoords={dropOffCoords}
+              // routes
+              routeCoords={routeCoords}
+              // routeCoords={isRideStarted ? remainingDropOffRoute : routeCoords}
+              driverRoute={driverRoute?.formattedRoute}
+              // driverRoute={
+              //   isRideStarted ? remainingRoute : driverRoute?.formattedRoute
+              // }
+              // driverLoc={
+              //   isRideStarted
+              //     ? driverLiveLocation
+              //     : rideInfo?.driver.location.coordinates
+              // }
+
+              isRideStarted={isRideStarted}
+              currentLocation={currentLoc}
+            />
+          </Suspense>
         </div>
       </div>
     </>
