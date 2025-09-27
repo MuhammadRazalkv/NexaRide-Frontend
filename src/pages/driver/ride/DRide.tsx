@@ -37,7 +37,11 @@ const DRide = () => {
     setMessages,
     setCurrentLoc,
     clearAllStateData,
-    trackingToPickupRef,
+    // trackingToPickupRef,
+    currentLoc,
+    trackingService,
+    chatOn,
+    setChatOn
   } = useDRide();
 
   const navigate = useNavigate();
@@ -47,17 +51,15 @@ const DRide = () => {
     (state: RootState) => state.driverAuth.driver?._id
   );
   const dispatch = useDispatch();
-  const [chatOn, setChatOn] = useState(false);
   const {
     driverRoute,
     isRideStarted,
-    remainingRoute,
+    // remainingRoute,
     routeCoords,
     rideReqInfo,
     ridePhase,
     dropOffCoords,
     pickupCoords,
-    currentLoc,
   } = useSelector((state: RootState) => state.DRide);
   // To Fetch driver info and redirect
   useEffect(() => {
@@ -116,12 +118,13 @@ const DRide = () => {
     socket.emit("cancel-ride", "driver");
     setChatOn(false);
     clearAllStateData();
-    socket.off("driver-location-update");
-    if (trackingToPickupRef.current) {
-      console.log("the interval has been cleared");
-      clearInterval(trackingToPickupRef.current);
-      trackingToPickupRef.current = null;
-    }
+    // socket.off("driver-location-update");
+    // if (trackingToPickupRef.current) {
+    //   console.log("the interval has been cleared");
+    //   clearInterval(trackingToPickupRef.current);
+    //   trackingToPickupRef.current = null;
+    // }
+    trackingService.stop()
   };
   const closeChat = () => {
     setChatOn(false);
@@ -180,11 +183,13 @@ const DRide = () => {
             pickupCoords={pickupCoords}
             dropOffCoords={dropOffCoords}
             routeCoords={routeCoords}
-            driverLoc={currentLoc}
+            // driverLoc={currentLoc}
+            currentLocation={currentLoc}
             isRideStarted={isRideStarted}
-            driverRoute={
-              isRideStarted ? remainingRoute : driverRoute?.formattedRoute
-            }
+            driverRoute={driverRoute?.formattedRoute}
+            // driverRoute={
+            //   isRideStarted ? remainingRoute : driverRoute?.formattedRoute
+            // }
           />
         </div>
       </div>

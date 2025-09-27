@@ -9,28 +9,31 @@ import RatingModal from "@/components/RatingModal";
 import WaitingModal from "@/components/user/WaitingModal";
 import { DRideContext } from "@/hooks/useDRide";
 import { useDriverSocketEvents } from "@/hooks/useDriverSocketEvents";
+import { useDriverTrackingService } from "@/hooks/useDriverTracking";
 import { IMessage } from "@/interfaces/chat.interface";
-import { IDriverRoute, IRideReqInfo } from "@/pages/driver/ride/DRide";
+import { IRideReqInfo } from "@/pages/driver/ride/DRide";
 import {
   openOTPModal,
-  openPaymentModal,
+  // openPaymentModal,
   resetDriverRideInSlice,
   setDCurrentLocInSlice,
   setDDriverRouteInSlice,
   setDDropOffCoordsInSlice,
   setDIsRideStartedInSlice,
   setDPickupCoordsInSlice,
-  setDRemainingRouteInSlice,
+  // setDRemainingRouteInSlice,
   setDRideIdInSlice,
   setDRidePhaseInSlice,
   setDRideReqInfoInSlice,
   setDRouteCoordsInSlice,
 } from "@/redux/slices/driverRideSlice";
 import { RootState } from "@/redux/store";
+import { DriverTrackingService } from "@/services/DriverTrackingService";
+// import { DriverTrackingService } from "@/services/DriverTrackingService";
 import { fetchRoute } from "@/utils/geoApify";
 import { socket } from "@/utils/socket";
 import { message } from "antd";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 export interface DSocketContextTypes {
@@ -43,7 +46,10 @@ export interface DSocketContextTypes {
   >;
   setMessages: React.Dispatch<React.SetStateAction<IMessage[]>>;
   clearAllStateData: () => void;
-  trackingToPickupRef: React.MutableRefObject<NodeJS.Timeout | null>;
+  // trackingToPickupRef: React.MutableRefObject<NodeJS.Timeout | null>;
+  trackingService:DriverTrackingService
+  setChatOn:React.Dispatch<React.SetStateAction<boolean>>
+  chatOn:boolean
 }
 
 export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
@@ -59,9 +65,7 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   //* Drivers current location
-  const [currentLoc, setCurrentLoc] = useState<[number, number] | undefined>(
-    undefined
-  );
+  const [currentLoc, setCurrentLoc] = useState<[number, number]>();
 
   const [OTPError, setOTPError] = useState("");
 
@@ -72,8 +76,19 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
   const [ratingErr, setRatingError] = useState("");
   const [messages, setMessages] = useState<IMessage[]>([]);
   const [rideRejected, setRideRejected] = useState(false);
-  const trackingToPickupRef = useRef<NodeJS.Timeout | null>(null);
+  const [chatOn, setChatOn] = useState(false);
+
+  // const trackingToPickupRef = useRef<NodeJS.Timeout | null>(null);
   const [firstRender, setFirstRender] = useState(true);
+  const dispatch = useDispatch();
+
+  // creating a instance of Driver tracking service
+  const trackingService = useDriverTrackingService(
+    socket,
+    dispatch,
+    messageApi
+  );
+
   const {
     isRideStarted,
     routeCoords,
@@ -82,10 +97,10 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
     rideId,
     ridePhase,
     driverRoute,
-    remainingRoute,
+    // remainingRoute,
+    dDropOffIndex,
+    dPickupIndex,
   } = useSelector((state: RootState) => state.DRide);
-
-  const dispatch = useDispatch();
 
   const clearAllStateData = () => {
     setIsDialogOpen(false);
@@ -101,6 +116,7 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
     dispatch(resetDriverRideInSlice());
   };
 
+  //! update this to use the new Tracking service instance
   useDriverSocketEvents({
     token,
     setRideReqData,
@@ -112,104 +128,23 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
     isRideStarted,
     messageApi,
     clearAllStateData,
-    trackingToPickupRef
+    // trackingToPickupRef,
+    trackingService,
   });
-
-  const simulatedLiveTrackingToPickUp = useCallback(
-    (driverRoute: IDriverRoute) => {
-      let currentIndex = 0;
-      setCurrentLoc(undefined);
-
-      const interval = setInterval(() => {
-        if (currentIndex < driverRoute.formattedRoute.length) {
-          const currentLocation = driverRoute.formattedRoute[currentIndex];
-          console.log("sending ", currentLocation);
-
-          socket.emit("driver-location-update", {
-            type: "toPickup",
-            location: currentLocation,
-          });
-
-          // Update the remaining route only after ride start
-          dispatch(
-            setDRemainingRouteInSlice(
-              driverRoute.formattedRoute.slice(currentIndex + 1)
-            )
-          );
-
-          currentIndex++;
-        } else {
-          console.log("Inside the else of the pickup");
-
-          clearInterval(interval);
-          socket.off("driver-location-update");
-
-          dispatch(setDRemainingRouteInSlice(undefined));
-          socket.emit("driver-reached");
-
-          dispatch(openOTPModal(true));
-          setTimeout(() => {
-            messageApi.success("Driver has reached the pickup location.");
-          }, 0);
-        }
-      }, 1000);
-      trackingToPickupRef.current = interval;
-      return () => clearInterval(interval);
-    },
-    [messageApi, dispatch]
-  );
-
-  const simulatedLiveTrackingToDropOff = useCallback(
-    (routeCoords: [number, number][]) => {
-      console.log(" route coords ", routeCoords);
-
-      let currentIndex = 0;
-      setCurrentLoc(undefined);
-
-      const interval = setInterval(() => {
-        if (currentIndex < routeCoords.length) {
-          const currentLocation = routeCoords[currentIndex];
-          console.log("sending location ", currentLocation);
-
-          socket.emit("driver-location-update", {
-            type: "toDropOff",
-            location: currentLocation,
-          });
-
-          // Update the remaining route only after ride starts
-          dispatch(setDRouteCoordsInSlice(routeCoords.slice(currentIndex + 1)));
-          currentIndex++;
-        } else {
-          clearInterval(interval);
-          socket.emit("dropOff-reached");
-          socket.off("driver-location-update");
-          console.log("waitPayment value:");
-
-          dispatch(openPaymentModal(true));
-          console.log("waitPayment value changed to true ");
-
-          message.success("Driver has reached the drop off location.");
-        }
-      }, 1000);
-
-      return () => clearInterval(interval);
-    },
-    [dispatch]
-  );
 
   useEffect(() => {
     if (!firstRender) return;
 
     if (isRideStarted) {
-      if (ridePhase == "toPickup" && remainingRoute?.length && driverRoute) {
-        simulatedLiveTrackingToPickUp({
-          formattedRoute: remainingRoute,
-          distance: driverRoute?.distance,
-          reachBy: driverRoute?.reachBy,
-          time: driverRoute?.time,
-        });
+      if (ridePhase == "toPickup" && driverRoute) {
+        trackingService.start(
+          driverRoute?.formattedRoute,
+          dPickupIndex,
+          "toPickup",
+          setCurrentLoc
+        );
       } else if (ridePhase == "toDropOff" && routeCoords?.length) {
-        simulatedLiveTrackingToDropOff(routeCoords);
+        trackingService.start(routeCoords, dDropOffIndex, "toDropOff",setCurrentLoc);
       }
     }
     setFirstRender(false);
@@ -217,12 +152,21 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
     isRideStarted,
     driverRoute,
     routeCoords,
-    remainingRoute,
+    // remainingRoute,
     ridePhase,
     firstRender,
-    simulatedLiveTrackingToPickUp,
-    simulatedLiveTrackingToDropOff,
+    dispatch,
+    dDropOffIndex,
+    dPickupIndex,
+    trackingService,
+    // simulatedLiveTrackingToPickUp,
+    // simulatedLiveTrackingToDropOff,
   ]);
+
+  useEffect(()=>{
+    console.log('Current location changed',currentLoc);
+    
+  },[currentLoc])
 
   const acceptRide = async (
     userId: string,
@@ -268,10 +212,11 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
+    //! I think this is not needed in the code .
     setCurrentLoc(location.coordinates);
     dispatch(setDCurrentLocInSlice(location.coordinates));
 
-    // Fetch route to pickup
+    // Fetch route from driver location to pickup
     const driverRouteInfo = await fetchRoute(location.location, pickupCoords);
     if (!driverRouteInfo) {
       message.error("Failed to calculate driver route");
@@ -282,7 +227,7 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
     const fullDriverRoute = { ...driverRouteInfo, reachBy };
 
     dispatch(setDDriverRouteInSlice(fullDriverRoute));
-    dispatch(setDRemainingRouteInSlice(fullDriverRoute.formattedRoute));
+    // dispatch(setDRemainingRouteInSlice(fullDriverRoute.formattedRoute));
 
     // Fetch route from pickup to drop-off
     const routeCoordsRes = await fetchRoute(
@@ -297,7 +242,13 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     dispatch(setDIsRideStartedInSlice(true));
-    simulatedLiveTrackingToPickUp(fullDriverRoute);
+    // simulatedLiveTrackingToPickUp(fullDriverRoute);
+    trackingService.start(
+      fullDriverRoute?.formattedRoute,
+      dPickupIndex,
+      "toPickup",
+      setCurrentLoc
+    );
   };
 
   // Reject the ride
@@ -323,8 +274,20 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
         dispatch(setDRidePhaseInSlice("toDropOff"));
         dispatch(setDRideIdInSlice(response.rideId));
         if (routeCoords) {
-          simulatedLiveTrackingToDropOff(routeCoords);
+          trackingService.start(routeCoords, dDropOffIndex, "toDropOff",setCurrentLoc);
         }
+        // else {
+        //   const routeCoordsRes = await fetchRoute(
+        //     [pickupCoords[1], pickupCoords[0]],
+        //     dropOffCoords
+        //   );
+
+        //   if (routeCoordsRes && routeCoordsRes.formattedRoute) {
+        //     dispatch(setDRouteCoordsInSlice(routeCoordsRes.formattedRoute));
+        //   } else {
+        //     messageApi.error("Failed to calculate drop-off route");
+        //   }
+        // }
       } else {
         setOTPError("Wrong OTP");
       }
@@ -381,10 +344,13 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
         pickupCoords,
         currentLoc,
         messages,
-        trackingToPickupRef,
+        // trackingToPickupRef,
+        trackingService,
         setCurrentLoc,
         setMessages,
         clearAllStateData,
+        chatOn,
+        setChatOn
       }}
     >
       {isDialogOpen && rideReqData && (
@@ -402,6 +368,7 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
           OTPError={OTPError}
           handleOTPSubmit={handleOTPSubmit}
           setOTPError={setOTPError}
+          setChatOn={setChatOn}
         />
       )}
 

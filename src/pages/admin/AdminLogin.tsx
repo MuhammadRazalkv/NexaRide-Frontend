@@ -1,9 +1,9 @@
-import { useState , useEffect} from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../components/Loader";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { login } from "../../api/auth/admin";
-import { useDispatch , useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { adminLogin } from "@/redux/slices/adminAuthSlice";
 import { RootState } from "@/redux/store";
 

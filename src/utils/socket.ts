@@ -116,3 +116,5 @@ export const disconnectSocket = () => {
     console.log("Socket disconnected");
   }
 };
+
+export type AppSocket = typeof socket

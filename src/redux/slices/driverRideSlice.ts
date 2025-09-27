@@ -4,11 +4,13 @@ import { IDriverRoute, IRideReqInfo } from "@/pages/driver/ride/DRide";
 
 interface DriverRideState {
   rideReqInfo?: IRideReqInfo;
-  pickupCoords: [number, number] | null;
-  dropOffCoords: [number, number] | null;
+  pickupCoords?: [number, number];
+  dropOffCoords?: [number, number];
   routeCoords?: [number, number][];
   driverRoute?: IDriverRoute;
-  remainingRoute?: [number, number][];
+  dPickupIndex: number;
+  dDropOffIndex: number;
+  // remainingRoute?: [number, number][];
   isRideStarted: boolean;
   ridePhase: "idle" | "toPickup" | "otpVerified" | "toDropOff";
   currentLoc?: [number, number];
@@ -20,11 +22,13 @@ interface DriverRideState {
 
 const initialState: DriverRideState = {
   rideReqInfo: undefined,
-  pickupCoords: null,
-  dropOffCoords: null,
+  pickupCoords: undefined,
+  dropOffCoords: undefined,
   routeCoords: [],
   driverRoute: undefined,
-  remainingRoute: undefined,
+  dPickupIndex:0,
+  dDropOffIndex:0,
+  // remainingRoute: undefined,
   isRideStarted: false,
   ridePhase: "idle",
   currentLoc: undefined,
@@ -49,13 +53,13 @@ const driverRideSlice = createSlice({
     },
     setDPickupCoordsInSlice: (
       state,
-      action: PayloadAction<[number, number] | null>
+      action: PayloadAction<[number, number] | undefined>
     ) => {
       state.pickupCoords = action.payload;
     },
     setDDropOffCoordsInSlice: (
       state,
-      action: PayloadAction<[number, number] | null>
+      action: PayloadAction<[number, number] | undefined>
     ) => {
       state.dropOffCoords = action.payload;
     },
@@ -71,12 +75,19 @@ const driverRideSlice = createSlice({
     ) => {
       state.driverRoute = action.payload;
     },
-    setDRemainingRouteInSlice: (
-      state,
-      action: PayloadAction<[number, number][] | undefined>
-    ) => {
-      state.remainingRoute = action.payload;
+    setDPickupIndex: (state, action: PayloadAction<number>) => {
+      state.dPickupIndex = action.payload;
     },
+    setDDropOffIndex: (state, action: PayloadAction<number>) => {
+      state.dDropOffIndex = action.payload;
+    },
+
+    // setDRemainingRouteInSlice: (
+    //   state,
+    //   action: PayloadAction<[number, number][] | undefined>
+    // ) => {
+    //   state.remainingRoute = action.payload;
+    // },
     setDIsRideStartedInSlice: (state, action: PayloadAction<boolean>) => {
       state.isRideStarted = action.payload;
     },
@@ -114,7 +125,9 @@ export const {
   setDDropOffCoordsInSlice,
   setDRouteCoordsInSlice,
   setDDriverRouteInSlice,
-  setDRemainingRouteInSlice,
+  // setDRemainingRouteInSlice,
+  setDDropOffIndex,
+  setDPickupIndex,
   setDIsRideStartedInSlice,
   setDRidePhaseInSlice,
   setDCurrentLocInSlice,
@@ -123,7 +136,7 @@ export const {
   resetDriverRideInSlice,
   setDRideIdInSlice,
   openOTPModal,
-  openPaymentModal
+  openPaymentModal,
 } = driverRideSlice.actions;
 
 export default driverRideSlice.reducer;

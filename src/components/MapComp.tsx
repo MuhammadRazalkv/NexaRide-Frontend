@@ -13,10 +13,10 @@ interface MapComponentProps {
   dropOffCoords?: [number, number];
   routeCoords?: [number, number][];
   // driverLoc?: [number, number];
-  availableDrivers?: {
-    name: string;
-    coordinates: [number, number];
-  }[];
+  // availableDrivers?: {
+  //   name: string;
+  //   coordinates: [number, number];
+  // }[];
   driverRoute?: [number, number][];
   isRideStarted?: boolean;
   currentLocation?: [number, number];
@@ -27,7 +27,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
   dropOffCoords,
   routeCoords,
   // driverLoc,
-  availableDrivers,
+  // availableDrivers,
   driverRoute,
   isRideStarted = false,
   currentLocation,
@@ -98,7 +98,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
         </Marker>
       )} */}
 
-      {availableDrivers &&
+      {/* {availableDrivers &&
         availableDrivers.length > 0 &&
         availableDrivers.map(
           (driver, index) =>
@@ -112,7 +112,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                 <Popup>{driver.name}</Popup>
               </Marker>
             )
-        )}
+        )} */}
 
       {routeCoords &&
         routeCoords.length > 0 &&

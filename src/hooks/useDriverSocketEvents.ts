@@ -7,6 +7,7 @@ import { message } from "antd";
 import { IRideReqInfo } from "@/pages/driver/ride/DRide";
 import { getLocationFromCoords, getRouteDetails } from "@/utils/geoApify";
 import { openPaymentModal } from "@/redux/slices/driverRideSlice";
+import { DriverTrackingService } from "@/services/DriverTrackingService";
 
 type NewRideReqData = Parameters<ServerToClientEvents["new-ride-req"]>[0];
 
@@ -22,7 +23,8 @@ interface Props {
   isRideStarted: boolean;
   messageApi: ReturnType<typeof message.useMessage>[0];
   clearAllStateData: () => void;
-  trackingToPickupRef: React.MutableRefObject<NodeJS.Timeout | null>;
+  // trackingToPickupRef: React.MutableRefObject<NodeJS.Timeout | null>;
+  trackingService:DriverTrackingService
 }
 
 export const useDriverSocketEvents = ({
@@ -37,7 +39,8 @@ export const useDriverSocketEvents = ({
   isRideStarted,
   messageApi,
   clearAllStateData,
-  trackingToPickupRef,
+  // trackingToPickupRef,
+  trackingService
 }: Props) => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
@@ -85,6 +88,7 @@ export const useDriverSocketEvents = ({
       // setWaitPayment(false);
       dispatch(openPaymentModal(false));
       // clearAllStateData();
+      trackingService.stop()
     };
 
     const handleChat = (data: IMessage) => {
@@ -96,12 +100,13 @@ export const useDriverSocketEvents = ({
       messageApi.error("Ride cancelled by user");
       dispatch(setRideIdInSlice(""));
       clearAllStateData();
-      socket.off("driver-location-update");
-      if (trackingToPickupRef.current) {
-        console.log("the interval has been cleared");
-        clearInterval(trackingToPickupRef.current);
-        trackingToPickupRef.current = null;
-      }
+      // socket.off("driver-location-update");
+      // if (trackingToPickupRef.current) {
+      //   console.log("the interval has been cleared");
+      //   clearInterval(trackingToPickupRef.current);
+      //   trackingToPickupRef.current = null;
+      // }
+      trackingService.stop()
     };
 
     socket.on("new-ride-req", handleNewRideReq);
@@ -132,7 +137,8 @@ export const useDriverSocketEvents = ({
     rideRejected,
     messageApi,
     clearAllStateData,
-    trackingToPickupRef,
+    // trackingToPickupRef,
+    trackingService
   ]);
 
   useEffect(() => {

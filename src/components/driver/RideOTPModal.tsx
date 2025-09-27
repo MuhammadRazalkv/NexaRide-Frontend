@@ -10,15 +10,18 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { TbMessage } from "react-icons/tb";
 
 const RideOTPModal = ({
   handleOTPSubmit,
   setOTPError,
   OTPError,
+  setChatOn,
 }: {
   handleOTPSubmit: (OTP: string | null) => Promise<void>;
   setOTPError: (value: React.SetStateAction<string>) => void;
   OTPError: string;
+  setChatOn: (val: boolean) => void;
 }) => {
   const [OTP, setOTP] = useState<string | null>(null);
   const handleOTPChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,12 +62,22 @@ const RideOTPModal = ({
             </div>
           </div>
           <DialogFooter>
-            <Button
-              disabled={OTPError.length > 0 || !OTP}
-              onClick={() => handleOTPSubmit(OTP)}
-            >
-              Verify OTP
-            </Button>
+            <div className="flex items-center space-x-3">
+              <Button
+                disabled={OTPError.length > 0 || !OTP}
+                onClick={() => handleOTPSubmit(OTP)}
+                className="flex-1" // take remaining width
+              >
+                Verify OTP
+              </Button>
+
+              <button
+                className="bg-black text-white p-2 rounded-lg hover:bg-gray-800 transition duration-200 flex items-center justify-center"
+                onClick={() => setChatOn(true)}
+              >
+                <TbMessage className="text-white text-lg" />
+              </button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
