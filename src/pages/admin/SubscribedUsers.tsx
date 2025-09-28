@@ -5,7 +5,7 @@ import { message, Pagination } from "antd";
 import { useEffect, useState } from "react";
 
 interface IPremiumUsers {
-  userId: { _id: string; name: string };
+  user: string;
   amount: number;
   expiresAt: number;
   takenAt: number;
@@ -91,13 +91,13 @@ const SubscribedUsers = () => {
               </thead>
               <tbody className="divide-y divide-gray-700">
                 {premiumUsers?.length ? (
-                  premiumUsers.map((item, index) => (
+                  premiumUsers.map((item) => (
                     <tr
-                      key={index}
+                      key={item.expiresAt + item.takenAt}
                       className="hover:bg-[#242B3D] transition-colors duration-200"
                     >
                       <td className="px-4 py-4 text-sm font-medium text-white">
-                        {item.userId.name}
+                        {item.user}
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-300">
                         {item.type}
