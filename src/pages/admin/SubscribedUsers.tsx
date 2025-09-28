@@ -5,7 +5,7 @@ import { message, Pagination } from "antd";
 import { useEffect, useState } from "react";
 
 interface IPremiumUsers {
-  user: string;
+  user: { name: string };
   amount: number;
   expiresAt: number;
   takenAt: number;
@@ -97,7 +97,7 @@ const SubscribedUsers = () => {
                       className="hover:bg-[#242B3D] transition-colors duration-200"
                     >
                       <td className="px-4 py-4 text-sm font-medium text-white">
-                        {item.user}
+                        {item.user.name}
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-300">
                         {item.type}
