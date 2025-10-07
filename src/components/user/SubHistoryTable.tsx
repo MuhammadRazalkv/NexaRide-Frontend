@@ -1,4 +1,4 @@
-import { ISubHistory } from "@/pages/users/SubscriptionHistory";
+import { ISubHistory } from "@/interfaces/subscription.interface";
 import { formatDate } from "@/utils/DateAndTimeFormatter";
 
 const SubHistoryTable = ({ data }: { data?: ISubHistory[] }) => {

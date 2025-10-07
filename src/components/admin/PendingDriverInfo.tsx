@@ -1,8 +1,5 @@
-import {
-  IPendingDriver,
-  IPendingVehicle,
-} from "@/pages/admin/AdminPendingDriver";
-
+import { IPendingDriver} from "@/interfaces/driver.interface";
+import { IPendingVehicle } from "@/interfaces/vehicle.interface";
 interface PendingDriverInfoProps {
   setSelectedDriver: React.Dispatch<
     React.SetStateAction<IPendingDriver | null>

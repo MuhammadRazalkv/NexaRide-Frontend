@@ -1,5 +1,5 @@
 import IDriver from "@/interfaces/driver.interface";
-import { IUserInfo } from "@/pages/admin/UserDetails";
+import { IUserInfo } from "@/interfaces/user.interface";
 import DriverOtherInfos from "./DriverOtherInfos";
 
 interface IProfileBody {
