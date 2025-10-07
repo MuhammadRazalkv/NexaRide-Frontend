@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { IMessage } from "@/interfaces/chat.interface";
-import { IDriverRoute, IRideReqInfo } from "@/pages/driver/ride/DRide";
+import { IDriverRoute, IRideReqInfo } from "@/interfaces/ride.interface";
 
 interface DriverRideState {
   rideReqInfo?: IRideReqInfo;
@@ -10,7 +10,6 @@ interface DriverRideState {
   driverRoute?: IDriverRoute;
   dPickupIndex: number;
   dDropOffIndex: number;
-  // remainingRoute?: [number, number][];
   isRideStarted: boolean;
   ridePhase: "idle" | "toPickup" | "otpVerified" | "toDropOff";
   currentLoc?: [number, number];
@@ -18,6 +17,7 @@ interface DriverRideState {
   rideId?: string;
   OTPModal: boolean;
   paymentModal: boolean;
+  inPayment:boolean
 }
 
 const initialState: DriverRideState = {
@@ -36,6 +36,7 @@ const initialState: DriverRideState = {
   rideId: undefined,
   OTPModal: false,
   paymentModal: false,
+  inPayment:false
 };
 
 const driverRideSlice = createSlice({
@@ -81,13 +82,6 @@ const driverRideSlice = createSlice({
     setDDropOffIndex: (state, action: PayloadAction<number>) => {
       state.dDropOffIndex = action.payload;
     },
-
-    // setDRemainingRouteInSlice: (
-    //   state,
-    //   action: PayloadAction<[number, number][] | undefined>
-    // ) => {
-    //   state.remainingRoute = action.payload;
-    // },
     setDIsRideStartedInSlice: (state, action: PayloadAction<boolean>) => {
       state.isRideStarted = action.payload;
     },
@@ -115,6 +109,9 @@ const driverRideSlice = createSlice({
     openPaymentModal: (state, action: PayloadAction<boolean>) => {
       state.paymentModal = action.payload;
     },
+    setInPayment: (state, action: PayloadAction<boolean>) => {
+      state.inPayment = action.payload;
+    },
     resetDriverRideInSlice: () => initialState,
   },
 });
@@ -125,7 +122,6 @@ export const {
   setDDropOffCoordsInSlice,
   setDRouteCoordsInSlice,
   setDDriverRouteInSlice,
-  // setDRemainingRouteInSlice,
   setDDropOffIndex,
   setDPickupIndex,
   setDIsRideStartedInSlice,
@@ -137,6 +133,7 @@ export const {
   setDRideIdInSlice,
   openOTPModal,
   openPaymentModal,
+  setInPayment
 } = driverRideSlice.actions;
 
 export default driverRideSlice.reducer;

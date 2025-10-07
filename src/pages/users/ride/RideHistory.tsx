@@ -6,23 +6,6 @@ import RideHistoryTable from "@/components/RideHistoryTable";
 import { Pagination } from "antd";
 import { useNavigate } from "react-router-dom";
 import { IRideHistoryItem } from "@/interfaces/fullRideInfo.interface";
-
-// export interface IRideHistoryItem {
-//   _id: string;
-//   pickupLocation: string;
-//   dropOffLocation: string;
-//   totalFare: number;
-//   distance: number;
-//   estTime: number;
-//   timeTaken?: number;
-//   status: "completed" | "cancelled" | "ongoing";
-//   startedAt?: number;
-//   endedAt?: number;
-//   canceledAt?: number;
-//   paymentStatus: "completed" | "pending" | "failed";
-//   driverId: string;
-// }
-
 const RideHistory = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [rideHistory, setRideHistory] = useState<IRideHistoryItem[]>([]);

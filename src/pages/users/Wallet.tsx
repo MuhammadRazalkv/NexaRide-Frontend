@@ -17,29 +17,18 @@ import { message, Pagination } from "antd";
 import WaitingModal from "@/components/user/WaitingModal";
 import { formatDate, formatTime } from "@/utils/DateAndTimeFormatter";
 import Loader from "@/components/Loader";
-interface IWallet {
-  balance: number;
-  transactions?: [
-    {
-      type: string;
-      date: number;
-      amount: number;
-    }
-  ];
-}
+import { UserWallet } from "@/interfaces/wallet.interface";
 
 const Wallet = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [fetchingData, setFetchingData] = useState(false);
   const [amount, setAmount] = useState<number | null>(null);
   const [amountError, setAmountError] = useState<string | null>(null);
-  // const [page, setPages] = useState(0);
-  // const [hasMore, setHasMore] = useState(false);
-  //   const navigate = useNavigate();
+
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [messageApi, contextHolder] = message.useMessage();
-  const [wallet, setWallet] = useState<IWallet | null>();
+  const [wallet, setWallet] = useState<UserWallet | null>();
   const [loading, setLoading] = useState(false);
   useEffect(() => {
     const fetchWalletInfo = async () => {
@@ -61,7 +50,7 @@ const Wallet = () => {
       }
     };
     fetchWalletInfo();
-  }, [messageApi,currentPage]);
+  }, [messageApi, currentPage]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const amount = parseInt(e.target.value);

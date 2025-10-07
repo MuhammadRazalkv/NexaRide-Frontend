@@ -4,7 +4,7 @@ import { IMessage } from "@/interfaces/chat.interface";
 import { AppDispatch } from "@/redux/store";
 import { setRideIdInSlice } from "@/redux/slices/rideSlice";
 import { message } from "antd";
-import { IRideReqInfo } from "@/pages/driver/ride/DRide";
+import { IRideReqInfo } from "@/interfaces/ride.interface";
 import { getLocationFromCoords, getRouteDetails } from "@/utils/geoApify";
 import { openPaymentModal } from "@/redux/slices/driverRideSlice";
 import { DriverTrackingService } from "@/services/DriverTrackingService";

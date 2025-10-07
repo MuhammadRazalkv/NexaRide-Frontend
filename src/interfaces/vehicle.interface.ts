@@ -19,3 +19,24 @@ export default interface IVehicle {
   verified: boolean;
   category?: string;
 }
+
+export interface IPendingVehicle {
+  _id: string;
+  nameOfOwner: string;
+  addressOfOwner: string;
+  brand: string;
+  vehicleModel: string;
+  color: string;
+  numberPlate: string;
+  regDate: Date;
+  expDate: Date;
+  status: string;
+  insuranceProvider: string;
+  policyNumber: string;
+  vehicleImages: {
+    frontView: string;
+    rearView: string;
+    interiorView: string;
+  };
+  category?: string;
+}

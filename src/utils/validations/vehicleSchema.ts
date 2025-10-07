@@ -5,7 +5,7 @@ function validateLicensePlate(numberPlate: string): boolean {
   return regex.test(numberPlate);
 }
 export const vehicleSchema = yup.object().shape({
-  firstName: yup.string().required("First name is required"),
+  firstName: yup.string().required("First name is required").max(15,'Name cannot exceed 15 char'),
   lastName: yup.string().default("").optional(),
   address: yup.string().required("Street address is required"),
   brand: yup.string().required("Vehicle brand is required"),

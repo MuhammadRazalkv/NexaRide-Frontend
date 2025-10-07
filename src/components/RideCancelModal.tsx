@@ -8,7 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { IRideReqInfo } from "@/pages/driver/ride/DRide";
+import { IRideReqInfo } from "@/interfaces/ride.interface";
 import { RideInfo } from "@/utils/socket";
 interface RideCancelModalProps {
   isCancelOpen: boolean;

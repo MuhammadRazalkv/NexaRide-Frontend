@@ -3,13 +3,9 @@ import SubHistoryTable from "@/components/user/SubHistoryTable";
 import { useEffect, useState } from "react";
 import { message, Pagination } from "antd";
 import { subscriptionHistory } from "@/api/auth/user";
+import { ISubHistory } from "@/interfaces/subscription.interface";
 
-export interface ISubHistory {
-  amount: number;
-  expiresAt: number;
-  takenAt: number;
-  type: string;
-}
+
 const SubscriptionHistory = () => {
   const [history, setHistory] = useState<ISubHistory[]>();
   const [total, setTotal] = useState(0);

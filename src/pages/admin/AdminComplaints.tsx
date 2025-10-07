@@ -1,12 +1,4 @@
 import AdminNavBar from "@/components/admin/AdminNavbar";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-// import { IComplaintInfo } from "@/interfaces/complaint.interface";
 import { useEffect, useState } from "react";
 import { Pagination, message } from "antd";
 import {
@@ -15,23 +7,14 @@ import {
   sendWarningEmail,
   updateComplaintStatus,
 } from "@/api/auth/admin";
-import { CarTaxiFront, Loader, Loader2, UserRound } from "lucide-react";
+import { CarTaxiFront, Loader, UserRound } from "lucide-react";
 import { IRideHistoryItem } from "@/interfaces/fullRideInfo.interface";
-import { IComplaintInfo } from "@/interfaces/complaint.interface";
-import { formatTime } from "@/utils/DateAndTimeFormatter";
-
-interface IComplaintInfoWithUserAndDriver {
-  _id: string;
-  rideId: string;
-  filedById: string;
-  filedByRole: string;
-  complaintReason: string;
-  description?: string;
-  status: string;
-  createdAt: Date;
-  user: string;
-  driver: string;
-}
+import {
+  IComplaintInfo,
+  IComplaintInfoWithUserAndDriver,
+} from "@/interfaces/complaint.interface";
+import { RiUserSearchFill } from "react-icons/ri";
+import ComplaintCard from "@/components/admin/ComplaintCard";
 
 const AdminComplaints = () => {
   const [complaints, setComplaints] =
@@ -46,12 +29,21 @@ const AdminComplaints = () => {
   const [rideInfo, setRideInfo] = useState<IRideHistoryItem>();
   const [isEmailSend, setIsEmailSend] = useState(false);
   const [filter, setFilter] = useState("");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [search]);
   useEffect(() => {
     const fetchComplains = async () => {
       setLoading(true);
       try {
-        const res = await getComplaints(currentPage, filter);
-        if (res.success && res.complaints && res.total) {
+        const res = await getComplaints(currentPage, filter, debouncedSearch);
+        if (res.success) {
           setLoading(false);
           setComplaints(res.complaints);
           setTotal(res.total);
@@ -66,7 +58,7 @@ const AdminComplaints = () => {
       }
     };
     fetchComplains();
-  }, [messageApi, currentPage, filter]);
+  }, [messageApi, currentPage, filter, debouncedSearch]);
 
   const fetchComplaintInDetail = async (id: string) => {
     setFetchingData(true);
@@ -103,6 +95,8 @@ const AdminComplaints = () => {
 
   const handleSendEmail = async (id: string) => {
     try {
+      console.log('handleSendEmail',id);
+      
       setIsEmailSend(true);
       const res = await sendWarningEmail(id);
       if (res.success) {
@@ -122,11 +116,16 @@ const AdminComplaints = () => {
     }
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.trim();
+    setSearch(value);
+  };
+
   return (
     <div className="bg-[#0E1220] min-h-screen ">
       <AdminNavBar />
       {contextHolder}
-
+      {/* 
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
         <SheetContent className="bg-gray-900 border-0 h-full w-full overflow-y-auto">
           <SheetHeader>
@@ -284,13 +283,24 @@ const AdminComplaints = () => {
             )}
           </SheetHeader>
         </SheetContent>
-      </Sheet>
+      </Sheet> */}
+
+      <ComplaintCard
+        changeComplaintStatus={changeComplaintStatus}
+        complaint={complaint}
+        fetchingData={fetchingData}
+        handleSendEmail={handleSendEmail}
+        isEmailSend={isEmailSend}
+        isSheetOpen={isSheetOpen}
+        rideInfo={rideInfo}
+        setIsSheetOpen={setIsSheetOpen}
+      />
+
       <div>
         <div className="flex-1 flex items-center justify-center p-4 md:p-6 lg:p-8">
           <div className="w-full max-w-6xl mx-auto flex flex-col items-center space-y-4">
-            {/* Filter moved above table with better styling */}
-            <div className="w-full flex justify-end mb-4">
-              <div className="flex items-center gap-3">
+            <div className="w-full flex justify-between mb-4">
+              <div className="flex items-center  gap-3">
                 <label htmlFor="filter" className="text-white font-medium">
                   Filter by
                 </label>
@@ -304,6 +314,16 @@ const AdminComplaints = () => {
                   <option value="resolved">Resolved</option>
                   <option value="rejected">Rejected</option>
                 </select>
+              </div>
+              <div className="flex items-center bg-[#1E293B] px-2 p-0.5 rounded-2xl">
+                <RiUserSearchFill className="text-white" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={handleSearchChange}
+                  placeholder="Search ..."
+                  className="bg-[#1E293B] text-white rounded-md px-4 py-1.5 text-sm w-full sm:w-64 outline-none"
+                />
               </div>
             </div>
 

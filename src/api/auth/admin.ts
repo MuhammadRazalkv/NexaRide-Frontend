@@ -370,19 +370,19 @@ export async function getFares() {
   }
 }
 
-export async function getComplaints(page: number = 1, filter: string = "") {
+export async function getComplaints(
+  page: number = 1,
+  filter: string,
+  search: string
+) {
   try {
     const response = await axiosAdminInstance.get(
-      `/getComplaints?page=${page}&filter=${filter}`
+      `/getComplaints?page=${page}&filter=${filter}&search=${search}`
     );
 
     return response.data;
   } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
-      console.log(
-        "Error message from server in login :",
-        err.response.data.message
-      );
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
       console.log(err.message);
@@ -529,9 +529,11 @@ export async function getDashBoardInfo() {
   }
 }
 
-export async function getRideEarnings(page: number) {
+export async function getRideEarnings(page: number, search: string) {
   try {
-    const response = await axiosAdminInstance.get(`/rideEarnings?page=${page}`);
+    const response = await axiosAdminInstance.get(
+      `/rideEarnings?page=${page}&search=${search}`
+    );
     return response.data;
   } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
@@ -547,11 +549,13 @@ export async function getRideEarnings(page: number) {
 }
 export async function getPremiumUsers(
   page: number,
-  filter: "All" | "Active" | "InActive"
+  filter: "All" | "Active" | "InActive",
+  search: string,
+  sort: "A-Z" | "Z-A"
 ) {
   try {
     const response = await axiosAdminInstance.get(
-      `/premiumUsers?page=${page}&filter=${filter}`
+      `/premiumUsers?page=${page}&filter=${filter}&sort=${sort}&search=${search}`
     );
     return response.data;
   } catch (err: unknown) {
@@ -678,11 +682,12 @@ export async function logoutAdmin() {
 export async function adminRideHistory(
   sort: string,
   filter: "all" | "ongoing" | "canceled" | "completed",
+  search: string,
   page: number = 1
 ) {
   try {
     const response = await axiosAdminInstance.get(
-      `/rides?page=${page}&sort=${sort}&filter=${filter}`
+      `/rides?page=${page}&sort=${sort}&filter=${filter}&search=${search}`
     );
     return response.data;
   } catch (err: unknown) {

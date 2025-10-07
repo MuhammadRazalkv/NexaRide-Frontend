@@ -3,17 +3,8 @@ import { useEffect, useState } from "react";
 import { message, Pagination } from "antd";
 import { getDriverWalletInfo } from "@/api/auth/driver";
 import { formatDate } from "@/utils/DateAndTimeFormatter";
-interface IWallet {
-  balance: number;
-  transactions?: [
-    {
-      type: string;
-      date: number;
-      amount: number;
-      rideId?: string;
-    }
-  ];
-}
+import { IWallet } from "@/interfaces/wallet.interface";
+
 
 const DWallet = () => {
   const [wallet, setWallet] = useState<IWallet | null>();

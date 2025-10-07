@@ -4,6 +4,7 @@ import RideHistoryTable from "@/components/RideHistoryTable";
 import { IRideHistoryItem } from "@/interfaces/fullRideInfo.interface";
 import { message, Pagination } from "antd";
 import { useEffect, useState } from "react";
+import { RiUserSearchFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 
 const AdminRides = () => {
@@ -14,15 +15,33 @@ const AdminRides = () => {
     "all" | "ongoing" | "canceled" | "completed"
   >("all");
   const [rideHistory, setRideHistory] = useState<IRideHistoryItem[]>([]);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.trim();
+    setSearch(value);
+  };
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [search]);
   const navigate = useNavigate();
   useEffect(() => {
     const fetchHIstory = async () => {
       try {
-        const res = await adminRideHistory(sort, filterBy, currentPage);
+        const res = await adminRideHistory(
+          sort,
+          filterBy,
+          debouncedSearch,
+          currentPage
+        );
         if (res.success && res.history && res.total) {
           setTotal(res.total);
           setRideHistory(res.history);
-        }else{
+        } else {
           setTotal(0);
           setRideHistory([]);
         }
@@ -33,11 +52,11 @@ const AdminRides = () => {
     };
 
     fetchHIstory();
-  }, [currentPage, sort, filterBy]);
+  }, [currentPage, sort, filterBy, debouncedSearch]);
   const handleNavigation = (id: string) => {
     console.log("handleNavigation", id);
 
-   navigate("/admin/ride-info", { state: id });
+    navigate("/admin/ride-info", { state: id });
   };
   return (
     <div className="bg-[#0E1220] min-h-screen p-10 md:p-20  ">
@@ -58,6 +77,17 @@ const AdminRides = () => {
               <option value="old">Oldest First</option>
             </select>
           </div>
+          
+          <div className="flex items-center bg-[#1E293B] px-2 p-0.5 rounded-2xl">
+            <RiUserSearchFill className="text-white" />
+            <input
+              type="text"
+              value={search}
+              onChange={handleSearchChange}
+              placeholder="Search Pickup location..."
+              className="bg-[#1E293B] text-white rounded-md px-4 py-1.5 text-sm w-full sm:w-64 outline-none"
+            />
+          </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto text-white">
             <label htmlFor="filter" className="font-medium">
@@ -68,11 +98,7 @@ const AdminRides = () => {
               value={filterBy}
               onChange={(e) =>
                 setFilterBy(
-                  e.target.value as
-                    | "all"
-                    | "ongoing"
-                    | "canceled"
-                    | "completed"
+                  e.target.value as "all" | "ongoing" | "canceled" | "completed"
                 )
               }
               className="border border-amber-100 rounded-md px-4 py-1 outline-none bg-[#0E1220]"

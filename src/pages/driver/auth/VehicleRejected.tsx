@@ -1,5 +1,4 @@
 import { useForm } from "react-hook-form";
-
 import { Upload } from "lucide-react";
 import { useState, useEffect } from "react";
 import BinButton from "../../../components/Icons/BinBtn";
@@ -122,9 +121,6 @@ const VehicleRejected = () => {
         interiorView,
       },
     };
-    console.log("updatedData ", updatedData);
-
-    // https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/toyota/modelyear/2020?format=json
 
     try {
       const response = await reApplyVehicle(updatedData);

@@ -2,19 +2,9 @@ import AdminNavBar from "@/components/admin/AdminNavbar";
 import { useEffect, useState } from "react";
 import { message, Pagination } from "antd";
 import { getRideEarnings } from "@/api/auth/admin";
-import { useNavigate } from "react-router-dom";
-interface ICommission {
-  rideId: string;
-  driverId: string;
-  originalFare: number;
-  totalFare: number;
-  offerDiscount: number;
-  premiumDiscount: number;
-  originalCommission: number;
-  commission: number;
-  driverEarnings: number;
-  paymentMethod: string;
-}
+import { ICommission } from "@/interfaces/commission.interface";
+import EarningsTable from "@/components/admin/EarningsTable";
+import { RiUserFill } from "react-icons/ri";
 
 const AdminEarnings = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -22,13 +12,21 @@ const AdminEarnings = () => {
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [commissions, setCommissions] = useState<ICommission[]>();
   const [messageApi, contextHolder] = message.useMessage();
-  const navigate = useNavigate()
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [search]);
   useEffect(() => {
     const fetchInfo = async () => {
       try {
-        const res = await getRideEarnings(currentPage);
+        const res = await getRideEarnings(currentPage, debouncedSearch);
         console.log(res);
-        if (res.success && res.commissions && res.totalCount) {
+        if (res.success) {
           setCommissions(res.commissions);
           setTotal(res.totalCount);
         }
@@ -41,89 +39,33 @@ const AdminEarnings = () => {
       }
     };
     fetchInfo();
-  }, [messageApi, currentPage]);
+  }, [messageApi, currentPage, debouncedSearch]);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.trim();
+    setSearch(value);
+  };
   return (
     <div className="bg-[#0E1220] min-h-screen text-white">
       <AdminNavBar />
       {contextHolder}
       <div className="flex h-screen flex-col justify-center items-center gap-5 p-5">
+        <div className="flex items-center bg-[#1E293B] px-2 p-0.5 rounded-2xl">
+          <RiUserFill className="text-white" />
+          <input
+            type="text"
+            value={search}
+            onChange={handleSearchChange}
+            placeholder="Search ..."
+            className="bg-[#1E293B] text-white rounded-md px-4 py-1.5 text-sm w-full sm:w-64 outline-none"
+          />
+        </div>
         <div className="bg-[#1A2036] rounded-xl shadow-lg w-full max-w-7xl p-6">
           <h3 className="text-2xl font-semibold mb-6 text-center lg:text-left">
             Ride Earnings:{" "}
             <span className="text-green-400">{totalEarnings}</span>
           </h3>
 
-          <div className=" overflow-x-auto">
-            <table className="w-full table-auto border-collapse ">
-              <thead>
-                <tr className="bg-[#2A3441] border-b border-gray-600">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">
-                    Ride ID
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">
-                    Original Fare
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">
-                    Og Commission
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">
-                    Offer Discount
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">
-                    Premium Discount
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">
-                    Commission
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-300 uppercase tracking-wider">
-                    Driver Share
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-700">
-                {commissions?.length ? (
-                  commissions.map((item, index) => (
-                    <tr
-                      key={index}
-                      className="hover:bg-[#242B3D] transition-colors duration-200"
-                      onClick={()=> navigate('/admin/ride-info',{state:item.rideId}) }
-                    >
-                      <td className="px-4 py-4 text-sm font-medium text-white">
-                        #{item.rideId.slice(-3)}
-                      </td>
-                      <td className="px-4 py-4 text-sm text-gray-300">
-                        ₹{item.originalFare}
-                      </td>
-                      <td className="px-4 py-4 text-sm text-gray-300">
-                        ₹{item.originalCommission}
-                      </td>
-                      <td className="px-4 py-4 text-sm text-red-400">
-                        -₹{item.offerDiscount}
-                      </td>
-                      <td className="px-4 py-4 text-sm text-red-400">
-                        -₹{item.premiumDiscount}
-                      </td>
-                      <td className="px-4 py-4 text-sm text-blue-400 font-medium">
-                        ₹{item.commission}
-                      </td>
-                      <td className="px-4 py-4 text-sm text-green-400 font-medium">
-                        ₹{item.driverEarnings}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-4 py-8 text-center text-gray-400 text-lg"
-                    >
-                      No Records Found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <EarningsTable commissions={commissions} />
         </div>
 
         <Pagination

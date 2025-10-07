@@ -1,4 +1,3 @@
-// import { Landing1, Landing2, Landing3 } from "../../assets";
 import { landing1, landing2, landing3 } from "@/assets";
 import { motion } from "framer-motion";
 import Footer from "../../components/user/Footer";

@@ -14,23 +14,6 @@ import RideInfoCard from "@/components/driver/RideInfoCard";
 import { useDRide } from "@/hooks/useDRide";
 import { setDCurrentLocInSlice } from "@/redux/slices/driverRideSlice";
 
-export interface IRideReqInfo {
-  user: { id: string; name: string };
-  pickupCoords: [number, number];
-  dropOffCoords: [number, number];
-  pickupLocation: string;
-  dropOffLocation: string;
-  time?: number;
-  distance?: number;
-  fare: number;
-}
-
-export interface IDriverRoute {
-  formattedRoute: [number, number][];
-  time: number;
-  distance: number;
-  reachBy: Date;
-}
 const DRide = () => {
   const {
     messages,
@@ -41,7 +24,8 @@ const DRide = () => {
     currentLoc,
     trackingService,
     chatOn,
-    setChatOn
+    setChatOn,
+    setIsRateModalOpen
   } = useDRide();
 
   const navigate = useNavigate();
@@ -124,7 +108,7 @@ const DRide = () => {
     //   clearInterval(trackingToPickupRef.current);
     //   trackingToPickupRef.current = null;
     // }
-    trackingService.stop()
+    trackingService.stop();
   };
   const closeChat = () => {
     setChatOn(false);
@@ -176,6 +160,7 @@ const DRide = () => {
           setChatOn={setChatOn}
           setIsCancelOpen={setIsCancelOpen}
           driverRoute={driverRoute}
+          setIsRateModalOpen={setIsRateModalOpen}
         />
 
         <div className="w-full min-h-[400px] max-h-[80vh] z-0">

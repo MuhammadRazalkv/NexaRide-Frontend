@@ -164,7 +164,15 @@ const AddOffers = ({
       return;
     }
 
-    const updatedForm = { ...form };
+    const updatedForm: IOffer = {
+      ...form,
+      value: Number(form.value),
+      maxDiscount: Number(form.maxDiscount),
+      minFare: Number(form.minFare),
+      validFrom: Number(form.validFrom),
+      validTill: Number(form.validTill),
+      usageLimitPerUser: Number(form.usageLimitPerUser),
+    };
 
     if (form.type === "flat") {
       updatedForm.maxDiscount = form.value;

@@ -1,5 +1,6 @@
+import { IPendingVehicle } from "@/interfaces/vehicle.interface";
 import { useState } from "react";
-import { IPendingVehicle } from "./AdminPendingDriver";
+
 
 interface AdminPendingVehicleInfoProps {
   setShowVehicleModal: React.Dispatch<React.SetStateAction<boolean>>;

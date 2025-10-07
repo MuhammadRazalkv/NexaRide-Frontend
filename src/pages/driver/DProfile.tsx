@@ -3,7 +3,6 @@ import DNavBar from "@/components/driver/DNavBar";
 import { Default_Pfp } from "@/assets";
 import { useEffect, useState } from "react";
 import { MdEdit, MdEditSquare } from "react-icons/md";
-
 import {
   Dialog,
   DialogContent,
@@ -29,8 +28,6 @@ const DProfile = () => {
   const key = "updatable";
 
   const [toUpdate, setToUpdate] = useState<keyof IDriver | null>(null);
-
-  // const [editableFields, setEditableFields] = useState<Partial<IDriver>>({});
   const [fieldValue, setFieldValue] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -85,12 +82,6 @@ const DProfile = () => {
       setError(rule.error);
       return;
     }
-
-    // setEditableFields({
-    //     ...editableFields,
-    //     [toUpdate]: value
-    // });
-
     setFieldValue(value);
   };
 

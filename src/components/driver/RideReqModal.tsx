@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import TimeProgressBar from "@/components/Timer";
 
-import { IRideReqInfo } from "@/pages/driver/ride/DRide";
+import { IRideReqInfo } from "@/interfaces/ride.interface";
 interface RideReqProps {
   rideReqInfo: IRideReqInfo;
   isDialogOpen: boolean;

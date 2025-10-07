@@ -11,17 +11,15 @@ import { DRideContext } from "@/hooks/useDRide";
 import { useDriverSocketEvents } from "@/hooks/useDriverSocketEvents";
 import { useDriverTrackingService } from "@/hooks/useDriverTracking";
 import { IMessage } from "@/interfaces/chat.interface";
-import { IRideReqInfo } from "@/pages/driver/ride/DRide";
+import { IRideReqInfo } from "@/interfaces/ride.interface";
 import {
   openOTPModal,
-  // openPaymentModal,
   resetDriverRideInSlice,
   setDCurrentLocInSlice,
   setDDriverRouteInSlice,
   setDDropOffCoordsInSlice,
   setDIsRideStartedInSlice,
   setDPickupCoordsInSlice,
-  // setDRemainingRouteInSlice,
   setDRideIdInSlice,
   setDRidePhaseInSlice,
   setDRideReqInfoInSlice,
@@ -29,7 +27,6 @@ import {
 } from "@/redux/slices/driverRideSlice";
 import { RootState } from "@/redux/store";
 import { DriverTrackingService } from "@/services/DriverTrackingService";
-// import { DriverTrackingService } from "@/services/DriverTrackingService";
 import { fetchRoute } from "@/utils/geoApify";
 import { socket } from "@/utils/socket";
 import { message } from "antd";
@@ -46,10 +43,10 @@ export interface DSocketContextTypes {
   >;
   setMessages: React.Dispatch<React.SetStateAction<IMessage[]>>;
   clearAllStateData: () => void;
-  // trackingToPickupRef: React.MutableRefObject<NodeJS.Timeout | null>;
-  trackingService:DriverTrackingService
-  setChatOn:React.Dispatch<React.SetStateAction<boolean>>
-  chatOn:boolean
+  trackingService: DriverTrackingService;
+  setChatOn: React.Dispatch<React.SetStateAction<boolean>>;
+  chatOn: boolean;
+  setIsRateModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
@@ -100,6 +97,7 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
     // remainingRoute,
     dDropOffIndex,
     dPickupIndex,
+    inPayment,
   } = useSelector((state: RootState) => state.DRide);
 
   const clearAllStateData = () => {
@@ -135,16 +133,29 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (!firstRender) return;
 
-    if (isRideStarted) {
-      if (ridePhase == "toPickup" && driverRoute) {
+    if (isRideStarted && !inPayment) {
+      if (
+        ridePhase == "toPickup" &&
+        driverRoute &&
+        dPickupIndex < driverRoute.formattedRoute.length
+      ) {
         trackingService.start(
           driverRoute?.formattedRoute,
           dPickupIndex,
           "toPickup",
           setCurrentLoc
         );
-      } else if (ridePhase == "toDropOff" && routeCoords?.length) {
-        trackingService.start(routeCoords, dDropOffIndex, "toDropOff",setCurrentLoc);
+      } else if (
+        ridePhase == "toDropOff" &&
+        routeCoords?.length &&
+        dDropOffIndex < routeCoords.length
+      ) {
+        trackingService.start(
+          routeCoords,
+          dDropOffIndex,
+          "toDropOff",
+          setCurrentLoc
+        );
       }
     }
     setFirstRender(false);
@@ -152,21 +163,14 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
     isRideStarted,
     driverRoute,
     routeCoords,
-    // remainingRoute,
     ridePhase,
     firstRender,
     dispatch,
     dDropOffIndex,
     dPickupIndex,
     trackingService,
-    // simulatedLiveTrackingToPickUp,
-    // simulatedLiveTrackingToDropOff,
+    inPayment,
   ]);
-
-  useEffect(()=>{
-    console.log('Current location changed',currentLoc);
-    
-  },[currentLoc])
 
   const acceptRide = async (
     userId: string,
@@ -274,7 +278,12 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
         dispatch(setDRidePhaseInSlice("toDropOff"));
         dispatch(setDRideIdInSlice(response.rideId));
         if (routeCoords) {
-          trackingService.start(routeCoords, dDropOffIndex, "toDropOff",setCurrentLoc);
+          trackingService.start(
+            routeCoords,
+            dDropOffIndex,
+            "toDropOff",
+            setCurrentLoc
+          );
         }
         // else {
         //   const routeCoordsRes = await fetchRoute(
@@ -350,7 +359,8 @@ export const DRideProvider = ({ children }: { children: React.ReactNode }) => {
         setMessages,
         clearAllStateData,
         chatOn,
-        setChatOn
+        setChatOn,
+        setIsRateModalOpen,
       }}
     >
       {isDialogOpen && rideReqData && (

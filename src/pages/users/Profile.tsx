@@ -63,6 +63,8 @@ const Profile = () => {
       setNameErr(
         "Name must be at least 3 characters and contain only alphabets & spaces"
       );
+    } else if (value.length > 15) {
+      setNameErr("Name cannot exceed 15 characters");
     } else {
       setNameErr(null);
     }

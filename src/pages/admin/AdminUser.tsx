@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-// import { debounce } from "lodash";
 import AdminNavBar from "../../components/admin/AdminNavbar";
 import { getUsers, updateStatus } from "../../api/auth/admin";
 import { Pagination, message } from "antd";
@@ -13,7 +12,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-// import { RiUserSearchFill } from "react-icons/ri";
 import AdminTable from "@/components/admin/AdminTable";
 import SearchSort from "@/components/SearchSort";
 import { useNavigate } from "react-router-dom";

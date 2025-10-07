@@ -16,7 +16,6 @@ const DSignup = () => {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const { completeStep } = useSignup();
-  // const {completeStep , setGoogleAuth} = useSignup()
 
   useEffect(() => {
     if (inputRef.current) {

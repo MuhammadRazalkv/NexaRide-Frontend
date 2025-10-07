@@ -7,65 +7,8 @@ import { Car, User } from "lucide-react";
 import { message } from "antd";
 import PendingDriverInfo from "@/components/admin/PendingDriverInfo";
 import AdminPendingVehicleInfo from "./AdminPendingVehicleInfo";
-
-export interface IPendingDriver {
-  _id: string;
-  name: string;
-  email: string;
-  phone: string;
-  license_number: string;
-  vehicle_id?: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    pin_code: string;
-  };
-  dob: string;
-  status: string;
-  license_exp: string;
-  vehicleDetails: {
-    _id: string;
-    nameOfOwner: string;
-    addressOfOwner: string;
-    brand: string;
-    vehicleModel: string;
-    color: string;
-    numberPlate: string;
-    regDate: Date;
-    expDate: Date;
-    insuranceProvider: string;
-    policyNumber: string;
-    status: string;
-    category?: string;
-    vehicleImages: {
-      frontView: string;
-      rearView: string;
-      interiorView: string;
-    };
-  };
-}
-
-export interface IPendingVehicle {
-  _id: string;
-  nameOfOwner: string;
-  addressOfOwner: string;
-  brand: string;
-  vehicleModel: string;
-  color: string;
-  numberPlate: string;
-  regDate: Date;
-  expDate: Date;
-  status: string;
-  insuranceProvider: string;
-  policyNumber: string;
-  vehicleImages: {
-    frontView: string;
-    rearView: string;
-    interiorView: string;
-  };
-  category?: string;
-}
+import { IPendingDriver } from "@/interfaces/driver.interface";
+import { IPendingVehicle } from "@/interfaces/vehicle.interface";
 
 const AdminPendingDriver = () => {
   const [drivers, setDrivers] = useState<IPendingDriver[] | null>(null);
@@ -439,7 +382,14 @@ const AdminPendingDriver = () => {
       )}
 
       {showVehicleModal && selectedVehicle && (
-        <AdminPendingVehicleInfo approveVehicle={approveVehicle} handleRejectClickVehicle={handleRejectClickVehicle} selectedVehicle={selectedVehicle} setShowVehicleModal={setShowVehicleModal} setVehicleCategory={setVehicleCategory} vehicleCategory={vehicleCategory}/> 
+        <AdminPendingVehicleInfo
+          approveVehicle={approveVehicle}
+          handleRejectClickVehicle={handleRejectClickVehicle}
+          selectedVehicle={selectedVehicle}
+          setShowVehicleModal={setShowVehicleModal}
+          setVehicleCategory={setVehicleCategory}
+          vehicleCategory={vehicleCategory}
+        />
       )}
 
       {showRejectModalVehicle && (

@@ -3,6 +3,7 @@ import {
   setDPickupIndex,
   openOTPModal,
   openPaymentModal,
+  setInPayment,
 } from "@/redux/slices/driverRideSlice";
 import { AppDispatch } from "@/redux/store";
 import { AppSocket } from "@/utils/socket";
@@ -58,6 +59,7 @@ export class DriverTrackingService {
           this.socket.emit("dropOff-reached");
           this.dispatch(openPaymentModal(true));
           this.dispatch(setDDropOffIndex(0));
+          this.dispatch(setInPayment(true))
           this.messageApi.success("Ride complete! Please proceed to payment.");
         }
       }

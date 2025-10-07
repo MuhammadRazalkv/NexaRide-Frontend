@@ -24,14 +24,6 @@ const DAddInfo = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const googleAuthData = location.state;
-
-  // const [googleData,setGoogleData] = useState()
-  // useEffect(()=>{
-  //   if (googleAuthData && googleAuthData.name ) {
-  //     setGoogleData(googleAuthData.name)
-  //   }
-  // },[googleAuthData])
-
   const onSubmit = async (data: FormData) => {
     console.log("Form Data: ", data);
     const googleID = googleAuthData ? googleAuthData.id : "";

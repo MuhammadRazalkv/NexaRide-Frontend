@@ -60,19 +60,13 @@ export const RideProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (stripePayment && rideId) {
-      console.log("the payment checking useEffect worked well ");
       const checkRidePaymentStatus = async () => {
         try {
           const res = await checkPaymentStatus(rideId);
           if (res.success && res.paymentStatus == "completed") {
             setIsRateModalOpen(true);
-            // setRideFinished(true)
-            console.log("payment status completed ");
-
             dispatch(setInPaymentInSlice(false));
             dispatch(setRideCompletedInSlice(true));
-
-            // setPaymentModalOpen(false);
             setIsRateModalOpen(true);
             dispatch(setStripePaymentInSlice(false));
             setChatOn(false);

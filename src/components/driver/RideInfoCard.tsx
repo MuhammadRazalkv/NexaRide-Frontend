@@ -1,34 +1,34 @@
 import { TbMessage } from "react-icons/tb";
 import ToggleSwitch from "./ToggleSwitch";
 import { useState } from "react";
-import { updateIsAvailable } from "@/api/auth/driver";
+import { paymentStatus, updateIsAvailable } from "@/api/auth/driver";
 import { message } from "antd";
-import { IRideReqInfo, IDriverRoute } from "@/pages/driver/ride/DRide";
+import { IRideReqInfo, IDriverRoute } from "@/interfaces/ride.interface";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 type RideInfoCardProps = {
   rideReqInfo?: IRideReqInfo;
   driverRoute?: IDriverRoute;
   ridePhase: "idle" | "toPickup" | "otpVerified" | "toDropOff";
-  //   isAvailable: boolean;
   handleLocationUpdate: () => void;
-  //   handleAvailabilityChange: (val: boolean) => void;
   setChatOn: (val: boolean) => void;
   setIsCancelOpen: (val: boolean) => void;
+  setIsRateModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const RideInfoCard: React.FC<RideInfoCardProps> = ({
   rideReqInfo,
   driverRoute,
   ridePhase,
-  //   isAvailable,
   handleLocationUpdate,
-  //   handleAvailabilityChange,
   setChatOn,
   setIsCancelOpen,
+  setIsRateModalOpen,
 }) => {
   const [isAvailable, setIsAvailable] = useState(true);
   const [messageApi, contextHolder] = message.useMessage();
-
+  const { inPayment, rideId } = useSelector((state: RootState) => state.DRide);
   const handleAvailabilityChange = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -49,6 +49,21 @@ const RideInfoCard: React.FC<RideInfoCardProps> = ({
     }
   };
 
+  const checkPaymentStatus = async () => {
+    try {
+      if (!rideId) {
+        return
+      }
+      const res = await paymentStatus(rideId);
+      if (res.success && res.status == 'completed') {
+        setIsRateModalOpen(true)
+      }else{
+        messageApi.error('Payment not completed')
+      }
+    } catch (error) {
+      if (error instanceof Error) messageApi.error(error.message);
+    }
+  };
   return (
     <>
       {contextHolder}
@@ -148,6 +163,14 @@ const RideInfoCard: React.FC<RideInfoCardProps> = ({
                       })
                     : "NA"}
                 </p>
+                {inPayment && (
+                  <button
+                    onClick={checkPaymentStatus}
+                    className="w-full bg-yellow-400 text-black font-medium py-2 rounded-lg shadow-md hover:bg-yellow-500 transition duration-200"
+                  >
+                    Check Payment Status
+                  </button>
+                )}
               </>
             )}
           </div>

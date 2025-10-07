@@ -1,7 +1,7 @@
 import axios from "axios";
 import axiosDriverInstance from "../axios/driver.axios.instance";
 
-interface driverInfo {
+interface DriverInfo {
   googleId?: string;
   profilePic?: string;
   name: string;
@@ -35,6 +35,7 @@ interface vehicleInfo {
     interiorView: string;
   };
 }
+type ReApplyDriver = Omit<DriverInfo, "password">;
 
 export async function verifyEmail(email: string) {
   try {
@@ -94,7 +95,7 @@ export async function reSendOTP() {
   return response.data;
 }
 
-export async function addInfo(data: driverInfo) {
+export async function addInfo(data: DriverInfo) {
   try {
     if (!data.email) throw new Error("Email is missing");
 
@@ -215,7 +216,7 @@ export async function rejectReason() {
   }
 }
 
-export async function reApplyDriver(data: driverInfo) {
+export async function reApplyDriver(data: ReApplyDriver) {
   try {
     const response = await axiosDriverInstance.patch("/reApplyDriver", data);
 
@@ -569,7 +570,9 @@ export async function verifyRideOTP(otp: string) {
 
 export async function getDriverWalletInfo(page = 1) {
   try {
-    const response = await axiosDriverInstance.get(`/getWalletInfo?page=${page}`);
+    const response = await axiosDriverInstance.get(
+      `/getWalletInfo?page=${page}`
+    );
 
     return response.data;
   } catch (err) {
@@ -589,9 +592,11 @@ export async function getDriverWalletInfo(page = 1) {
   }
 }
 
-export async function getRideHistory(sort:'new'|'old',page: number = 1) {
+export async function getRideHistory(sort: "new" | "old", page: number = 1) {
   try {
-    const res = await axiosDriverInstance.get(`/getRideHistory?page=${page}&sort=${sort}`);
+    const res = await axiosDriverInstance.get(
+      `/getRideHistory?page=${page}&sort=${sort}`
+    );
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
@@ -689,7 +694,6 @@ export async function getEarningsSummary() {
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
-   
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
       console.log(err.message);
@@ -701,14 +705,14 @@ export async function getEarningsSummary() {
   }
 }
 
-
 export async function getRideSummary() {
   try {
-    const res = await axiosDriverInstance.get("/ride-summary?requestedBy=driver");
+    const res = await axiosDriverInstance.get(
+      "/ride-summary?requestedBy=driver"
+    );
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
-     
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
       console.log(err.message);
@@ -722,11 +726,28 @@ export async function getRideSummary() {
 
 export async function getFeedBackSummary() {
   try {
-    const res = await axiosDriverInstance.get("/feedback-summary?requestedBy=driver");
+    const res = await axiosDriverInstance.get(
+      "/feedback-summary?requestedBy=driver"
+    );
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
-     
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+export async function getEarningsBreakdown() {
+  try {
+    const res = await axiosDriverInstance.get("/earnings-breakdown");
+    return res.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
       console.log(err.message);
@@ -743,7 +764,23 @@ export async function driverLogout() {
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
-     
+      throw new Error(err.response.data.message);
+    } else if (err instanceof Error) {
+      console.log(err.message);
+      throw new Error(err.message);
+    } else {
+      console.log("Unknown error:", err);
+      throw new Error("An unexpected error occurred");
+    }
+  }
+}
+
+export async function paymentStatus(rideId: string) {
+  try {
+    const res = await axiosDriverInstance.get(`/paymentStatus/${rideId}`);
+    return res.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
       console.log(err.message);

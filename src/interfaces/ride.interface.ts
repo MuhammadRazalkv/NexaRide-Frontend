@@ -48,7 +48,25 @@ export interface IAvailableCabs {
   discountApplied?: number;
   offerTitle?: string | null;
   offerId: string | null;
-  isPremiumUser:boolean;
-  premiumDiscount:number;
+  isPremiumUser: boolean;
+  premiumDiscount: number;
   finalFare: number;
+}
+
+export interface IRideReqInfo {
+  user: { id: string; name: string };
+  pickupCoords: [number, number];
+  dropOffCoords: [number, number];
+  pickupLocation: string;
+  dropOffLocation: string;
+  time?: number;
+  distance?: number;
+  fare: number;
+}
+
+export interface IDriverRoute {
+  formattedRoute: [number, number][];
+  time: number;
+  distance: number;
+  reachBy: Date;
 }

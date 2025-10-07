@@ -52,7 +52,7 @@ const DriverRejected = () => {
     const updatedData = {
       name: `${data.firstName.trim()} ${data.lastName.trimEnd()}`,
       email: localStorage.getItem("D-email") || "",
-      password: data.password,
+      // password: data.password,
       phone: data.phone,
       license_number: data.licenseNumber.toUpperCase(),
       street: data.street,
@@ -262,43 +262,6 @@ const DriverRejected = () => {
                 )}
               </div>
             </div>
-
-            {/* Password Fields */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block font-medium text-black text-sm">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  placeholder="Password"
-                  {...register("password")}
-                  className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
-                />
-                {errors.password && (
-                  <p className="text-red-500 text-xs">
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block font-medium text-black text-sm">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  placeholder="Confirm password"
-                  {...register("confirmPassword")}
-                  className="w-full h-11 mt-3 mb-3 shadow-inner shadow-gray-500/80 p-4 rounded-3xl bg-[#EEEDED] placeholder:text-xs border border-gray-300 focus:border-blue-500 focus:outline-none text-sm"
-                />
-                {errors.confirmPassword && (
-                  <p className="text-red-500 text-xs">
-                    {errors.confirmPassword.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
             {/* Submit Button */}
             <button
               type="submit"

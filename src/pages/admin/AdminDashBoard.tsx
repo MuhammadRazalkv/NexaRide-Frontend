@@ -8,19 +8,16 @@ import { FaMapLocationDot } from "react-icons/fa6";
 import InfoCard from "@/components/admin/InfoCard";
 import { PieChartComp } from "@/components/ui/PieChar";
 import { LineChart } from "@/components/ui/LineChart";
-interface IFare {
-  basic: number;
-  premium: number;
-  luxury: number;
-}
+import { IFare } from "@/interfaces/fare.interface";
 
-type FareType = "basic" | "premium" | "luxury"; // Enforced stricter typing
+
+type FareType = "basic" | "premium" | "luxury";
 
 const AdminDashBoard = () => {
   const [fare, setFare] = useState<IFare>({
-    basic: 20,
-    premium: 20,
-    luxury: 20,
+    basic: 0,
+    premium: 0,
+    luxury: 0,
   });
   const [data, setData] = useState<{
     users: number;
@@ -70,8 +67,28 @@ const AdminDashBoard = () => {
     setFare((prevFare) => ({ ...prevFare, [type]: newValue }));
   };
 
+  const validateFare = (): boolean => {
+    if (fare.basic >= fare.premium) {
+      messageApi.error("Premium fare must be higher than Basic fare");
+      return false;
+    }
+
+    if (fare.premium >= fare.luxury) {
+      messageApi.error("Luxury fare must be higher than Premium fare");
+      return false;
+    }
+
+    if (fare.basic >= fare.luxury) {
+      messageApi.error("Luxury fare must be higher than Basic fare");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async () => {
-    console.log("Updated Fares:", fare);
+    if (!validateFare()) return;
+
     setIsLoading(true);
 
     messageApi.open({
@@ -90,15 +107,11 @@ const AdminDashBoard = () => {
           content: "Fare updated successfully",
         });
       } else {
-        throw new Error("Unexpected API response format.");
+        messageApi.error("Failed to update fare info");
       }
     } catch (error) {
-      console.error(error);
-      messageApi.open({
-        key,
-        type: "error",
-        content: "Failed to update fare info",
-      });
+      if (error instanceof Error) messageApi.error(error.message);
+      else messageApi.error("Failed to update fare info");
     } finally {
       setIsLoading(false);
     }
@@ -130,7 +143,7 @@ const AdminDashBoard = () => {
         <InfoCard
           icon={<FaCrown size={28} />}
           label="Premium Users"
-          value={data?.premiumUsers || '0'}
+          value={data?.premiumUsers || "0"}
         />
       </div>
 

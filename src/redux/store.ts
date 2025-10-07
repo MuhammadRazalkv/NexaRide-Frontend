@@ -62,6 +62,7 @@ const rootReducer = combineReducers({
         "OTPModal",
         "dPickupIndex",
         "dDropOffIndex",
+        'inPayment'
       ],
     },
     driverRideSlice

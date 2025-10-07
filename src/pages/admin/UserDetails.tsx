@@ -5,14 +5,8 @@ import ProfileHead from "@/components/admin/ProfileHead";
 import { message } from "antd";
 import { getUserInfoAdmin, getUserRideAndRating } from "@/api/auth/admin";
 import ProfileBody from "@/components/admin/ProfileBody";
-export interface IUserInfo {
-  _id: string;
-  name: string;
-  email: string;
-  phone: number;
-  isBlocked: boolean;
-  profilePic: string;
-}
+import { IUserInfo } from "@/interfaces/user.interface";
+
 const UserDetails = () => {
   const location = useLocation();
   const userId: string | null | undefined = location.state;

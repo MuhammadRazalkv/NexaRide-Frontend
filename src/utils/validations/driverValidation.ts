@@ -6,7 +6,7 @@ function validateDrivingLicense(licenseNumber: string): boolean {
 }
 
 export const driverSchema = yup.object().shape({
-  firstName: yup.string().required("First name is required"),
+  firstName: yup.string().min(2,'Name cannot be under two char').max(15,'Name cannot exceed 15 char').required("First name is required"),
   lastName: yup.string().default("").optional(),
   street: yup.string().required("Street address is required"),
   city: yup.string().required("City is required"),

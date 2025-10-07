@@ -1,15 +1,19 @@
 import { RiUserSearchFill } from "react-icons/ri";
 
-interface ISearchSort{
-    sort:"A-Z"|'Z-A';
-    search:string;
-    handleSearchChange:(e: React.ChangeEvent<HTMLInputElement>)=>void
-    setSort:(e: React.ChangeEvent<HTMLSelectElement>)=>void
+interface ISearchSort {
+  sort: "A-Z" | "Z-A";
+  search: string;
+  handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  setSort: (e: React.ChangeEvent<HTMLSelectElement>) => void;
 }
 
-const SearchSort:React.FC<ISearchSort> = ({sort,search,handleSearchChange,setSort}) => {
-
-    return (
+const SearchSort: React.FC<ISearchSort> = ({
+  sort,
+  search,
+  handleSearchChange,
+  setSort,
+}) => {
+  return (
     <div className="flex flex-col sm:flex-row  justify-between items-center mb-6 gap-4">
       <div className="flex items-center gap-3 w-full sm:w-auto">
         <label htmlFor="sort" className="text-white font-medium">
