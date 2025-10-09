@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy } from "react";
 import { useNavigate } from "react-router-dom";
 import { getStatus, updateRandomLoc } from "../../../api/auth/driver";
 import DNavBar from "@/components/driver/DNavBar";
 import { message } from "antd";
-import MapComponent from "@/components/MapComp";
+const MapComponent = lazy(() => import("@/components/MapComp"));
 import { socket } from "@/utils/socket";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -25,7 +25,7 @@ const DRide = () => {
     trackingService,
     chatOn,
     setChatOn,
-    setIsRateModalOpen
+    setIsRateModalOpen,
   } = useDRide();
 
   const navigate = useNavigate();
@@ -168,13 +168,10 @@ const DRide = () => {
             pickupCoords={pickupCoords}
             dropOffCoords={dropOffCoords}
             routeCoords={routeCoords}
-            // driverLoc={currentLoc}
             currentLocation={currentLoc}
             isRideStarted={isRideStarted}
             driverRoute={driverRoute?.formattedRoute}
-            // driverRoute={
-            //   isRideStarted ? remainingRoute : driverRoute?.formattedRoute
-            // }
+
           />
         </div>
       </div>
