@@ -1,11 +1,11 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-interface AuthState {
+export interface AdminAuthState {
   token: string | null;
 }
 
 // Initial state
-const initialState: AuthState = {
+const initialState: AdminAuthState = {
   token: null,
 };
 

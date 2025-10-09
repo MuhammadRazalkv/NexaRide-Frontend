@@ -6,7 +6,7 @@ interface Driver {
   email: string;
 }
 
-interface DriverAuthState {
+export interface DriverAuthState {
   token?: string | null;
   driver: Driver | null;
 }

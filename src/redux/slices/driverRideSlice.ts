@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { IMessage } from "@/interfaces/chat.interface";
 import { IDriverRoute, IRideReqInfo } from "@/interfaces/ride.interface";
 
-interface DriverRideState {
+export interface DriverRideState {
   rideReqInfo?: IRideReqInfo;
   pickupCoords?: [number, number];
   dropOffCoords?: [number, number];

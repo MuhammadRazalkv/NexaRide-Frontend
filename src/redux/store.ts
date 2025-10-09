@@ -1,12 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import authReducer from "./slices/authSlice";
+import authReducer, { AuthState } from "./slices/authSlice";
 import { combineReducers } from "redux";
-import driverAuthReducer from "./slices/driverAuthSlice";
-import rideReducer from "./slices/rideSlice";
-import driverRideSlice from "./slices/driverRideSlice";
-import adminAuthReducer from "@/redux/slices/adminAuthSlice";
+import driverAuthReducer, { DriverAuthState } from "./slices/driverAuthSlice";
+import rideReducer, { UserRideState } from "./slices/rideSlice";
+import driverRideSlice, { DriverRideState } from "./slices/driverRideSlice";
+import adminAuthReducer, {
+  AdminAuthState,
+} from "@/redux/slices/adminAuthSlice";
+import { PersistPartial } from "redux-persist/es/persistReducer";
 const rootReducer = combineReducers({
   auth: persistReducer(
     { key: "auth", storage, whitelist: ["user", "token"] },
@@ -62,7 +65,7 @@ const rootReducer = combineReducers({
         "OTPModal",
         "dPickupIndex",
         "dDropOffIndex",
-        'inPayment'
+        "inPayment",
       ],
     },
     driverRideSlice
@@ -78,6 +81,12 @@ export const store = configureStore({
 });
 
 export const persistor = persistStore(store);
-
-export type RootState = ReturnType<typeof store.getState>;
+export interface RootState {
+  auth: AuthState & PersistPartial;
+  driverAuth: DriverAuthState & PersistPartial;
+  adminAuth: AdminAuthState & PersistPartial;
+  ride: UserRideState & PersistPartial;
+  DRide: DriverRideState & PersistPartial;
+}
+// export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

@@ -2,7 +2,7 @@ import { DriverRoute } from "@/interfaces/ride.interface";
 import { RideInfo } from "@/utils/socket";
 import { createSlice } from "@reduxjs/toolkit";
 
-interface UserRideState {
+export interface UserRideState {
   isRideActive: boolean;
   rideInfo?:  RideInfo;
   pickupCoords: null | [number, number];
