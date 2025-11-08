@@ -5,8 +5,12 @@ function validateDrivingLicense(licenseNumber: string): boolean {
   return regex.test(licenseNumber);
 }
 
-export const driverSchema = yup.object().shape({
-  firstName: yup.string().min(2,'Name cannot be under two char').max(15,'Name cannot exceed 15 char').required("First name is required"),
+export const driverDefaultSchema = yup.object().shape({
+  firstName: yup
+    .string()
+    .min(2, "Name cannot be under two char")
+    .max(15, "Name cannot exceed 15 char")
+    .required("First name is required"),
   lastName: yup.string().default("").optional(),
   street: yup.string().required("Street address is required"),
   city: yup.string().required("City is required"),
@@ -64,18 +68,22 @@ export const driverSchema = yup.object().shape({
     })
     .required("Expiration Date is required")
     .min(new Date(), "Expiration date must not be in the past"),
-
-  password: yup
-    .string()
-    .required("Password is required")
-    .min(8, "Password must be at least 8 characters long")
-    .matches(
-      /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-      "Password must include at least one uppercase letter, one lowercase letter, one number, and one special character"
-    ),
-
-  confirmPassword: yup
-    .string()
-    .oneOf([yup.ref("password")], "Passwords must match")
-    .required("Confirm Password is required"),
 });
+
+export const driverSchema = driverDefaultSchema.concat(
+  yup.object().shape({
+    password: yup
+      .string()
+      .required("Password is required")
+      .min(8, "Password must be at least 8 characters long")
+      .matches(
+        /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        "Password must include uppercase, lowercase, number & special character"
+      ),
+
+    confirmPassword: yup
+      .string()
+      .oneOf([yup.ref("password")], "Passwords must match")
+      .required("Confirm Password is required"),
+  })
+);

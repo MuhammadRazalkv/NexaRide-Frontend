@@ -51,7 +51,7 @@ export async function verifyEmail(email: string) {
 
     if (axios.isAxiosError(error)) {
       errorMessage =
-        error.response?.data?.message || "Failed to add driver info";
+        error.response?.data?.message || "Unexpected error occurred";
     } else if (error instanceof Error) {
       errorMessage = error.message;
     }
@@ -99,7 +99,7 @@ export async function addInfo(data: DriverInfo) {
   try {
     if (!data.email) throw new Error("Email is missing");
 
-    const response = await axiosDriverInstance.post("/addInfo", { data });
+    const response = await axiosDriverInstance.post("/addInfo", { ...data });
     return response.data;
   } catch (error) {
     let errorMessage = "An unexpected error occurred";
@@ -121,7 +121,7 @@ export async function addVehicle(data: vehicleInfo) {
     if (!data.driverId)
       throw new Error("Driver info not found . Please re-signup ");
 
-    const response = await axiosDriverInstance.post("/addVehicle", { data });
+    const response = await axiosDriverInstance.post("/addVehicle", { ...data });
     return response.data;
   } catch (error) {
     let errorMessage = "An unexpected error occurred";
@@ -261,11 +261,9 @@ export async function vehicleRejectReason() {
 
 export async function reApplyVehicle(data: vehicleInfo) {
   try {
-    const response = await axiosDriverInstance.patch(
-      "/reApplyVehicle",
-      { data }
-      // { headers: { Authorization: `Bearer ${token}` } }
-    );
+    const response = await axiosDriverInstance.patch("/reApplyVehicle", {
+      ...data,
+    });
     return response.data;
   } catch (error) {
     let errorMessage = "An unexpected error occurred";
@@ -548,7 +546,7 @@ export async function verifyRideOTP(otp: string) {
     throw new Error("Please provide an OTP");
   }
   try {
-    const response = await axiosDriverInstance.post("/verifyRideOTP", { otp });
+    const response = await axiosDriverInstance.post("/verifyRideOTP", {otp});
 
     return response.data;
   } catch (err) {
@@ -616,7 +614,7 @@ export async function getRideHistory(sort: "new" | "old", page: number = 1) {
 }
 export async function getRideInfo(rideId: string) {
   try {
-    const res = await axiosDriverInstance.get(`/getRideInfo?rideId=${rideId}`);
+    const res = await axiosDriverInstance.get(`/getRideInfo?id=${rideId}`);
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
@@ -644,9 +642,9 @@ export async function submitComplaint(
   try {
     const res = await axiosDriverInstance.post(`/submitComplaint`, {
       rideId,
-      reason,
+      filedByRole:by,
+      complaintReason: reason,
       description,
-      by,
     });
     return res.data;
   } catch (err) {
@@ -777,7 +775,7 @@ export async function driverLogout() {
 
 export async function paymentStatus(rideId: string) {
   try {
-    const res = await axiosDriverInstance.get(`/paymentStatus/${rideId}`);
+    const res = await axiosDriverInstance.get(`/paymentStatus?id=${rideId}`);
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {

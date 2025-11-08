@@ -71,15 +71,10 @@ export async function updateStatus(id: string) {
     const response = await axiosAdminInstance.patch("/user/changeStatus", {
       id,
     });
-    console.log(response.data);
 
     return response.data;
   } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
-      console.log(
-        "Error message from server in login :",
-        err.response.data.message
-      );
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
       console.log(err.message);
@@ -180,16 +175,15 @@ export async function getPendingDrivers() {
   }
 }
 
-export async function rejectDriver(driverId: string, reason: string) {
+export async function rejectDriver(id: string, reason: string) {
   try {
-    if (!driverId || !reason) {
+    if (!id || !reason) {
       return;
     }
     const response = await axiosAdminInstance.patch("/reject-driver", {
-      driverId,
+      id,
       reason,
     });
-    console.log(response.data);
 
     return response.data;
   } catch (err: unknown) {
@@ -209,23 +203,19 @@ export async function rejectDriver(driverId: string, reason: string) {
   }
 }
 
-export async function approveDriver(driverId: string) {
+export async function approveDriver(id: string) {
   try {
-    if (!driverId) {
+    if (!id) {
       return;
     }
     const response = await axiosAdminInstance.patch("/approve-driver", {
-      driverId,
+      id,
     });
     console.log(response.data);
 
     return response.data;
   } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
-      console.log(
-        "Error message from reject vehicle :",
-        err.response.data.message
-      );
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
       console.log(err.message);
@@ -265,14 +255,14 @@ export async function getVehicleById(vehicleId: string) {
   }
 }
 
-export async function approveVehicleById(vehicleId: string, category: string) {
+export async function approveVehicleById(id: string, category: string) {
   try {
-    if (!vehicleId) {
+    if (!id) {
       throw new Error("Vehicle ID is required");
     }
 
     const response = await axiosAdminInstance.patch("/approve-vehicle", {
-      vehicleId,
+      id,
       category,
     });
 
@@ -301,7 +291,7 @@ export async function rejectVehicleById(vehicleId: string, reason: string) {
     }
 
     const response = await axiosAdminInstance.patch("/reject-vehicle", {
-      vehicleId,
+      id: vehicleId,
       reason,
     });
 
@@ -328,10 +318,7 @@ export async function updateFare(fare: Fare) {
     if (!fare) {
       throw new Error("Fare info missing");
     }
-
-    const response = await axiosAdminInstance.put(`/updateFare`, {
-      fare,
-    });
+    const response = await axiosAdminInstance.put(`/updateFare`, { ...fare });
 
     return response.data;
   } catch (err: unknown) {
@@ -397,7 +384,7 @@ export async function getComplaints(
 export async function getComplaintInDetail(id: string) {
   try {
     const response = await axiosAdminInstance.get(
-      `/getComplaintInDetail?complaintId=${id}`
+      `/getComplaintInDetail?id=${id}`
     );
 
     return response.data;
@@ -424,7 +411,7 @@ export async function updateComplaintStatus(
 ) {
   try {
     const response = await axiosAdminInstance.patch(`/changeComplaintStatus`, {
-      complaintId,
+      id: complaintId,
       type,
     });
 
@@ -444,7 +431,7 @@ export async function updateComplaintStatus(
 export async function sendWarningEmail(complaintId: string) {
   try {
     const response = await axiosAdminInstance.post(`/sendWarningMail`, {
-      complaintId,
+      id: complaintId,
     });
 
     return response.data;
@@ -481,7 +468,7 @@ export async function addOffers(data: IOffer) {
 export async function changeOfferStatus(offerId: string) {
   try {
     const response = await axiosAdminInstance.patch(`/changeOfferStatus`, {
-      offerId,
+      id: offerId,
     });
     return response.data;
   } catch (err: unknown) {
@@ -574,7 +561,7 @@ export async function getPremiumUsers(
 export async function getDriverInfo(driverId: string) {
   try {
     const response = await axiosAdminInstance.get(
-      `/driver-info?driverId=${driverId}`
+      `/driver-info?id=${driverId}`
     );
     return response.data;
   } catch (err: unknown) {
@@ -592,7 +579,7 @@ export async function getDriverInfo(driverId: string) {
 export async function getDriverRideAndRating(driverId: string) {
   try {
     const response = await axiosAdminInstance.get(
-      `/driver-ride-rating?driverId=${driverId}`
+      `/driver-ride-rating?id=${driverId}`
     );
     return response.data;
   } catch (err: unknown) {
@@ -610,7 +597,7 @@ export async function getDriverRideAndRating(driverId: string) {
 export async function getVehicleInfoForDriver(driverId: string) {
   try {
     const response = await axiosAdminInstance.get(
-      `/vehicle-info?driverId=${driverId}`
+      `/vehicle-info?id=${driverId}`
     );
     return response.data;
   } catch (err: unknown) {
@@ -628,9 +615,7 @@ export async function getVehicleInfoForDriver(driverId: string) {
 
 export async function getUserInfoAdmin(userId: string) {
   try {
-    const response = await axiosAdminInstance.get(
-      `/user-info?userId=${userId}`
-    );
+    const response = await axiosAdminInstance.get(`/user-info?id=${userId}`);
     return response.data;
   } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {
@@ -648,7 +633,7 @@ export async function getUserInfoAdmin(userId: string) {
 export async function getUserRideAndRating(userId: string) {
   try {
     const response = await axiosAdminInstance.get(
-      `/user-ride-rating?userId=${userId}`
+      `/user-ride-rating?id=${userId}`
     );
     return response.data;
   } catch (err: unknown) {
@@ -704,7 +689,7 @@ export async function adminRideHistory(
 }
 export async function adminRideInfo(rideId: string) {
   try {
-    const response = await axiosAdminInstance.get(`/ride?rideId=${rideId}`);
+    const response = await axiosAdminInstance.get(`/ride?id=${rideId}`);
     return response.data;
   } catch (err: unknown) {
     if (axios.isAxiosError(err) && err.response) {

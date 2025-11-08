@@ -10,11 +10,10 @@ interface CheckCabs {
 
 //! sending email to backend to verify it
 export async function sendEmail(email: string) {
-
-   try {
+  try {
     const response = await axiosUserInstance.post("/verify-email", {
-    email,
-  });
+      email,
+    });
     return response.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
@@ -106,10 +105,14 @@ export async function login(email: string, password: string) {
     if (!email || !password) {
       throw new Error("Fields are missing");
     }
-    const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/user/login`, {
-      email,
-      password,
-    },{withCredentials:true});
+    const response = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/user/login`,
+      {
+        email,
+        password,
+      },
+      { withCredentials: true }
+    );
     console.log(response.data);
 
     return response.data;
@@ -328,7 +331,7 @@ export async function updateUserProfilePic(image: string) {
 export async function checkCabs(data: CheckCabs) {
   try {
     const res = await axiosUserInstance.post("/checkCabs", {
-      data,
+      ...data,
     });
     return res.data;
   } catch (err) {
@@ -371,7 +374,7 @@ export async function addMoneyToWallet(amount: number) {
   }
 }
 
-export async function getWalletInfo(page:number = 1) {
+export async function getWalletInfo(page: number = 1) {
   try {
     const res = await axiosUserInstance.get(`/getWalletInfo?page=${page}`);
     return res.data;
@@ -395,7 +398,7 @@ export async function getWalletInfo(page:number = 1) {
 export async function payUsingWallet(rideId: string) {
   try {
     const response = await axiosUserInstance.post("/payUsingWallet", {
-      rideId,
+      id: rideId,
     });
     return response.data;
   } catch (err) {
@@ -417,7 +420,7 @@ export async function payUsingWallet(rideId: string) {
 
 export async function checkPaymentStatus(rideId: string) {
   try {
-    const res = await axiosUserInstance.get(`/checkPaymentStatus/${rideId}`);
+    const res = await axiosUserInstance.get(`/checkPaymentStatus?id=${rideId}`);
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
@@ -438,7 +441,7 @@ export async function checkPaymentStatus(rideId: string) {
 export async function payUsingStripe(rideId: string) {
   try {
     const res = await axiosUserInstance.post("/payUsingStripe", {
-      rideId,
+      id: rideId,
     });
     return res.data;
   } catch (err) {
@@ -458,9 +461,11 @@ export async function payUsingStripe(rideId: string) {
   }
 }
 
-export async function getRideHistory(sort:'new'|'old',page: number = 1) {
+export async function getRideHistory(sort: "new" | "old", page: number = 1) {
   try {
-    const res = await axiosUserInstance.get(`/getRideHistory?page=${page}&sort=${sort}`);
+    const res = await axiosUserInstance.get(
+      `/getRideHistory?page=${page}&sort=${sort}`
+    );
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
@@ -481,7 +486,7 @@ export async function getRideHistory(sort:'new'|'old',page: number = 1) {
 
 export async function getRideInfo(rideId: string) {
   try {
-    const res = await axiosUserInstance.get(`/getRideInfo?rideId=${rideId}`);
+    const res = await axiosUserInstance.get(`/getRideInfo?id=${rideId}`);
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
@@ -509,9 +514,9 @@ export async function submitComplaint(
   try {
     const res = await axiosUserInstance.post(`/submitComplaint`, {
       rideId,
-      reason,
+      filedByRole: by,
+      complaintReason: reason,
       description,
-      by,
     });
     return res.data;
   } catch (err) {
@@ -579,7 +584,6 @@ export async function checkSubscriptionStatus() {
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
-     
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
       console.log(err.message);
@@ -596,7 +600,6 @@ export async function getRideSummary() {
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
-     
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
       console.log(err.message);
@@ -609,11 +612,12 @@ export async function getRideSummary() {
 }
 export async function getTransactionSummary() {
   try {
-    const res = await axiosUserInstance.get("/payment-summary?requestedBy=user");
+    const res = await axiosUserInstance.get(
+      "/payment-summary?requestedBy=user"
+    );
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
-     
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
       console.log(err.message);
@@ -626,11 +630,12 @@ export async function getTransactionSummary() {
 }
 export async function getFeedBackSummary() {
   try {
-    const res = await axiosUserInstance.get("/feedback-summary?requestedBy=user");
+    const res = await axiosUserInstance.get(
+      "/feedback-summary?requestedBy=user"
+    );
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
-     
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
       console.log(err.message);
@@ -641,13 +646,14 @@ export async function getFeedBackSummary() {
     }
   }
 }
-export async function subscriptionHistory(page:number = 1) {
+export async function subscriptionHistory(page: number = 1) {
   try {
-    const res = await axiosUserInstance.get(`/subscription-history?page=${page}`);
+    const res = await axiosUserInstance.get(
+      `/subscription-history?page=${page}`
+    );
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
-     
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
       console.log(err.message);
@@ -664,7 +670,6 @@ export async function userLogout() {
     return res.data;
   } catch (err) {
     if (axios.isAxiosError(err) && err.response) {
-     
       throw new Error(err.response.data.message);
     } else if (err instanceof Error) {
       console.log(err.message);
@@ -675,7 +680,3 @@ export async function userLogout() {
     }
   }
 }
-
-
-
-

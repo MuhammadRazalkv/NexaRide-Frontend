@@ -7,9 +7,9 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { reApplyDriver } from "../../../api/auth/driver";
-import { driverSchema } from "@/utils/validations/driverValidation";
+import { driverDefaultSchema } from "@/utils/validations/driverValidation";
 
-export type FormData = yup.InferType<typeof driverSchema>;
+export type FormData = yup.InferType<typeof driverDefaultSchema>;
 const DriverRejected = () => {
   const [showForm, setShowForm] = useState(false);
   const [reason, setReason] = useState("");
@@ -19,7 +19,7 @@ const DriverRejected = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: yupResolver(driverSchema),
+    resolver: yupResolver(driverDefaultSchema),
   });
 
   const token = useSelector((state: RootState) => state.driverAuth.token);

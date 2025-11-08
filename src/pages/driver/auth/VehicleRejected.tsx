@@ -25,9 +25,8 @@ const VehicleRejected = () => {
       try {
         const res = await vehicleRejectReason();
         if (res) {
-          console.log("res ", res);
 
-          setReason(res.reason || "Because your some details are incorrect");
+          setReason(res.response || "Because your some details are incorrect");
         }
       } catch (error) {
         if (error instanceof Error) message.error(error.message);
@@ -124,12 +123,7 @@ const VehicleRejected = () => {
 
     try {
       const response = await reApplyVehicle(updatedData);
-      if (response) {
-        console.log("Response   ", response);
-        const driver = response.driver;
-        // localStorage.clear();
-        console.log("driver data in the add vehicle page ", driver);
-
+      if (response.success) {
         navigate("/driver/ride");
       }
     } catch (error) {
