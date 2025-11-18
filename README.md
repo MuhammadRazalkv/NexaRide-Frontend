@@ -1,50 +1,108 @@
-# React + TypeScript + Vite
+# 🚖 NexaRide Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Modern frontend for the **NexaRide Taxi Service** built with **React, TypeScript, Redux Toolkit, TailwindCSS, Socket.IO**, and **Geoapify Maps**.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Overview
 
-## Expanding the ESLint configuration
+The NexaRide frontend provides a smooth and modern user experience for booking rides, tracking drivers, managing wallets, and handling ride‑related interactions.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+This project focuses on:
 
-- Configure the top-level `parserOptions` property like this:
+* Fast and responsive UI
+* Clean state management using Redux Toolkit
+* Real‑time communication with Socket.IO
+* Map & routing features using Geoapify APIs
+* Modular and maintainable code structure
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+---
+
+## 📁 Project Structure (Simplified)
+
+```
+src/
+  api/             → Axios instances & API calls
+  components/      → Reusable UI components
+  pages/           → App pages (Home, Login, Ride, Wallet...)
+  routes/          → App routing configuration
+  utils/           → Helper functions
+  App.tsx          → Root component
+  main.tsx         → Entry point
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+---
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+## 🧩 Key Features
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+* 🔐 **Google Login + JWT Auth**
+* 📍 **Location search & address autocomplete** (Geoapify)
+* 🗺️ **Route drawing + distance/time calculation**
+* 🔄 **Real‑time ride status updates** (Socket.IO)
+* 🚕 **Driver search, ride assignment, ride progress UI**
+* 💳 **Wallet system + Stripe payments**
+* ⚡ **Optimized state management using Redux Toolkit**
+* 🎨 **TailwindCSS for modern UI**
+
+---
+
+## 🛠️ Tech Stack
+
+* **React 18 + TypeScript**
+* **Redux Toolkit**
+* **React Router DOM**
+* **Socket.IO Client**
+* **Geoapify Maps API**
+* **TailwindCSS + ShadCN UI**
+* **Vite** (build tool)
+
+---
+
+## ▶️ Running the Project
+
+### 1️⃣ Install dependencies
+
 ```
+npm install
+```
+
+### 2️⃣ Add environment variables
+
+Create a `.env` file:
+
+```
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+VITE_GEOAPI_KEY=your_geoapi_key
+
+VITE_BACKEND_URL=your_backend_url
+```
+
+### 3️⃣ Start the dev server
+
+```
+npm run dev
+```
+
+The app runs at:
+
+```
+http://localhost:5173
+```
+
+---
+
+## 📦 Build for Production
+
+```
+npm run build
+```
+
+Output will be generated in the `dist/` folder.
+
+---
+
+## 📌 Notes
+
+* Make sure the backend (NexaRide server) is running for all real‑time and API features.
+* Geoapify APIs require a valid API key.
+
