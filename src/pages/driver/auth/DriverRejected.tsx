@@ -50,8 +50,10 @@ const DriverRejected = () => {
   const onSubmit = async (data: FormData) => {
     console.log("Form Data: ", data);
     const updatedData = {
-      name: `${data.firstName.trim()} ${data.lastName.trimEnd()}`,
-      email: localStorage.getItem("D-email") || "",
+      name: `${data.firstName.trim()} ${
+        data.lastName ? data.lastName.trimEnd() : ""
+      }`,
+      // email: localStorage.getItem("D-email") || "",
       // password: data.password,
       phone: data.phone,
       license_number: data.licenseNumber.toUpperCase(),

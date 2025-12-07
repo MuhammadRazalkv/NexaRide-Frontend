@@ -5,7 +5,6 @@ interface DriverInfo {
   googleId?: string;
   profilePic?: string;
   name: string;
-  email: string;
   password: string;
   phone: string;
   license_number: string;
@@ -18,7 +17,7 @@ interface DriverInfo {
 }
 
 interface vehicleInfo {
-  driverId?: string;
+  // driverId?: string;
   nameOfOwner: string;
   addressOfOwner: string;
   brand: string;
@@ -97,9 +96,20 @@ export async function reSendOTP() {
 
 export async function addInfo(data: DriverInfo) {
   try {
-    if (!data.email) throw new Error("Email is missing");
-
-    const response = await axiosDriverInstance.post("/addInfo", { ...data });
+    // if (!data.email) throw new Error("Email is missing");
+    const sessionId = localStorage.getItem("sessionId");
+    if (!sessionId) {
+      throw new Error("Session id missing");
+    }
+    const response = await axiosDriverInstance.post(
+      "/addInfo",
+      { ...data },
+      {
+        headers: {
+          "x-signup-session": sessionId,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     let errorMessage = "An unexpected error occurred";
@@ -118,22 +128,33 @@ export async function addInfo(data: DriverInfo) {
 
 export async function addVehicle(data: vehicleInfo) {
   try {
-    if (!data.driverId)
-      throw new Error("Driver info not found . Please re-signup ");
+    // if (!data.driverId)
+    //   throw new Error("Driver info not found . Please re-signup ");
 
-    const response = await axiosDriverInstance.post("/addVehicle", { ...data });
+    const sessionId = localStorage.getItem("sessionId");
+    if (!sessionId) {
+      throw new Error("Session id missing");
+    }
+    const response = await axiosDriverInstance.post(
+      "/addVehicle",
+      { ...data },
+      {
+        headers: {
+          "x-signup-session": sessionId,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     let errorMessage = "An unexpected error occurred";
 
     if (axios.isAxiosError(error)) {
       errorMessage =
-        error.response?.data?.message || "Failed to add driver info";
+        error.response?.data?.message || "Failed to add vehicle info";
     } else if (error instanceof Error) {
       errorMessage = error.message;
     }
 
-    console.error("Error in addInfo:", errorMessage);
     throw new Error(errorMessage);
   }
 }
@@ -546,7 +567,7 @@ export async function verifyRideOTP(otp: string) {
     throw new Error("Please provide an OTP");
   }
   try {
-    const response = await axiosDriverInstance.post("/verifyRideOTP", {otp});
+    const response = await axiosDriverInstance.post("/verifyRideOTP", { otp });
 
     return response.data;
   } catch (err) {
@@ -642,7 +663,7 @@ export async function submitComplaint(
   try {
     const res = await axiosDriverInstance.post(`/submitComplaint`, {
       rideId,
-      filedByRole:by,
+      filedByRole: by,
       complaintReason: reason,
       description,
     });

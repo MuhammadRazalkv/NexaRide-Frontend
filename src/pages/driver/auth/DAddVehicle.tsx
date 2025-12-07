@@ -9,8 +9,9 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useNavigate } from "react-router-dom";
 import { addVehicle } from "../../../api/auth/driver";
 import { useDispatch } from "react-redux";
-import { signUpSuccess } from "@/redux/slices/driverAuthSlice";
+import { loginSuccessDriver } from "@/redux/slices/driverAuthSlice";
 import { vehicleSchema } from "@/utils/validations/vehicleSchema";
+import { message } from "@/constants/declaration";
 
 export type FormData = yup.InferType<typeof vehicleSchema>;
 const DAddVehicle = () => {
@@ -23,7 +24,7 @@ const DAddVehicle = () => {
   const [isChecked, setIsChecked] = useState(false);
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
-
+  const [success, setSuccess] = useState("");
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
     setImage: (image: string) => void,
@@ -95,16 +96,16 @@ const DAddVehicle = () => {
       return;
     }
 
-    const driverId = localStorage.getItem("driverId");
-    if (!driverId) {
-      setError("Driver id is missing");
-      setTimeout(() => {
-        navigate("/driver/signup");
-      }, 1000);
-    }
-    console.log("data ", data);
+    // const driverId = localStorage.getItem("driverId");
+    // if (!driverId) {
+    //   setError("Driver id is missing");
+    //   setTimeout(() => {
+    //     navigate("/driver/signup");
+    //   }, 1000);
+    // }
+
     const updatedData = {
-      driverId: driverId || "",
+      // driverId: driverId || "",
       nameOfOwner: `${data.firstName.trimStart()} ${
         data.lastName.trimEnd() || ""
       }`,
@@ -123,7 +124,6 @@ const DAddVehicle = () => {
         interiorView,
       },
     };
-    console.log("updatedData ", updatedData);
 
     // https://vpic.nhtsa.dot.gov/api/vehicles/GetModelsForMakeYear/make/toyota/modelyear/2020?format=json
 
@@ -131,14 +131,16 @@ const DAddVehicle = () => {
       setLoading(true);
       const response = await addVehicle(updatedData);
       if (response) {
+        setSuccess("Your account has been created successfully.");
         setLoading(false);
-        console.log("Response   ", response);
         const driver = response.driver;
         localStorage.clear();
-        console.log("driver data in the add vehicle page ", driver);
-
-        dispatch(signUpSuccess({ driverInfo: driver }));
-        navigate("/driver/verification-pending");
+        setTimeout(() => {
+          dispatch(
+            loginSuccessDriver({ driverInfo: driver, token: response.token })
+          );
+          navigate("/driver/verification-pending");
+        }, 2000);
       }
     } catch (error) {
       setLoading(false);
@@ -163,6 +165,7 @@ const DAddVehicle = () => {
           <LabelStepper count={3} step={4} />
         </div>
         {error && <p className="text-red-500 mt-3 text-xs">{error}</p>}
+        {error && <p className="text-green-500 mt-3 text-xs">{success}</p>}
 
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -441,14 +444,7 @@ const DAddVehicle = () => {
             <div className="flex items-center justify-center w-6 h-6">
               <Checkbox isChecked={isChecked} onChange={changeCheckBox} />
             </div>
-            <p className="text-xs text-gray-500 font-medium">
-              I certify that the information given on this form is true and
-              correct to the best of my knowledge. I understand that as a
-              volunteer driver, I must be 18 years of age or older, possess a
-              valid driver’s license, have the proper and current license and
-              vehicle registration, and have the required insurance coverage in
-              effect on any vehicle used to transport participants of the event.
-            </p>
+            <p className="text-xs text-gray-500 font-medium">{message}</p>
           </div>
 
           {/* Submit Button */}

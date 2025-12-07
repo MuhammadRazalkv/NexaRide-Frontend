@@ -1,21 +1,21 @@
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
 import { useState } from "react";
 import LabelStepper from "../../../components/user/Stepper";
 import { addInfo } from "../../../api/auth/driver";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSignup } from "../../../hooks/useSignup";
-import { driverSchema } from "@/utils/validations/driverValidation";
-
-export type FormData = yup.InferType<typeof driverSchema>;
+import {
+  DriverSchema,
+  driverSchema,
+} from "@/utils/validations/driverValidation";
 
 const DAddInfo = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormData>({
+  } = useForm<DriverSchema>({
     resolver: yupResolver(driverSchema),
   });
 
@@ -24,13 +24,14 @@ const DAddInfo = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const googleAuthData = location.state;
-  const onSubmit = async (data: FormData) => {
-    console.log("Form Data: ", data);
+  const onSubmit = async (data: DriverSchema) => {
     const googleID = googleAuthData ? googleAuthData.id : "";
     const profilePic = googleAuthData ? googleAuthData.picture : "";
     const updatedData = {
-      name: `${data.firstName.trim()} ${data.lastName.trimEnd()}`,
-      email: localStorage.getItem("D-email") || "",
+      name: `${data.firstName.trim()} ${
+        data.lastName ? data.lastName.trimEnd() : ""
+      }`,
+      // email: localStorage.getItem("D-email") || "",
       password: data.password,
       phone: data.phone,
       license_number: data.licenseNumber.toUpperCase(),
@@ -45,11 +46,9 @@ const DAddInfo = () => {
     };
 
     try {
-      console.log("req.body.data", updatedData);
-
       const response = await addInfo(updatedData);
-      if (response && response.driverId) {
-        localStorage.setItem("driverId", response.driverId);
+      if (response) {
+        // localStorage.setItem("driverId", response.driverId);
         completeStep(4);
         navigate("/driver/addVehicle");
       }

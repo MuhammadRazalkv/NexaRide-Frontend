@@ -173,8 +173,6 @@ const DLogin = () => {
       try {
         const response = await forgotPass(email);
         if (response) {
-          console.log("Response in forgot password", response);
-
           setSuccess(response.message);
           setLoading(false);
         }

@@ -118,7 +118,8 @@ const DOtp = () => {
       if (response) {
         completeStep(3);
         localStorage.removeItem("otpExpiration");
-
+        localStorage.removeItem("D-email");
+        localStorage.setItem("sessionId", response.sessionId);
         setLoading(false);
         navigate("/driver/addInfo");
       }
@@ -151,14 +152,12 @@ const DOtp = () => {
         setIsRunning(true); // Restart the timer
       }
     } catch (err: unknown) {
-      setTimeout(() => {
-        setLoading(false);
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("An unexpected error occurred");
-        }
-      }, 1000);
+      setLoading(false);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unexpected error occurred");
+      }
     }
   };
 

@@ -60,10 +60,6 @@ const DriverRoutes = () => {
         <Route path="/reset-password" element={<DResetPassword />} />
 
         {/* Protected Routes */}
-        <Route
-          path="/verification-pending"
-          element={<DVerificationPending />}
-        />
 
         <Route
           element={
@@ -72,6 +68,10 @@ const DriverRoutes = () => {
             // </DRideProvider>
           }
         >
+          <Route
+            path="/verification-pending"
+            element={<DVerificationPending />}
+          />
           <Route path="/ride" element={<DRide />} />
           <Route path="/rejected" element={<DriverRejected />} />
           <Route path="/vehicle-rejected" element={<VehicleRejected />} />
